@@ -75,28 +75,28 @@ MOTION_CSS = """
    3/4 out of growth, the same volume into induction. Both vessels are 29 units
    wide, so equal heights are equal volumes. Timed here; the page re-points
    these at the reader's scroll. */
-.lvl{ transform-box: fill-box; transform-origin: 50% 100%; }
-#GROWTH{ animation: growthLevel 9s linear infinite alternate; }
-#INDUCT{ animation: inductLevel 9s linear infinite alternate; }
-#clipGrowthRect{ animation: growthClip 9s linear infinite alternate; }
-#clipInductRect{ animation: inductClip 9s linear infinite alternate; }
+.tr-lvl{ transform-box: fill-box; transform-origin: 50% 100%; }
+#GROWTH{ animation: tr-growthLevel 9s linear infinite alternate; }
+#INDUCT{ animation: tr-inductLevel 9s linear infinite alternate; }
+#clipGrowthRect{ animation: tr-growthClip 9s linear infinite alternate; }
+#clipInductRect{ animation: tr-inductClip 9s linear infinite alternate; }
 
-@keyframes growthLevel{ from{ transform: scaleY(1); } to{ transform: scaleY(.25); } }
-@keyframes inductLevel{ from{ transform: scaleY(1); } to{ transform: scaleY(1.46); } }
-@keyframes growthClip { from{ y: 64.5; height: 15.5; } to{ y: 75.65; height: 4.35; } }
-@keyframes inductClip { from{ y: 58.1; height: 23.9; } to{ y: 47.60; height: 34.4; } }
+@keyframes tr-growthLevel{ from{ transform: scaleY(1); } to{ transform: scaleY(.25); } }
+@keyframes tr-inductLevel{ from{ transform: scaleY(1); } to{ transform: scaleY(1.46); } }
+@keyframes tr-growthClip { from{ y: 64.5; height: 15.5; } to{ y: 75.65; height: 4.35; } }
+@keyframes tr-inductClip { from{ y: 58.1; height: 23.9; } to{ y: 47.60; height: 34.4; } }
 
 /* ---- bubbles: always rising, clipped to their own vessel's liquid -------- */
-.bub{ transform-box: view-box; animation-name: rise;
+.tr-bub{ transform-box: view-box; animation-name: tr-rise;
       animation-timing-function: linear; animation-iteration-count: infinite; }
-@keyframes rise{ from{ transform: translateY(7px); } to{ transform: translateY(-15px); } }
+@keyframes tr-rise{ from{ transform: translateY(7px); } to{ transform: translateY(-15px); } }
 
 /* ---- impellers: flat blades seen edge-on, four drawn positions ----------- */
-.blade{ transform-box: fill-box; vector-effect: non-scaling-stroke;
-        animation: blade .9s infinite; }
-.blade-l{ transform-origin: 100% 50%; }
-.blade-r{ transform-origin: 0% 50%; }
-@keyframes blade{
+.tr-blade{ transform-box: fill-box; vector-effect: non-scaling-stroke;
+        animation: tr-blade-kf .9s infinite; }
+.tr-blade-l{ transform-origin: 100% 50%; }
+.tr-blade-r{ transform-origin: 0% 50%; }
+@keyframes tr-blade-kf{
   0%,  24.99% { transform: scaleX(1);   }
   25%, 49.99% { transform: scaleX(.62); }
   50%, 74.99% { transform: scaleX(.26); }
@@ -104,12 +104,12 @@ MOTION_CSS = """
 }
 
 /* ---- control lines: dashes march toward what they control --------------- */
-.ctrl{ animation: march 1.4s linear infinite; }
-@keyframes march{ to{ stroke-dashoffset: -3.7; } }
+.tr-ctrl{ animation: tr-march 1.4s linear infinite; }
+@keyframes tr-march{ to{ stroke-dashoffset: -3.7; } }
 
 @media (prefers-reduced-motion: reduce){
   #GROWTH, #INDUCT, #clipGrowthRect, #clipInductRect,
-  .bub, .blade, .ctrl { animation: none !important; }
+  .tr-bub, .tr-blade, .tr-ctrl { animation: none !important; }
 }
 </style>
 """.replace("GROWTH", GROWTH_LIQUID).replace("INDUCT", INDUCT_LIQUID)
@@ -189,9 +189,9 @@ def group_bubbles(text):
             el = by_id[bid]
             if 'style="' in el:                      # merge, never add a second style
                 el = re.sub(r'style="([^"]*)"', lambda z: 'style="%s;%s"' % (z.group(1).rstrip(';'), css), el, count=1)
-                el = el.replace("/>", ' class="bub"/>')
+                el = el.replace("/>", ' class="tr-bub"/>')
             else:
-                el = el.replace("/>", ' class="bub" style="%s"/>' % css)
+                el = el.replace("/>", ' class="tr-bub" style="%s"/>' % css)
             out.append(el)
         out.append("</g>")
         return "".join(out)
@@ -202,14 +202,14 @@ def group_bubbles(text):
 
 def add_motion(text):
     text = group_bubbles(text)
-    text = add_class(text, GROWTH_LIQUID, "lvl")
-    text = add_class(text, INDUCT_LIQUID, "lvl")
+    text = add_class(text, GROWTH_LIQUID, "tr-lvl")
+    text = add_class(text, INDUCT_LIQUID, "tr-lvl")
     for b in BLADES_LEFT:
-        text = add_class(text, b, "blade blade-l")
+        text = add_class(text, b, "tr-blade tr-blade-l")
     for b in BLADES_RIGHT:
-        text = add_class(text, b, "blade blade-r")
+        text = add_class(text, b, "tr-blade tr-blade-r")
     for c in CONTROL_LINES:
-        text = add_class(text, c, "ctrl")
+        text = add_class(text, c, "tr-ctrl")
     return text
 
 

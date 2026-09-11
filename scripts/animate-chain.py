@@ -39,36 +39,36 @@ CSS = """
    resolve, so an unverified enhancement can silently stop the figure dead.
    See README, "Scroll-linked motion". */
 
-.sig      { animation: march 1.15s linear infinite; }
-.flow-usb { animation: march-usb 1.9s linear infinite; }
-.imp      { transform-box: fill-box; transform-origin: 50% 50%;
-            vector-effect: non-scaling-stroke; animation: blade .8s infinite; }
-.bub      { transform-box: view-box; animation-name: rise;
+.ch-sig      { animation: ch-march 1.15s linear infinite; }
+.ch-flow-usb { animation: ch-march-usb 1.9s linear infinite; }
+.ch-imp      { transform-box: fill-box; transform-origin: 50% 50%;
+            vector-effect: non-scaling-stroke; animation: ch-blade .8s infinite; }
+.ch-bub      { transform-box: view-box; animation-name: ch-rise;
             animation-timing-function: linear; animation-iteration-count: infinite; }
-.b1 { animation-duration: 5.4s; animation-delay: -0.0s; }
-.b2 { animation-duration: 6.1s; animation-delay: -2.3s; }
-.b3 { animation-duration: 4.8s; animation-delay: -3.6s; }
-.b4 { animation-duration: 6.6s; animation-delay: -1.2s; }
-.b5 { animation-duration: 5.0s; animation-delay: -4.1s; }
-.curve    { stroke-dasharray: 392; stroke-dashoffset: 392;
-            animation: draw 9s linear infinite; }
+.ch-b1 { animation-duration: 5.4s; animation-delay: -0.0s; }
+.ch-b2 { animation-duration: 6.1s; animation-delay: -2.3s; }
+.ch-b3 { animation-duration: 4.8s; animation-delay: -3.6s; }
+.ch-b4 { animation-duration: 6.6s; animation-delay: -1.2s; }
+.ch-b5 { animation-duration: 5.0s; animation-delay: -4.1s; }
+.ch-curve    { stroke-dasharray: 392; stroke-dashoffset: 392;
+            animation: ch-draw 9s linear infinite; }
 
-@keyframes march     { to { stroke-dashoffset: -14; } }
-@keyframes march-usb { to { stroke-dashoffset: -30; } }
-@keyframes blade {
+@keyframes ch-march     { to { stroke-dashoffset: -14; } }
+@keyframes ch-march-usb { to { stroke-dashoffset: -30; } }
+@keyframes ch-blade {
   0%,  24.99% { transform: scaleX(1);   }
   25%, 49.99% { transform: scaleX(.62); }
   50%, 74.99% { transform: scaleX(.30); }
   75%,   100% { transform: scaleX(.62); }
 }
-@keyframes rise { 0% { transform: translateY(150px); } 100% { transform: translateY(-150px); } }
-@keyframes draw { 0% { stroke-dashoffset: 392; } 78%, 100% { stroke-dashoffset: 0; } }
+@keyframes ch-rise { 0% { transform: translateY(150px); } 100% { transform: translateY(-150px); } }
+@keyframes ch-draw { 0% { stroke-dashoffset: 392; } 78%, 100% { stroke-dashoffset: 0; } }
 
 
 @media (prefers-reduced-motion: reduce) {
-  .sig, .flow-usb, .imp, .bub, .curve { animation: none !important; }
-  .curve { stroke-dasharray: none; stroke-dashoffset: 0; }
-  .flow-usb, .probe { display: none; }
+  .ch-sig, .ch-flow-usb, .ch-imp, .ch-bub, .ch-curve { animation: none !important; }
+  .ch-curve { stroke-dasharray: none; stroke-dashoffset: 0; }
+  .ch-flow-usb, .ch-probe { display: none; }
 }
 """
 
@@ -96,11 +96,11 @@ def main():
     )
 
     for eid in IMPELLERS:
-        svg = add_class(svg, eid, "imp")
+        svg = add_class(svg, eid, "ch-imp")
     for i, eid in enumerate(BUBBLES, start=1):
-        svg = add_class(svg, eid, "bub b%d" % i)
+        svg = add_class(svg, eid, "ch-bub ch-b%d" % i)
     for eid in CURVES:
-        svg = add_class(svg, eid, "curve")
+        svg = add_class(svg, eid, "ch-curve")
 
     # wrap the bubbles in one clipped group
     i = svg.index('id="%s"' % BUBBLES[0])
@@ -112,13 +112,13 @@ def main():
     # a marching overlay on the USB cable, so the data direction reads
     m = re.search(r'<path[^>]*id="path88"[^>]*/>', svg, re.S)
     svg = svg[: m.end()] + (
-        '\n  <path class="flow-usb" d="m 811,537 h 250" fill="none" stroke="#a9aba7" '
+        '\n  <path class="ch-flow-usb" d="m 811,537 h 250" fill="none" stroke="#a9aba7" '
         'stroke-width="2.6" stroke-dasharray="12 18" id="flowusb"/>'
     ) + svg[m.end():]
 
     # leading probe dots on the two traces
     dots = """
-  <g transform="{mat}" class="probe" id="probes">
+  <g transform="{mat}" class="ch-probe" id="probes">
     <circle r="4" cx="0" cy="0" fill="#345ecc" stroke="#fff" stroke-width="1.2">
       <animateMotion dur="9s" repeatCount="indefinite" calcMode="linear"
                      keyPoints="0;1;1" keyTimes="0;0.78;1" path="{our}"/>
