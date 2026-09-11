@@ -90,7 +90,19 @@ def namespace_source_classes(svg):
         out = ["ch-" + t if t in SOURCE_CLASSES else t for t in tokens]
         return 'class="%s"' % " ".join(out)
 
-    return re.sub(r'class="([^"]*)"', remap, svg)
+    svg = re.sub(r'class="([^"]*)"', remap, svg)
+
+    # Checked here, while the stylesheet is still only the source's: if a rule
+    # was renamed in Inkscape, its elements would keep a class with no rule
+    # behind it and lose their styling silently. That once left the signal lines
+    # with no stroke, no dash pattern and fill:none gone.
+    block = re.search(r"<style[^>]*>(.*?)</style>", svg, re.S)
+    defined = set(re.findall(r"\.([A-Za-z][\w-]*)\s*[,{]", block.group(1))) if block else set()
+    lost = sorted(n for n in SOURCE_CLASSES if ("ch-" + n) not in defined)
+    if lost:
+        sys.exit("source classes have no rule after namespacing: %s "
+                 "(renamed in chain.src.svg? update SOURCE_CLASSES)" % ", ".join(lost))
+    return svg
 
 
 def add_class(svg, element_id, extra):
@@ -158,13 +170,11 @@ def main():
     except ET.ParseError as exc:
         sys.exit("generated SVG is not well-formed: %s" % exc)
 
-    # Every class must be namespaced and every class used must be defined.
-    # Renaming a stylesheet rule without renaming the elements that use it (or
-    # the reverse) strips their styling silently -- it once left the signal
-    # lines with no stroke, no dash pattern and fill:none removed.
-    used = set(t for attr in re.findall(r'class="([^"]*)"', svg) for t in attr.split())
+    # Everything must end up namespaced, and nothing may use a rule that
+    # does not exist.
     block = re.search(r"<style[^>]*>(.*?)</style>", svg, re.S)
     defined = set(re.findall(r"\.([A-Za-z][\w-]*)\s*[,{]", block.group(1))) if block else set()
+    used = set(t for attr in re.findall(r'class="([^"]*)"', svg) for t in attr.split())
     loose = sorted(c for c in used if not c.startswith("ch-"))
     if loose:
         sys.exit("classes not namespaced: %s" % ", ".join(loose))
