@@ -141,6 +141,17 @@ figcaption{
   .fig__still{display:block}
 }
 
+/* A drawing authored 1568px wide was being squeezed into the 1130px text
+   column, rendering every label at 72% -- smaller than the body text and hard
+   to read. Detail-dense figures break out of the text measure and stop at their
+   own native width, so they are shown at 1:1 and never upscaled. */
+.fig--wide{
+  --fig-w:min(calc(100vw - 48px), 1568px);
+  width:var(--fig-w);
+  max-width:none;
+  margin-left:calc(50% - var(--fig-w) / 2);
+}
+
 /* ---------- components ---------- */
 .badges{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s4)}
 .badge{

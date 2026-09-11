@@ -50,8 +50,13 @@ Rules worth keeping:
 - First person in the opening hook; no narrator in the specs.
 - Figure captions are one sentence, saying what the figure shows.
 - Wide figures go in a `.fig__scroll` with `style="--fig-min:NNNpx"`, where `NNN` is the
-  width the labels stay readable at. On phones the figure scrolls sideways at that width
-  instead of shrinking into illegibility.
+  figure's own native width. On phones it scrolls sideways at that width instead of
+  shrinking into illegibility.
+- **Check what size a drawing's labels actually render at.** A figure authored 1568px wide
+  inside the 1130px text column renders everything at 72%, which put its labels below the
+  body text size and read as "low resolution" even though the SVG is vector-sharp. Add
+  `fig--wide` to any drawing wider than the text column: it breaks out of the measure and
+  stops at its own native width, never upscaling.
 
 ## Editing a drawing
 
