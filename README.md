@@ -72,49 +72,74 @@ deploy — it just means the site shows the previous version of the drawing.
 
 ## Motion
 
-### The hero is static
+### What moves, and why
 
-The plan was for the perfusion train to show its draw-and-fill cycle: the growth vessel
-level dropping and refilling, because a cyclic process is the one thing a still drawing
-cannot show. It is not built, and the reason is in the drawing rather than the code.
+Two figures move. Both because the motion *is* the content: a still drawing
+cannot show a cyclic process or a measurement being acquired.
 
-That vessel's liquid is painted by several overlapping elements, not one shape, so there is
-nothing to scale. Applying `scaleY` to the largest candidate (`path39-1-5`) moves the
-waterline 11 px instead of 75 — the rest of the liquid stays put. Guessing at it from the
-outside produces a broken drawing.
+**The hero — one draw-and-fill cycle.** Three quarters of the growth vessel is
+drawn off and the same volume appears in the induction vessel. Both vessels are
+29 user units wide, so equal heights are equal volumes: growth loses 10.65 units
+of height and induction gains exactly that. The arithmetic comes out of the
+drawing rather than being chosen to look right.
 
-The fix is in Inkscape, not here: put the growth vessel's liquid on its own layer, then the
-script can scale that layer about its bottom edge. Five minutes with the file open beats any
-amount of inference from the rendered pixels.
+Each vessel's bubbles are clipped to its own liquid, so they disappear as the
+level falls and come back as it rises. Without that they hang in the empty
+headspace, which is the one thing that would make the animation look broken.
 
-### What does move
+**The chain** — impeller blades step through four positions, bubbles rise
+clipped to the broth, dashes march along the signal lines and the USB cable, and
+the OUR/CER traces draw themselves.
 
-The chain figure moves, and only because the motion is the content: a still drawing cannot
-show a measurement being acquired. Impeller blades step through four positions, bubbles rise
-clipped to the broth, dashes march along the signal lines and the USB cable, and the OUR/CER
-traces draw themselves.
+Impeller blades squash *toward the shaft*, not about their own middles, because
+that is what a flat blade does as it turns.
 
 Everything is CSS keyframes inside the SVG — **there is no JavaScript anywhere on this
-site.** Under `prefers-reduced-motion: reduce` all motion stops and the figure holds a
+site.** Under `prefers-reduced-motion: reduce` all motion stops and each figure holds a
 complete, correct still.
 
-### Scroll-linked motion — deliberately not shipped
+### Scroll-linked levels
 
-The plan was to drive both figures from scroll position with `animation-timeline: view()`,
-so nothing moves while the reader is still. It was written, and then removed.
+The hero's liquid levels follow the reader's scroll rather than a timer: scroll
+down and the growth vessel empties into the induction vessel, scroll back and it
+reverses. Everything else keeps its own clock, so the rig stays alive when the
+reader is still.
 
-A scroll timeline requires `animation-duration: auto`. If the timeline fails to resolve,
-`auto` computes to zero and the animation stops dead — a figure that silently shows nothing.
-That is exactly the bug that left the previous version of this site with an invisible
-measurement-chain figure that no visitor ever saw.
+The timeline is declared in `css/site.css` on the `<figure>` — `view-timeline:
+--fig` — and the animations inside the SVG are re-pointed at it by name. A view
+timeline needs a layout box and SVG children do not have one, so it cannot be
+declared on the shapes themselves.
 
-It could not be verified in any browser available during the build: headless Chrome does not
-drive scroll timelines under virtual time, and the embedded preview reports every view
-timeline as inactive. Shipping an unverifiable enhancement whose failure mode is a blank
-figure was not a trade worth making. The timed loops are verified and work everywhere.
+**The failure mode is designed out.** A scroll timeline needs
+`animation-duration: auto`, which computes to *zero* if the timeline never
+resolves — the animation would stop dead and the figure would silently show
+nothing. So the levels are authored as ordinary timed loops inside the SVG, and
+the page override only ever changes their *timing*. A browser without scroll
+timelines keeps the loop.
 
-To revisit: open the page in a real browser, confirm a view timeline resolves, then add the
-override back to the `CSS` block in `scripts/animate-chain.py` and re-run it.
+### Checking motion
+
+Neither headless Chrome nor an embedded preview can be trusted here. Headless
+fast-forwards virtual time and samples one arbitrary frame, so a short loop looks
+animated and a slow one looks frozen. An embedded preview pins its document clock
+at zero, so nothing moves at all. Both produced convincing false negatives during
+the build.
+
+```bash
+python scripts/make-motion-check.py
+```
+
+That writes `_motion-check.html`, the real page with a readout pinned to the top.
+Open it in a real browser, scroll slowly down and back up, and every row should
+read MOVES. It is gitignored and never ships.
+
+### One rule if you add a third drawing
+
+Inlined SVGs share one CSS scope with the page. Both drawings originally defined
+`@keyframes rise`, `blade` and `march` plus `.bub` and `.blade`, so the later
+definition silently won for both and the train's bubbles ran the chain's 150 px
+rise instead of their own 7 px one. Everything is now prefixed `tr-` or `ch-`.
+**Give a third drawing its own prefix.**
 
 ## Accessibility
 

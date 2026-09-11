@@ -168,21 +168,19 @@ Buttons invert on hover and press 1px.
 
 ### Motion
 
-One figure moves, because the motion *is* the content. Nothing else on the page moves.
+Two figures move, because in both cases the motion *is* the content. Nothing else moves.
 
-- **FIG 01, perfusion train** — ❌ *not built.* The growth vessel's liquid is drawn as several
-  overlapping elements rather than one shape, so there is nothing to scale. Needs the liquid
-  isolated onto its own Inkscape layer first; see README, "The hero is static".
+- **FIG 01, perfusion train** — one draw-and-fill cycle: 3/4 out of the growth vessel and the
+  same volume into the induction vessel, with each vessel's bubbles clipped to its own liquid.
+  Impellers, bubbles and control-line dashes keep their own clocks.
 - **FIG 04, chain** — impeller blades in four hard steps, bubbles rising clipped to the
   broth, dashes marching along the signal lines and USB, and the OUR/CER plot drawing in.
 
-**Timed loops, not scroll-linked — decided during the build.** Scroll-driven timelines were
-written and then removed. A scroll timeline needs `animation-duration: auto`, which computes
-to zero if the timeline fails to resolve, so the failure mode is a figure that silently shows
-nothing — the exact bug that made the previous site's chain figure invisible. It could not be
-verified in any browser available during the build (headless Chrome does not drive scroll
-timelines under virtual time; the embedded preview reports every view timeline as inactive).
-Revisit once it can be confirmed in a real browser; see README, "Scroll-linked motion".
+**The hero's levels are scroll-linked; everything else is timed.** The timeline is declared
+on the figure in `css/site.css` and the SVG's animations are re-pointed at it by name — a view
+timeline needs a layout box, which SVG children do not have. The levels are authored as timed
+loops so the page override can only change their timing, never stop them. Verified in Chrome
+152; see README, "Checking motion".
 
 Pure CSS plus two `animateMotion` tags. **No JavaScript.**
 `prefers-reduced-motion: reduce` stops everything and pins a complete, correct still.
