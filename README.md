@@ -25,12 +25,13 @@ index.html                     the whole page
 css/site.css                   the only stylesheet
 fonts/                         IBM Plex Sans 400/600 + Plex Mono 400, latin subset
 img/                           screenshots, the box photo, the social card
-svg/perfusion-train.svg        hero drawing          (inlined into index.html)
-svg/chain.svg                  measurement chain     (inlined into index.html, animated)
-svg/chain.src.svg              the Inkscape source for the chain — edit this one
-svg/vessel.svg                 the about drawing     (loaded as an <img>)
+svg/drawings.src.svg           Inkscape source: train + vessel on one A4 page
+svg/chain.src.svg              Inkscape source: the measurement chain
+svg/perfusion-train.svg        hero drawing        (generated; inlined into index.html)
+svg/vessel.svg                 about drawing       (generated; loaded as an <img>)
+svg/chain.svg                  measurement chain   (generated, animated; inlined)
 tools/feed-profile-designer/   the tool itself, self-hosted
-scripts/                       two helpers; neither is required to deploy
+scripts/                       three helpers; none is required to deploy
 ```
 
 ## Adding a project
@@ -53,11 +54,12 @@ Rules worth keeping:
 
 ## Editing a drawing
 
-Open `svg/chain.src.svg` in Inkscape, change it, save, then:
+Edit the `.src.svg` files in Inkscape — never the generated ones — then:
 
 ```bash
-python scripts/animate-chain.py     # re-add the motion -> svg/chain.svg
-python scripts/inline-figures.py    # splice the drawings into index.html
+python scripts/build-drawings.py    # drawings.src.svg -> perfusion-train.svg + vessel.svg
+python scripts/animate-chain.py     # chain.src.svg    -> chain.svg, with the motion
+python scripts/inline-figures.py    # splice both inlined figures into index.html
 ```
 
 Both figures are inlined into `index.html` rather than loaded as `<img>`, because an SVG
@@ -87,10 +89,14 @@ amount of inference from the rendered pixels.
 
 ### What does move
 
-One figure moves, and only because the motion is the content: a static drawing cannot show
-a cyclic process or a measurement being acquired. Everything is CSS keyframes inside the SVG
-— **there is no JavaScript anywhere on this site.** Under `prefers-reduced-motion: reduce`
-all motion stops and each figure holds a complete, correct still.
+The chain figure moves, and only because the motion is the content: a still drawing cannot
+show a measurement being acquired. Impeller blades step through four positions, bubbles rise
+clipped to the broth, dashes march along the signal lines and the USB cable, and the OUR/CER
+traces draw themselves.
+
+Everything is CSS keyframes inside the SVG — **there is no JavaScript anywhere on this
+site.** Under `prefers-reduced-motion: reduce` all motion stops and the figure holds a
+complete, correct still.
 
 ### Scroll-linked motion — deliberately not shipped
 
