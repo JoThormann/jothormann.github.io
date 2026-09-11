@@ -200,6 +200,33 @@ figcaption{
    Only the two figures move, and only because the motion is the
    content. Everything is CSS; there is no JavaScript on this page.
    ============================================================ */
+/* ---------- scroll-linked levels ----------
+   The hero's draw-and-fill is a process cycle, so the reader drives it: scroll
+   down and the growth vessel empties into the induction vessel; scroll back and
+   it reverses. Everything else in the drawing keeps its own clock.
+
+   The timeline is declared here, on the figure, and the animations inside the
+   SVG are re-pointed at it by name. Verified in Chrome 152: a named view
+   timeline declared on an HTML ancestor does drive SVG children.
+
+   This can only ever change the *timing* of an animation that already runs on a
+   document clock, so a browser without scroll timelines keeps the timed loop
+   rather than silently stopping. */
+.fig--motion{ view-timeline: --fig block; }
+
+@supports (animation-timeline: --fig){
+  .fig--motion #path39-1-5,
+  .fig--motion #path39-1-5-7,
+  .fig--motion #clipGrowthRect,
+  .fig--motion #clipInductRect{
+    animation-timeline: --fig;
+    animation-duration: auto;
+    animation-direction: normal;
+    animation-iteration-count: 1;
+    animation-range: cover 10% cover 90%;
+  }
+}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
