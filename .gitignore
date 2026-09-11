@@ -1,0 +1,7 @@
+# nothing is generated at deploy time; these are local only
+*.pyc
+__pycache__/
+.DS_Store
+Thumbs.db
+_site/
+_og.html

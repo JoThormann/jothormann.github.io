@@ -1,0 +1,205 @@
+/* ============================================================
+   Jonas Thormann — portfolio
+   One stylesheet. No build step, no framework.
+   Colours are sampled from the author's own technical drawings.
+   ============================================================ */
+
+/* ---------- fonts ---------- */
+@font-face{font-family:'Plex Sans';font-style:normal;font-weight:400;font-display:swap;
+  src:url(../fonts/plexsans-400.woff2) format('woff2')}
+@font-face{font-family:'Plex Sans';font-style:normal;font-weight:600;font-display:swap;
+  src:url(../fonts/plexsans-600.woff2) format('woff2')}
+@font-face{font-family:'Plex Mono';font-style:normal;font-weight:400;font-display:swap;
+  src:url(../fonts/plexmono-400.woff2) format('woff2')}
+
+/* ---------- tokens ---------- */
+:root{
+  --paper:#fff;
+  --ink:#000;
+  --ink-soft:#515151;
+  --rule:#c0c5c5;
+
+  --broth:#e2ddc6;
+  --glass:#f5f7f8;
+  --steel:#939b9b;
+  --ochre:#e3d184;
+  --blue:#345ecc;
+  --blue-deep:#22409a;
+
+  --sans:'Plex Sans',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  --mono:'Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+
+  --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:40px; --s6:64px; --section:80px;
+  --container:1180px;
+  --stroke-hair:1px; --stroke-box:1.2px; --stroke-obj:1.6px; --stroke-rule:2px;
+
+  color-scheme:light;
+}
+
+/* ---------- reset ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font:400 15px/1.6 var(--sans);
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:break-word;
+}
+img,svg{display:block;max-width:100%}
+h1,h2,h3,p,figure,figcaption,ul{margin:0}
+a{color:var(--ink)}
+a:hover{color:var(--blue)}
+
+.skip{
+  position:absolute;left:-9999px;top:0;z-index:10;
+  background:var(--ink);color:#fff;padding:var(--s2) var(--s3);
+  font:400 13px/1 var(--mono);
+}
+.skip:focus{left:0}
+
+:where(a,button,[tabindex]):focus-visible{
+  outline:2px solid var(--ink);
+  outline-offset:2px;
+}
+
+.wrap{max-width:var(--container);margin-inline:auto;padding-inline:var(--s4)}
+
+/* ---------- type ---------- */
+.eyebrow{
+  font:400 10px/1.4 var(--mono);
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.display{
+  font-weight:600;
+  font-size:clamp(26px,5.2vw,34px);
+  line-height:1.06;
+  letter-spacing:-.02em;
+  max-width:20ch;
+}
+.h2{font-weight:600;font-size:clamp(20px,3.4vw,24px);line-height:1.15;letter-spacing:-.01em}
+.h3{font-weight:600;font-size:17px;line-height:1.3}
+.prose{max-width:68ch}
+.prose p+p{margin-top:var(--s3)}
+.hook{font-size:17px;line-height:1.5;max-width:56ch}
+.u{font-family:var(--mono);font-size:.92em}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:5;
+  background:var(--paper);
+  border-bottom:var(--stroke-obj) solid var(--ink);
+}
+.nav__in{
+  max-width:var(--container);margin-inline:auto;padding:var(--s3) var(--s4);
+  display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);
+}
+.wordmark{
+  font-weight:600;font-size:15px;letter-spacing:.06em;
+  text-transform:uppercase;text-decoration:none;
+}
+.nav__links{display:flex;gap:var(--s4);font:400 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.nav__links a{color:var(--ink-soft);text-decoration:none}
+.nav__links a:hover{color:var(--blue)}
+
+/* ---------- sections ---------- */
+.section{padding-block:var(--section)}
+.hero{padding-block:var(--s6) var(--section)}
+.section__rule{border:0;border-top:var(--stroke-rule) solid var(--ink);margin:0}
+.section__no{display:block;margin-top:var(--s3);margin-bottom:var(--s5)}
+
+/* ---------- figures ---------- */
+.fig{margin-top:var(--s5)}
+.fig__scroll{
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  border:var(--stroke-obj) solid var(--ink);
+  background:var(--paper);
+}
+.fig__scroll>svg,.fig__scroll>img,.fig__scroll>picture>img{width:100%;height:auto}
+figcaption{
+  margin-top:var(--s2);
+  font-size:13px;line-height:1.5;color:var(--ink-soft);
+  max-width:78ch;
+}
+.fig__no{font:400 10px/1 var(--mono);letter-spacing:.14em;color:var(--ink-soft)}
+.fig__swipe{display:none;font:400 10px/1 var(--mono);letter-spacing:.14em;color:var(--blue)}
+.fig--plain .fig__scroll{border:0}
+
+/* ---------- components ---------- */
+.badges{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s4)}
+.badge{
+  border:var(--stroke-box) solid var(--ink);
+  padding:6px 10px;
+  font:400 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+}
+.btn{
+  display:inline-flex;align-items:center;min-height:44px;
+  padding:0 var(--s4);
+  background:var(--blue);color:#fff;text-decoration:none;
+  border:var(--stroke-rule) solid var(--ink);
+  font-weight:600;font-size:15px;
+}
+.btn:hover{background:var(--ink);color:#fff}
+.btn:active{transform:translateY(1px)}
+.btn--ghost{background:var(--paper);color:var(--ink)}
+.btn--ghost:hover{background:var(--ink);color:#fff}
+
+.stat{display:block;font-weight:600;font-size:clamp(40px,7vw,56px);line-height:.95;letter-spacing:-.03em}
+.stat__note{display:block;margin-top:var(--s2);font:400 10px/1.5 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+
+.specs{border-collapse:collapse;width:100%;margin-top:var(--s4)}
+.specs th,.specs td{
+  border:var(--stroke-hair) solid var(--ink);
+  padding:8px 10px;text-align:left;
+  font:400 13px/1.3 var(--mono);
+}
+.specs th{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:400}
+.specs caption{caption-side:bottom;margin-top:var(--s2);font-size:13px;color:var(--ink-soft);text-align:left}
+
+/* ---------- layout blocks ---------- */
+.split{display:grid;gap:var(--s5);align-items:start}
+@media (min-width:820px){
+  .split--photo{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .split--about{grid-template-columns:300px minmax(0,1fr)}
+}
+
+/* ---------- footer ---------- */
+.footer{background:var(--ink);color:#fff;padding-block:var(--s5)}
+.footer a{color:#fff}
+.footer a:hover{color:var(--ochre)}
+.footer__in{
+  max-width:var(--container);margin-inline:auto;padding-inline:var(--s4);
+  display:flex;flex-wrap:wrap;gap:var(--s3) var(--s5);justify-content:space-between;
+  font:400 13px/1.6 var(--mono);
+}
+
+/* ============================================================
+   Narrow screens
+   Wide technical figures are not shrunk — they scroll sideways
+   at a width where their labels stay readable.
+   ============================================================ */
+@media (max-width:900px){
+  :root{--section:56px;--s5:28px;--s6:40px}
+  .wrap,.nav__in,.footer__in{padding-inline:var(--s3)}
+  .nav__links{display:none}
+  .eyebrow,.badge,.nav__links{font-size:11px}
+  .fig__scroll>svg,.fig__scroll>img,.fig__scroll>picture>img{
+    width:var(--fig-min,900px);max-width:none;
+  }
+  .fig--fluid .fig__scroll>img,.fig--fluid .fig__scroll>picture>img{width:100%}
+  .fig__swipe{display:inline}
+  .specs th,.specs td{font-size:12px;padding:7px 8px}
+}
+
+/* ============================================================
+   Motion
+   Only the two figures move, and only because the motion is the
+   content. Everything is CSS; there is no JavaScript on this page.
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
