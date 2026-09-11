@@ -73,6 +73,26 @@ CSS = """
 """
 
 
+# Classes authored in chain.src.svg. An inlined SVG shares one CSS scope with the
+# page, and names like .o, .t and .lbl are far too generic to leave loose, so the
+# whole set is prefixed here: the stylesheet rules and the class attributes
+# together. Renaming only one of the two silently strips the elements' styling.
+SOURCE_CLASSES = ["o", "oth", "ohair", "lead", "lbl", "t", "tm", "ts", "tp",
+                  "sig", "hi", "hir"]
+
+
+def namespace_source_classes(svg):
+    for name in sorted(SOURCE_CLASSES, key=len, reverse=True):
+        svg = re.sub(r"\.%s(?=[\s,{])" % re.escape(name), ".ch-" + name, svg)
+
+    def remap(m):
+        tokens = m.group(1).split()
+        out = ["ch-" + t if t in SOURCE_CLASSES else t for t in tokens]
+        return 'class="%s"' % " ".join(out)
+
+    return re.sub(r'class="([^"]*)"', remap, svg)
+
+
 def add_class(svg, element_id, extra):
     m = re.search(r'<[a-zA-Z]+\b[^>]*?id="%s"[^>]*?/>' % re.escape(element_id), svg, re.S)
     if not m:
@@ -87,6 +107,7 @@ def add_class(svg, element_id, extra):
 
 def main():
     svg = open(SRC, encoding="utf-8").read()
+    svg = namespace_source_classes(svg)
 
     svg = svg.replace("</style>", CSS + "</style>", 1)
     svg = svg.replace(
@@ -101,10 +122,6 @@ def main():
         svg = add_class(svg, eid, "ch-bub ch-b%d" % i)
     for eid in CURVES:
         svg = add_class(svg, eid, "ch-curve")
-
-    # the source file authored these as class="sig"; the stylesheet is now
-    # namespaced, so the elements have to follow
-    svg = svg.replace('class="sig"', 'class="ch-sig"')
 
     # wrap the bubbles in one clipped group
     i = svg.index('id="%s"' % BUBBLES[0])
@@ -140,6 +157,20 @@ def main():
         ET.fromstring(svg)
     except ET.ParseError as exc:
         sys.exit("generated SVG is not well-formed: %s" % exc)
+
+    # Every class must be namespaced and every class used must be defined.
+    # Renaming a stylesheet rule without renaming the elements that use it (or
+    # the reverse) strips their styling silently -- it once left the signal
+    # lines with no stroke, no dash pattern and fill:none removed.
+    used = set(t for attr in re.findall(r'class="([^"]*)"', svg) for t in attr.split())
+    block = re.search(r"<style[^>]*>(.*?)</style>", svg, re.S)
+    defined = set(re.findall(r"\.([A-Za-z][\w-]*)\s*[,{]", block.group(1))) if block else set()
+    loose = sorted(c for c in used if not c.startswith("ch-"))
+    if loose:
+        sys.exit("classes not namespaced: %s" % ", ".join(loose))
+    orphan = sorted(used - defined)
+    if orphan:
+        sys.exit("classes used but never defined: %s" % ", ".join(orphan))
 
     open(OUT, "w", encoding="utf-8").write(svg)
     print("wrote %s (%d KB)" % (os.path.relpath(OUT, ROOT), os.path.getsize(OUT) // 1024))
