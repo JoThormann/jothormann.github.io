@@ -168,10 +168,11 @@ Buttons invert on hover and press 1px.
 
 ### Motion
 
-Two figures move, both because the motion *is* the content. Nothing else on the page moves.
+One figure moves, because the motion *is* the content. Nothing else on the page moves.
 
-- **FIG 01, perfusion train** — the draw-and-fill cycle only: the growth vessel level drops
-  and refills. Nothing else. A static drawing cannot show a cyclic process; this can.
+- **FIG 01, perfusion train** — ❌ *not built.* The growth vessel's liquid is drawn as several
+  overlapping elements rather than one shape, so there is nothing to scale. Needs the liquid
+  isolated onto its own Inkscape layer first; see README, "The hero is static".
 - **FIG 04, chain** — impeller blades in four hard steps, bubbles rising clipped to the
   broth, dashes marching along the signal lines and USB, and the OUR/CER plot drawing in.
 

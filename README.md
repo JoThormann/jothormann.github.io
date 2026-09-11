@@ -70,7 +70,24 @@ deploy — it just means the site shows the previous version of the drawing.
 
 ## Motion
 
-Two figures move, and only because the motion is the content: a static drawing cannot show
+### The hero is static
+
+The plan was for the perfusion train to show its draw-and-fill cycle: the growth vessel
+level dropping and refilling, because a cyclic process is the one thing a still drawing
+cannot show. It is not built, and the reason is in the drawing rather than the code.
+
+That vessel's liquid is painted by several overlapping elements, not one shape, so there is
+nothing to scale. Applying `scaleY` to the largest candidate (`path39-1-5`) moves the
+waterline 11 px instead of 75 — the rest of the liquid stays put. Guessing at it from the
+outside produces a broken drawing.
+
+The fix is in Inkscape, not here: put the growth vessel's liquid on its own layer, then the
+script can scale that layer about its bottom edge. Five minutes with the file open beats any
+amount of inference from the rendered pixels.
+
+### What does move
+
+One figure moves, and only because the motion is the content: a static drawing cannot show
 a cyclic process or a measurement being acquired. Everything is CSS keyframes inside the SVG
 — **there is no JavaScript anywhere on this site.** Under `prefers-reduced-motion: reduce`
 all motion stops and each figure holds a complete, correct still.
