@@ -168,6 +168,18 @@ for 1370px while the growth vessel empties into the induction vessel. The
 the pinned window so the cycle completes on screen rather than starting before
 the pin and finishing after it.
 
+Two traps worth knowing before you edit the motion CSS:
+
+- **`y` and `height` in keyframes need units.** SVG's `y` presentation attribute
+  accepts a bare number so `y: 64.5` survives, but `height: 15.5` is dropped
+  silently. The clip window slid down without ever shrinking, so it never tracked
+  the liquid. Chrome reports the surviving half without complaint; the only way
+  to see it is to read the parsed keyframes back out of `document.styleSheets`.
+- **`animation-fill-mode` must be `both` on anything scroll-linked.** Outside its
+  range an animation stops applying and the element snaps to its base state, so
+  the liquid jumped back to full the moment the hero scrolled away. The shorthand
+  inside the SVG sets fill-mode to `none`, so the page override has to set it.
+
 `--hero-head-h` is measured, not guessed: 168px, stable from 900 to 1680px
 because the h1's `20ch` measure keeps it at three lines. If you change that
 heading, re-measure, or the figure will sit behind the head.

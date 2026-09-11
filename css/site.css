@@ -284,6 +284,11 @@ figcaption{
     animation-duration: auto;
     animation-direction: normal;
     animation-iteration-count: 1;
+    /* Without this the animation stops applying once the range ends and the
+       element snaps back to its base state -- the liquid jumps back to full the
+       moment the hero scrolls away. Seen in Firefox first, but it is not a
+       Firefox bug: the shorthand in the SVG sets fill-mode to none. */
+    animation-fill-mode: both;
     /* The pinned window, not the whole travel: with a 1980px scroller in a
        900px viewport the figure is stuck between roughly 25% and 70% of cover.
        Running the cycle outside that means part of the draw-and-fill happens

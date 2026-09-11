@@ -81,10 +81,15 @@ MOTION_CSS = """
 #clipGrowthRect{ animation: tr-growthClip 9s linear infinite alternate; }
 #clipInductRect{ animation: tr-inductClip 9s linear infinite alternate; }
 
-@keyframes tr-growthLevel{ from{ transform: scaleY(1); } to{ transform: scaleY(.25); } }
-@keyframes tr-inductLevel{ from{ transform: scaleY(1); } to{ transform: scaleY(1.46); } }
-@keyframes tr-growthClip { from{ y: 64.5; height: 15.5; } to{ y: 75.65; height: 4.35; } }
-@keyframes tr-inductClip { from{ y: 58.1; height: 23.9; } to{ y: 47.60; height: 34.4; } }
+/* y and height are lengths: unitless numbers are invalid here and the whole
+   declaration is dropped, which leaves the clip frozen while the liquid moves.
+   Induction starts at 3/4 and gains exactly what growth loses: growth is 14.2
+   units tall and drops to a quarter, so it sheds 10.65; induction is 22.9 tall,
+   starts at 17.18 and ends at 27.83. Same volume, both vessels 29 wide. */
+@keyframes tr-growthLevel{ from{ transform: scaleY(1);   } to{ transform: scaleY(.25);   } }
+@keyframes tr-inductLevel{ from{ transform: scaleY(.75); } to{ transform: scaleY(1.215); } }
+@keyframes tr-growthClip { from{ y: 64.5px; height: 15.5px; } to{ y: 75.65px; height: 4.35px; } }
+@keyframes tr-inductClip { from{ y: 63.8px; height: 18.2px; } to{ y: 53.2px;  height: 28.8px; } }
 
 /* ---- bubbles: always rising, clipped to their own vessel's liquid -------- */
 .tr-bub{ transform-box: view-box; animation-name: tr-rise;
@@ -110,13 +115,15 @@ MOTION_CSS = """
 @media (prefers-reduced-motion: reduce){
   #GROWTH, #INDUCT, #clipGrowthRect, #clipInductRect,
   .tr-bub, .tr-blade, .tr-ctrl { animation: none !important; }
+  #INDUCT{ transform: scaleY(.75); }
+  #clipInductRect{ y: 63.8px; height: 18.2px; }
 }
 </style>
 """.replace("GROWTH", GROWTH_LIQUID).replace("INDUCT", INDUCT_LIQUID)
 
 CLIPS = ("""<defs id="motiondefs">
 <clipPath id="clipGrowth"><rect id="clipGrowthRect" x="82" y="64.5" width="31" height="15.5"/></clipPath>
-<clipPath id="clipInduct"><rect id="clipInductRect" x="138.8" y="58.1" width="31" height="23.9"/></clipPath>
+<clipPath id="clipInduct"><rect id="clipInductRect" x="138.8" y="63.8" width="31" height="18.2"/></clipPath>
 </defs>""")
 
 JOBS = [
