@@ -147,13 +147,55 @@ nothing. So the levels are authored as ordinary timed loops inside the SVG, and
 the page override only ever changes their *timing*. A browser without scroll
 timelines keeps the loop.
 
+### Chapter heads and the pinned hero
+
+Each section's eyebrow and heading sit in a `.chapter` band that sticks under the
+nav while its own section is on screen, then scrolls away as the next one arrives
+in the same place. Sheets in a drawing set, sliding over one another. Pure CSS:
+`position: sticky` on four siblings, no JavaScript, no library.
+
+Two details that are load-bearing rather than cosmetic:
+
+- **The band is full-bleed.** A container-width band would let the wider figures
+  show past its edges as they pass underneath.
+- **It is opaque.** The whole effect is one sheet covering the last one.
+
+The hero figure pins beneath its head. Its own travel through the viewport gives
+only about 1460px of scroll to drive the draw-and-fill, so a 220vh wrapper
+supplies the scroll instead and the figure sticks inside it: the figure is locked
+for 1370px while the growth vessel empties into the induction vessel. The
+`view-timeline` is declared on that wrapper, and `animation-range` is mapped to
+the pinned window so the cycle completes on screen rather than starting before
+the pin and finishing after it.
+
+`--hero-head-h` is measured, not guessed: 168px, stable from 900 to 1680px
+because the h1's `20ch` measure keeps it at three lines. If you change that
+heading, re-measure, or the figure will sit behind the head.
+
+Both are off below 900px (a pinned figure plus 220vh is a lot of thumb) and the
+pin is off under `prefers-reduced-motion`. The heads stay: sticky is a layout
+affordance, not an animation.
+
 ### Checking motion
 
-Neither headless Chrome nor an embedded preview can be trusted here. Headless
-fast-forwards virtual time and samples one arbitrary frame, so a short loop looks
-animated and a slow one looks frozen. An embedded preview pins its document clock
-at zero, so nothing moves at all. Both produced convincing false negatives during
-the build.
+Neither headless Chrome nor an embedded preview can be trusted here, and it is
+worth knowing exactly how each one lies:
+
+- Headless fast-forwards virtual time and samples one arbitrary frame, so a short
+  loop looks animated and a slow one looks frozen.
+- **Headless paints nothing below the fold after a scroll.** Shoot the page at any
+  scroll offset and everything past the first viewport comes back blank, sticky
+  or not. Verified with a control page: a plain in-flow block and a plain sticky
+  block both vanished. Scrolled screenshots are worthless here, which also means
+  `scripts/scroll-sweep.py` only tells the truth about the top of the page.
+- A full-page screenshot uses a viewport as tall as the page, so every `vh` unit
+  explodes: the hero's 220vh scroller became 15,400px the first time it was shot
+  that way.
+- The embedded preview pins its document clock at zero and reports every view
+  timeline as inactive, so nothing moves and no scroll-driven animation resolves.
+
+All four produced convincing false negatives during the build. What does work is
+measuring the DOM in a real browser, and looking with human eyes.
 
 ```bash
 python scripts/make-motion-check.py

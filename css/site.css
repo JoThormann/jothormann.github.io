@@ -31,6 +31,10 @@
 
   --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:40px; --s6:64px; --section:80px;
   --container:1180px;
+  --nav-h:57px;          /* measured: 16px padding + 24px line + 16px + 1.6px rule */
+  --hero-head-h:168px;   /* measured, and stable 900-1680px: the 20ch measure
+                            keeps the h1 at three lines, so the pin sits flush
+                            under the head instead of hiding behind it */
   --stroke-hair:1px; --stroke-box:1.2px; --stroke-obj:1.6px; --stroke-rule:2px;
 
   color-scheme:light;
@@ -106,10 +110,27 @@ a:hover{color:var(--blue)}
 .nav__links a:hover{color:var(--blue)}
 
 /* ---------- sections ---------- */
-.section{padding-block:var(--section)}
-.hero{padding-block:var(--s6) var(--section)}
-.section__rule{border:0;border-top:var(--stroke-rule) solid var(--ink);margin:0}
-.section__no{display:block;margin-top:var(--s3);margin-bottom:var(--s5)}
+.section{padding-bottom:var(--section)}
+.hero{padding-bottom:var(--section)}
+.section__body{padding-top:var(--s5)}
+
+/* ---------- chapter heads ----------
+   Each section's eyebrow and heading sit in a band that sticks under the nav
+   while its own section is on screen, then scrolls away as the next one takes
+   its place. Sheets in a drawing set, sliding over one another.
+
+   Full-bleed on purpose: a container-width band would let the wider figures
+   show past its edges as they pass underneath. Opaque for the same reason. */
+.chapter{
+  position:sticky;
+  top:var(--nav-h);
+  z-index:2;
+  background:var(--paper);
+  border-top:var(--stroke-rule) solid var(--ink);
+  padding-block:var(--s3);
+}
+.chapter .h2,.chapter .display{margin-top:var(--s1)}
+.chapter--hero{padding-block:var(--s4) var(--s3)}
 
 /* ---------- figures ---------- */
 .fig{margin-top:var(--s5)}
@@ -216,6 +237,16 @@ figcaption{
   .fig--fluid .fig__scroll>img,.fig--fluid .fig__scroll>picture>img{width:100%}
   .fig__swipe{display:inline}
   .specs th,.specs td{font-size:12px;padding:7px 8px}
+  .chapter{padding-block:var(--s2)}          /* a sticky head costs phone screen */
+  .hero__scroller{height:auto}               /* no pin: the figure already swipes */
+  .fig--pin{position:static}
+}
+
+/* Sticky heads are a layout affordance and stay. The pin is a motion device
+   and goes, along with the scroll budget that exists only to feed it. */
+@media (prefers-reduced-motion:reduce){
+  .hero__scroller{height:auto}
+  .fig--pin{position:static}
 }
 
 /* ============================================================
@@ -235,18 +266,29 @@ figcaption{
    This can only ever change the *timing* of an animation that already runs on a
    document clock, so a browser without scroll timelines keeps the timed loop
    rather than silently stopping. */
-.fig--motion{ view-timeline: --fig block; }
+/* ---------- the pinned hero ----------
+   The draw-and-fill needs more scroll than the figure's own travel through the
+   viewport gives it (viewport + figure height, about 1460px). So the figure
+   pins and a tall wrapper supplies the scroll instead: the timeline is declared
+   on the wrapper, which travels the full 220vh, roughly doubling the budget.
+   One number to tune. */
+.hero__scroller{ height:220vh; view-timeline:--fig block; }
+.fig--pin{ position:sticky; top:calc(var(--nav-h) + var(--hero-head-h)); margin-top:0; }
 
 @supports (animation-timeline: --fig){
-  .fig--motion #path39-1-5,
-  .fig--motion #path39-1-5-7,
-  .fig--motion #clipGrowthRect,
-  .fig--motion #clipInductRect{
+  .hero__scroller #path39-1-5,
+  .hero__scroller #path39-1-5-7,
+  .hero__scroller #clipGrowthRect,
+  .hero__scroller #clipInductRect{
     animation-timeline: --fig;
     animation-duration: auto;
     animation-direction: normal;
     animation-iteration-count: 1;
-    animation-range: cover 10% cover 90%;
+    /* The pinned window, not the whole travel: with a 1980px scroller in a
+       900px viewport the figure is stuck between roughly 25% and 70% of cover.
+       Running the cycle outside that means part of the draw-and-fill happens
+       while the figure is still moving, which is the bit nobody sees. */
+    animation-range: cover 25% cover 70%;
   }
 }
 

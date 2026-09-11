@@ -37,11 +37,16 @@
 <main id="main">
 
   <!-- ============================ HERO ============================ -->
-  <section class="hero wrap">
-    <p class="eyebrow">Bioprocess engineer · Upstream fermentation</p>
-    <h1 class="display">I solve lab problems with CAD, 3D printers and microcontrollers.</h1>
+  <section class="hero">
+    <div class="chapter chapter--hero">
+      <div class="wrap">
+        <p class="eyebrow">Bioprocess engineer · Upstream fermentation</p>
+        <h1 class="display">I solve lab problems with CAD, 3D printers and microcontrollers.</h1>
+      </div>
+    </div>
 
-    <figure class="fig fig--motion" style="--fig-min:900px">
+    <div class="hero__scroller">
+    <figure class="fig fig--motion fig--pin wrap" style="--fig-min:900px">
       <div class="fig__scroll" tabindex="0" role="group" aria-label="Perfusion train drawing, scrollable">
         <!-- fig:train:start -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0.4 9.6 209.3 104.0" role="img" aria-labelledby="train-t train-d"><title id="train-t">Perfusion train</title><desc id="train-d">A draw-and-fill semi-continuous fermentation train: a medium vessel on a balance, a medium pump feeding a growth bioreactor under weight control, and a drain pump transferring broth to an induction bioreactor with its own feed bottles.</desc><defs id="motiondefs"><clipPath id="clipGrowth"><rect id="clipGrowthRect" x="82" y="64.5" width="31" height="15.5"/></clipPath><clipPath id="clipInduct"><rect id="clipInductRect" x="138.8" y="58.1" width="31" height="23.9"/></clipPath></defs><style>
@@ -2200,15 +2205,20 @@
         <span class="fig__swipe">swipe →</span>
       </figcaption>
     </figure>
+    </div>
   </section>
 
   <!-- ======================= 01 FEED DESIGNER ====================== -->
-  <hr class="section__rule">
-  <section class="section wrap" id="feed">
-    <p class="eyebrow section__no">01 — Feed Profile Designer</p>
-    <h2 class="h2">Feed Profile Designer</h2>
+  <section class="section" id="feed">
+    <div class="chapter">
+      <div class="wrap">
+        <p class="eyebrow">01 — Feed Profile Designer</p>
+        <h2 class="h2">Feed Profile Designer</h2>
+      </div>
+    </div>
 
-    <div class="prose" style="margin-top:var(--s4)">
+    <div class="section__body wrap">
+    <div class="prose">
       <p class="hook">Every feed profile I’ve planned ended with the same question:
         does the phase switch land at 3am?</p>
       <p>So I built something to answer it. Set your phases — exponential, constant, ramps,
@@ -2244,15 +2254,20 @@
     <p style="margin-top:var(--s4)">
       <a class="btn" href="tools/feed-profile-designer/">Open the designer →</a>
     </p>
+    </div>
   </section>
 
   <!-- ======================== 02 OFF-GAS =========================== -->
-  <hr class="section__rule">
-  <section class="section wrap" id="sensor">
-    <p class="eyebrow section__no">02 — Off-gas sensor</p>
-    <h2 class="h2">DIY off-gas sensor</h2>
+  <section class="section" id="sensor">
+    <div class="chapter">
+      <div class="wrap">
+        <p class="eyebrow">02 — Off-gas sensor</p>
+        <h2 class="h2">DIY off-gas sensor</h2>
+      </div>
+    </div>
 
-    <div class="prose" style="margin-top:var(--s4)">
+    <div class="section__body wrap">
+    <div class="prose">
       <p class="hook">Every run vents its answer and most rigs let it go out the door.
         A commercial off-gas analyser costs about <span class="u">€6,500</span>.</p>
       <p>So I built one for <span class="u">€500</span>. An O₂ cell and a CO₂ cell sit in the
@@ -3349,13 +3364,19 @@
         </table>
       </div>
     </div>
+    </div>
   </section>
 
   <!-- ========================== 03 ABOUT =========================== -->
-  <hr class="section__rule">
-  <section class="section wrap" id="about">
-    <p class="eyebrow section__no">03 — About</p>
+  <section class="section" id="about">
+    <div class="chapter">
+      <div class="wrap">
+        <p class="eyebrow">03 — About</p>
+        <h2 class="h2">Jonas Thormann</h2>
+      </div>
+    </div>
 
+    <div class="section__body wrap">
     <div class="split split--about">
       <figure class="fig fig--fluid" style="margin-top:0">
         <div class="fig__scroll">
@@ -3365,8 +3386,7 @@
       </figure>
 
       <div>
-        <h2 class="h2">Jonas Thormann</h2>
-        <div class="prose" style="margin-top:var(--s3)">
+        <div class="prose">
           <p>I am a bioprocess engineer working in upstream microbial fermentation. Most of what
             I build starts as something the lab needed and could not buy — a sensor, a fixture,
             a calculation nobody wanted to do twice.</p>
@@ -3378,6 +3398,7 @@
              rel="me noopener">LinkedIn →</a>
         </p>
       </div>
+    </div>
     </div>
   </section>
 

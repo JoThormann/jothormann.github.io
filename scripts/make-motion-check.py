@@ -28,6 +28,17 @@ TARGETS = [
     ("chain signal",    ".ch-sig",            "strokeDashoffset"),
 ]
 
+# Sticky behaviour cannot be screenshotted: headless Chrome paints nothing below
+# the fold after a scroll, and the embedded preview reports view timelines as
+# inactive. So the page reports its own geometry live instead.
+POSITIONS = [
+    ("hero figure pinned", ".fig--pin",       225),
+    ("hero head sticky",   ".chapter--hero",   57),
+    ("01 head sticky",     "#feed .chapter",   57),
+    ("02 head sticky",     "#sensor .chapter", 57),
+    ("03 head sticky",     "#about .chapter",  57),
+]
+
 STYLE = """
 <style id="mc-style">
   #mc{position:fixed;top:0;left:0;right:0;z-index:99;background:#000;color:#0f0;
@@ -35,7 +46,7 @@ STYLE = """
       border-bottom:3px solid #0f0}
   #mc b{color:#fff}
   #mc .no{color:#f66}
-  body{padding-top:210px}
+  body{padding-top:330px}
 </style>
 <div id="mc">starting...</div>
 """
@@ -46,6 +57,7 @@ SCRIPT = """
 <script>
 (function(){
   var targets = TARGETS_JSON;
+  var positions = POSITIONS_JSON;
   var seen = {};
   function pad(s){ while (s.length < 17) { s = s + "."; } return s + " "; }
   function sample(){
@@ -63,6 +75,20 @@ SCRIPT = """
       rows.push(pad(label) + (moved ? "MOVES" : "<span class=no>stuck</span>") +
                 "   " + v.slice(0, 30));
     }
+    rows.push("");
+    for (var j = 0; j < positions.length; j++){
+      var pl = positions[j][0], ps = positions[j][1], want = positions[j][2];
+      var pe = document.querySelector(ps);
+      if (!pe){ rows.push(pad(pl) + "<span class=no>MISSING</span>"); continue; }
+      var top = Math.round(pe.getBoundingClientRect().top);
+      var stuck = Math.abs(top - want) < 3;
+      if (!seen["stuck:" + pl]) { seen["stuck:" + pl] = false; }
+      if (stuck) { seen["stuck:" + pl] = true; }
+      rows.push(pad(pl) + (seen["stuck:" + pl] ? "STICKS" : "<span class=no>never</span>") +
+                "   top now " + top + "px, wants " + want);
+    }
+    rows.push(pad("scroll position") + Math.round(window.scrollY) + " of " +
+              (document.documentElement.scrollHeight - innerHeight));
     document.getElementById("mc").innerHTML = rows.join("<br>");
   }
   addEventListener("scroll", sample, {passive:true});
@@ -80,7 +106,9 @@ def main():
     rows = ",".join(
         '["%s","%s","%s"]' % (label, sel, prop) for label, sel, prop in TARGETS
     )
+    pos = ",".join('["%s","%s",%d]' % (l, sel, want) for l, sel, want in POSITIONS)
     script = SCRIPT.replace("TARGETS_JSON", "[" + rows + "]")
+    script = script.replace("POSITIONS_JSON", "[" + pos + "]")
 
     out = html.replace("</body>", STYLE + script + "</body>", 1)
     dest = os.path.join(ROOT, "_motion-check.html")
