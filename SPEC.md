@@ -77,10 +77,10 @@ No paragraph. The drawing does the rest.
 >
 > One HTML file, no install, MIT licensed. Fork it and swap in your own organism.
 
-- **FIG 02** — the phase list and the run summary.
-  *Four phases, each with its own shape, temperature and exit condition.*
-- **FIG 03** — the run schedule.
-  *Every phase switch placed on the wall clock, with the ones outside working hours flagged.*
+- **FIG 02** — a screen recording of the designer in use, `<video>` not GIF, shown at its
+  native 1000 px. *Phases set, the batch predicted, and every switch placed on the wall clock.*
+  Cropped to remove browser chrome, which leaked an email address, internal tool names and a
+  claude.ai artifact URL. Poster still shown under reduced motion.
 - Badges `GOAL-SEEK` `ELECTRON BALANCE` `RUNS IN A BROWSER`
 - Button `Open the designer →` to `/tools/feed-profile-designer/`
 
@@ -255,7 +255,7 @@ documents the block. That is the accepted cost of having no build step.
 | Instrumented vessel | ✅ same file, second drawing |
 | Chain figure | ✅ `references/chain.svg` + animated build |
 | Box photograph | ✅ `references/photo_5269443127645249040_y.jpg` |
-| Feed Designer screenshots | ✅ captured at 2× — phase list + summary, and the run schedule |
+| Feed Designer demo | ✅ `video/` — mp4 + webm + poster, trimmed, cropped, chrome removed |
 | Feed Designer tool | ✅ self-hosted at `tools/feed-profile-designer/`, CDN font call stripped |
 
 ## 8. Build order

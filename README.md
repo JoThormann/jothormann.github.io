@@ -24,7 +24,8 @@ self-hosted fonts only load over a real origin.
 index.html                     the whole page
 css/site.css                   the only stylesheet
 fonts/                         IBM Plex Sans 400/600 + Plex Mono 400, latin subset
-img/                           screenshots, the box photo, the social card
+img/                           the box photo, the social card
+video/                         the Feed Designer screen recording (mp4 + webm + poster)
 svg/drawings.src.svg           Inkscape source: train + vessel on one A4 page
 svg/chain.src.svg              Inkscape source: the measurement chain
 svg/perfusion-train.svg        hero drawing        (generated; inlined into index.html)
@@ -69,6 +70,30 @@ inside an `<img>` is a separate document and its CSS cannot be driven from the p
 drawings already inlined, so the site deploys whether or not you ever run them, and nothing
 in CI checks that the inlined copy is current. Forgetting to run them can never break a
 deploy — it just means the site shows the previous version of the drawing.
+
+## The Feed Designer demo
+
+`video/` holds a screen recording rather than screenshots. It is a `<video>`, not a
+GIF: a GIF is capped at 256 colours, which smears fine UI text, and the same clip
+costs 7.1 MB as a GIF against 0.8 MB as WebM.
+
+It is shown at its native 1000 px and never upscaled — the recording is the
+resolution ceiling, so stretching it to the 1180 px container only softens it.
+
+Rebuilt from a source recording with:
+
+```bash
+ffmpeg -ss 5 -i "demo.gif" -vf "crop=1000:486:0:58,fps=12.5,format=yuv420p"        -c:v libvpx-vp9 -crf 32 -b:v 0 -row-mt 1 -an video/feed-designer.webm
+```
+
+The crop matters for more than framing: the untrimmed recording shows the browser
+tab bar, the bookmarks bar and the address bar, which between them leak an email
+address, internal tool names, spreadsheet titles with run IDs, and a claude.ai
+artifact URL containing org and artifact tokens. **Check the top of any new
+recording before committing it.**
+
+Under `prefers-reduced-motion: reduce` the video is hidden and the poster still is
+shown in its place.
 
 ## Motion
 

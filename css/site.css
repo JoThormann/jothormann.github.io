@@ -129,6 +129,18 @@ figcaption{
 .fig__swipe{display:none;font:400 10px/1 var(--mono);letter-spacing:.14em;color:var(--blue)}
 .fig--plain .fig__scroll{border:0}
 
+/* A screen recording stands in for a screenshot. It is shown at its native
+   1000px so the UI text stays sharp; anything wider would be upscaling. The
+   still is what a reader gets when they have asked for less motion. */
+.fig--video{max-width:1000px}          /* native width: never upscale the recording */
+.fig--video .fig__scroll{background:#fff}
+.fig__video,.fig__still{display:block;width:100%;height:auto}
+.fig__still{display:none}
+@media (prefers-reduced-motion:reduce){
+  .fig__video{display:none}
+  .fig__still{display:block}
+}
+
 /* ---------- components ---------- */
 .badges{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s4)}
 .badge{
