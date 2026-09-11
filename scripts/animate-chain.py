@@ -102,6 +102,10 @@ def main():
     for eid in CURVES:
         svg = add_class(svg, eid, "ch-curve")
 
+    # the source file authored these as class="sig"; the stylesheet is now
+    # namespaced, so the elements have to follow
+    svg = svg.replace('class="sig"', 'class="ch-sig"')
+
     # wrap the bubbles in one clipped group
     i = svg.index('id="%s"' % BUBBLES[0])
     i = svg.rindex("<ellipse", 0, i)

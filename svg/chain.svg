@@ -579,15 +579,15 @@
   <!-- ================= signal lines ================= -->
   <path
      d="M440 466 V478 H650 V495"
-     class="sig"
+     class="ch-sig"
      id="path57" />
   <path
      d="M700 393 V495"
-     class="sig"
+     class="ch-sig"
      id="path58" />
   <path
      d="M900 327 V478 H750 V495"
-     class="sig"
+     class="ch-sig"
      id="path59" />
   <!-- ================= Teensy 4.0 (mirrored so the USB faces the laptop) ================= -->
   <g
