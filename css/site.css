@@ -31,6 +31,8 @@
 
   --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:40px; --s6:64px; --section:80px;
   --container:1180px;
+  --gutter:var(--s4);      /* the page's side gutter: .wrap and .fig--wide share it
+                              so a wide figure always lines up with the text above it */
   --nav-h:57px;          /* measured: 16px padding + 24px line + 16px + 1.6px rule */
   --hero-head-h:168px;   /* measured, and stable 900-1680px: the 20ch measure
                             keeps the h1 at three lines, so the pin sits flush
@@ -68,7 +70,7 @@ a:hover{color:var(--blue)}
   outline-offset:2px;
 }
 
-.wrap{max-width:var(--container);margin-inline:auto;padding-inline:var(--s4)}
+.wrap{max-width:var(--container);margin-inline:auto;padding-inline:var(--gutter)}
 
 /* ---------- type ---------- */
 .eyebrow{
@@ -98,7 +100,7 @@ a:hover{color:var(--blue)}
   border-bottom:var(--stroke-obj) solid var(--ink);
 }
 .nav__in{
-  max-width:var(--container);margin-inline:auto;padding:var(--s3) var(--s4);
+  max-width:var(--container);margin-inline:auto;padding:var(--s3) var(--gutter);
   display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);
 }
 .wordmark{
@@ -167,11 +169,26 @@ figcaption{
    to read. Detail-dense figures break out of the text measure and stop at their
    own native width, so they are shown at 1:1 and never upscaled. */
 .fig--wide{
-  --fig-w:min(calc(100vw - 48px), 1568px);
+  --fig-w:min(calc(100vw - var(--gutter) * 2), 1568px);
   width:var(--fig-w);
   max-width:none;
   margin-left:calc(50% - var(--fig-w) / 2);
 }
+
+/* ---------- the pinned hero ----------
+   The draw-and-fill needs more scroll than the figure's own travel through the
+   viewport gives it (viewport + figure height, about 1460px). So the figure
+   pins and a tall wrapper supplies the scroll instead: the timeline is declared
+   on the wrapper, which travels the full 220vh, roughly doubling the budget.
+   One number to tune.
+
+   These two rules MUST stay above the media queries below. They are plain
+   class selectors, so a later block of equal specificity wins: while they sat
+   in the motion section at the bottom of the file, `@media (max-width:900px)`
+   and `@media (prefers-reduced-motion:reduce)` both silently lost, leaving a
+   phone with 1270px -- 1.6 screens -- of blank white in the hero. */
+.hero__scroller{ height:220vh; view-timeline:--fig block; }
+.fig--pin{ position:sticky; top:calc(var(--nav-h) + var(--hero-head-h)); margin-top:0; }
 
 /* ---------- components ---------- */
 .badges{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s4)}
@@ -216,7 +233,7 @@ figcaption{
 .footer a{color:#fff}
 .footer a:hover{color:var(--ochre)}
 .footer__in{
-  max-width:var(--container);margin-inline:auto;padding-inline:var(--s4);
+  max-width:var(--container);margin-inline:auto;padding-inline:var(--gutter);
   display:flex;flex-wrap:wrap;gap:var(--s3) var(--s5);justify-content:space-between;
   font:400 13px/1.6 var(--mono);
 }
@@ -227,15 +244,20 @@ figcaption{
    at a width where their labels stay readable.
    ============================================================ */
 @media (max-width:900px){
-  :root{--section:56px;--s5:28px;--s6:40px}
-  .wrap,.nav__in,.footer__in{padding-inline:var(--s3)}
+  :root{--section:56px;--s5:28px;--s6:40px;--gutter:var(--s3)}
   .nav__links{display:none}
   .eyebrow,.badge,.nav__links{font-size:11px}
+  /* A footer link was a 62x21px target. Touch wants 44px. */
+  .footer__in a{display:inline-flex;align-items:center;min-height:44px}
   .fig__scroll>svg,.fig__scroll>img,.fig__scroll>picture>img{
     width:var(--fig-min,900px);max-width:none;
   }
   .fig--fluid .fig__scroll>img,.fig--fluid .fig__scroll>picture>img{width:100%}
+  /* The hint is only true for figures whose content really is wider than the
+     screen. The video shrinks to fit and the photos are fluid, so a "swipe"
+     next to either of them points at something that cannot move. */
   .fig__swipe{display:inline}
+  .fig--video .fig__swipe,.fig--fluid .fig__swipe{display:none}
   .specs th,.specs td{font-size:12px;padding:7px 8px}
   .chapter{padding-block:var(--s2)}          /* a sticky head costs phone screen */
   .hero__scroller{height:auto}               /* no pin: the figure already swipes */
@@ -266,14 +288,9 @@ figcaption{
    This can only ever change the *timing* of an animation that already runs on a
    document clock, so a browser without scroll timelines keeps the timed loop
    rather than silently stopping. */
-/* ---------- the pinned hero ----------
-   The draw-and-fill needs more scroll than the figure's own travel through the
-   viewport gives it (viewport + figure height, about 1460px). So the figure
-   pins and a tall wrapper supplies the scroll instead: the timeline is declared
-   on the wrapper, which travels the full 220vh, roughly doubling the budget.
-   One number to tune. */
-.hero__scroller{ height:220vh; view-timeline:--fig block; }
-.fig--pin{ position:sticky; top:calc(var(--nav-h) + var(--hero-head-h)); margin-top:0; }
+/* The pinned hero's layout lives up in the layout section, above the media
+   queries, so the narrow-screen and reduced-motion blocks can override it.
+   Declared down here it outranked both of them and they became dead code. */
 
 @supports (animation-timeline: --fig){
   .hero__scroller #path39-1-5,
