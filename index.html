@@ -3332,6 +3332,232 @@
 </svg>
         <!-- fig:chain:end -->
       </div>
+      <div class="fig__scroll fig__phone">
+        <!-- fig:chainphone:start -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 2029" font-family="Helvetica, Arial, sans-serif" role="img" aria-labelledby="chp-title chp-desc">
+<title id="chp-title">The measurement chain, vent line to CSV</title>
+<desc id="chp-desc">A bioreactor vents into a 3D printed enclosure. A Y-splitter feeds an oxygen cell and a carbon dioxide cell in parallel, a BME280 corrects both to dry gas, and a Teensy 4.0 sends all three over USB to a laptop plotting OUR and CER.</desc>
+<style xmlns="http://www.w3.org/2000/svg" id="style1-p">
+  .ch-o    {stroke:#000;stroke-width:1.6;stroke-linejoin:round}
+  .ch-oth  {stroke:#000;stroke-width:1.1}
+  .ch-ohair{stroke:#000;stroke-width:0.8}
+  .ch-lead {fill:none;stroke:#000;stroke-width:1}
+  .ch-lbl  {fill:#fff;stroke:#000;stroke-width:1.2}
+  .ch-t    {font-size:15px;fill:#000}
+  .ch-tm   {font-size:12px;fill:#000}
+  .ch-ts   {font-size:9px;fill:#000}
+  .ch-tp   {font-size:11px;fill:#000}
+  .ch-sig  {fill:none;stroke:#000;stroke-width:1.4;stroke-dasharray:9 5}
+  .ch-hi   {fill:#dfe4e5}
+  .ch-hir  {fill:#ef6a52}
+
+/* ---------------- motion ----------------
+   Timed loops. A scroll-driven version was written and then removed: it needs
+   animation-duration:auto, which collapses to zero if the timeline fails to
+   resolve, so an unverified enhancement can silently stop the figure dead.
+   See README, "Scroll-linked motion". */
+
+.ch-sig      { animation: ch-march 1.15s linear infinite; }
+.ch-flow-usb { animation: ch-march-usb 1.9s linear infinite; }
+.ch-imp      { transform-box: fill-box; transform-origin: 50% 50%;
+            vector-effect: non-scaling-stroke; animation: ch-blade .8s infinite; }
+.ch-bub      { transform-box: view-box; animation-name: ch-rise;
+            animation-timing-function: linear; animation-iteration-count: infinite; }
+.ch-b1 { animation-duration: 5.4s; animation-delay: -0.0s; }
+.ch-b2 { animation-duration: 6.1s; animation-delay: -2.3s; }
+.ch-b3 { animation-duration: 4.8s; animation-delay: -3.6s; }
+.ch-b4 { animation-duration: 6.6s; animation-delay: -1.2s; }
+.ch-b5 { animation-duration: 5.0s; animation-delay: -4.1s; }
+.ch-curve    { stroke-dasharray: 392; stroke-dashoffset: 392;
+            animation: ch-draw 9s linear infinite; }
+
+@keyframes ch-march     { to { stroke-dashoffset: -14; } }
+@keyframes ch-march-usb { to { stroke-dashoffset: -30; } }
+@keyframes ch-blade {
+  0%,  24.99% { transform: scaleX(1);   }
+  25%, 49.99% { transform: scaleX(.62); }
+  50%, 74.99% { transform: scaleX(.30); }
+  75%,   100% { transform: scaleX(.62); }
+}
+@keyframes ch-rise { 0% { transform: translateY(150px); } 100% { transform: translateY(-150px); } }
+@keyframes ch-draw { 0% { stroke-dashoffset: 392; } 78%, 100% { stroke-dashoffset: 0; } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .ch-sig, .ch-flow-usb, .ch-imp, .ch-bub, .ch-curve { animation: none !important; }
+  .ch-curve { stroke-dasharray: none; stroke-dashoffset: 0; }
+  .ch-flow-usb, .ch-probe { display: none; }
+}
+</style>
+  
+<defs xmlns="http://www.w3.org/2000/svg" id="animdefs-p"><clipPath id="brothClip-p"><path d="M 64.207969,337.3864 H 239.08615 v 217.41471 a 18.40823,15.529622 0 0 1 -18.40823,15.52962 H 82.616198 A 18.40823,15.529622 0 0 1 64.207969,554.80111 Z" /></clipPath></defs>
+  
+<rect x="14.0" y="515.0" width="512.0" height="1020.9" rx="16" fill="#eef2f4" class="ch-o"/>
+<path d="M306.5 35.0 V9.0 H504.0 V485.0 H270.0 V563.0" stroke="#000" stroke-width="11" fill="none" stroke-linecap="butt"/><path d="M306.5 35.0 V9.0 H504.0 V485.0 H270.0 V563.0" stroke="#e3d184" stroke-width="7.4" fill="none" stroke-linecap="butt"/><polygon points="257.0,537.0 283.0,537.0 270.0,561.7" fill="#000"/><path d="M270.0 736.0 V758.0 H162.0 V847.1" stroke="#000" stroke-width="11" fill="none" stroke-linecap="butt"/><path d="M270.0 736.0 V758.0 H162.0 V847.1" stroke="#e3d184" stroke-width="7.4" fill="none" stroke-linecap="butt"/><polygon points="149.0,821.1 175.0,821.1 162.0,845.8" fill="#000"/><path d="M270.0 736.0 V758.0 H378.0 V847.1" stroke="#000" stroke-width="11" fill="none" stroke-linecap="butt"/><path d="M270.0 736.0 V758.0 H378.0 V847.1" stroke="#e3d184" stroke-width="7.4" fill="none" stroke-linecap="butt"/><polygon points="365.0,821.1 391.0,821.1 378.0,845.8" fill="#000"/><path d="M162.0 1001.1 V1021.1 H270.0" stroke="#000" stroke-width="11" fill="none" stroke-linecap="butt"/><path d="M162.0 1001.1 V1021.1 H270.0" stroke="#e3d184" stroke-width="7.4" fill="none" stroke-linecap="butt"/><path d="M378.0 998.1 V1021.1 H270.0" stroke="#000" stroke-width="11" fill="none" stroke-linecap="butt"/><path d="M378.0 998.1 V1021.1 H270.0" stroke="#e3d184" stroke-width="7.4" fill="none" stroke-linecap="butt"/><path d="M270.0 1021.1 V1151.0" stroke="#000" stroke-width="11" fill="none" stroke-linecap="butt"/><path d="M270.0 1021.1 V1151.0" stroke="#e3d184" stroke-width="7.4" fill="none" stroke-linecap="butt"/><polygon points="257.0,1125.0 283.0,1125.0 270.0,1149.8" fill="#000"/><path class="ch-sig" d="M447.0 922.6 H500.0"/><path class="ch-sig" d="M308.0 1189.5 H500.0"/><path class="ch-sig" d="M500.0 922.6 V1347.3 H314.0 V1371.3"/><path class="ch-sig" d="M110.0 924.1 H40.0 V1347.3 H226.0 V1371.3"/><path d="M270.0 1462.3 V1645.5" stroke="#000000" stroke-width="10" fill="none"/><path d="M270.0 1462.3 V1645.5" stroke="#515151" stroke-width="5.54506" fill="none"/><path class="ch-flow-usb" d="M270.0 1462.3 V1645.5" fill="none" stroke="#a9aba7" stroke-width="2.6" stroke-dasharray="12 18"/>
+<g transform="translate(118.50,-173.00)"><rect xmlns="http://www.w3.org/2000/svg" x="28.925528" y="200.20807" width="245.44305" height="20.706163" fill="#939b9b" class="ch-o" id="rect9-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="87.218254" y="187.26672" width="19.942249" height="12.941352" fill="#c0c5c5" class="ch-oth" id="rect10-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="130.17081" y="187.26672" width="19.942249" height="12.941352" fill="#c0c5c5" class="ch-oth" id="rect11-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="147.81201" y="220.91423" width="7.6700954" height="320.94553" fill="#939b9b" class="ch-ohair" id="rect12-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="119.43266" y="415.03452" width="64.428802" height="11.647217" fill="#c0c5c5" class="ch-oth ch-imp" id="rect13-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="119.43266" y="497.85916" width="64.428802" height="11.647217" fill="#c0c5c5" class="ch-oth ch-imp" id="rect14-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M 50.401796,220.91424 H 252.89232 v 336.47514 a 27.612344,23.294433 0 0 1 -27.61234,23.29444 H 78.014141 A 27.612344,23.294433 0 0 1 50.401796,557.38938 Z" fill="#f5f7f8" class="ch-o" id="path6-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M 64.207969,226.09078 H 239.08615 v 328.71033 a 18.40823,15.529622 0 0 1 -18.40823,15.52962 H 82.616198 A 18.40823,15.529622 0 0 1 64.207969,554.80111 Z" fill="none" stroke="#939b9b" stroke-width="1.40898" id="path7-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M 64.207969,337.3864 H 239.08615 v 217.41471 a 18.40823,15.529622 0 0 1 -18.40823,15.52962 H 82.616198 A 18.40823,15.529622 0 0 1 64.207969,554.80111 Z" fill="#e2ddc6" class="ch-oth" id="path8-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M 64.207969,337.3864 H 239.08615" stroke="#000000" stroke-width="1.4" fill="none" id="path9-p" />
+  <g xmlns="http://www.w3.org/2000/svg" clip-path="url(#brothClip-p)" id="bubbles-p">
+  <ellipse cx="102.55844" cy="389.15179" fill="#e3d184" class="ch-ohair ch-bub ch-b1" id="circle14-p" rx="5.3690672" ry="4.5294733" />
+  <ellipse cx="197.66763" cy="438.32895" fill="#e3d184" class="ch-ohair ch-bub ch-b2" id="circle15-p" rx="4.6020575" ry="3.8824055" />
+  <ellipse cx="120.96667" cy="477.15298" fill="#e3d184" class="ch-ohair ch-bub ch-b3" id="circle16-p" rx="4.6020575" ry="3.8824055" />
+  <ellipse cx="203.80371" cy="526.33014" fill="#e3d184" class="ch-ohair ch-bub ch-b4" id="circle17-p" rx="5.3690672" ry="4.5294733" />
+  <ellipse cx="163.91922" cy="368.44565" fill="#e3d184" class="ch-ohair ch-bub ch-b5" id="circle18-p" rx="3.8350477" ry="3.235338" />
+  </g>
+  
+  </g>
+<g transform="translate(132.34,515.00) scale(1.3700) translate(-704.00,-128.00)"><rect xmlns="http://www.w3.org/2000/svg" x="621.95703" y="114.77526" width="164" height="26" class="ch-lbl" id="rect102-p" />
+  <text xmlns="http://www.w3.org/2000/svg" x="631.95703" y="132.77525" class="ch-t" id="text103-p">3D Printed enclosure</text>
+  </g>
+<g transform="translate(-169.50,412.00)"><g xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" id="g42-p" transform="translate(0.05684584,-0.22738336)">
+    <path d="m 375,186 v 16 l 39,56" stroke="#000000" stroke-width="40" fill="none" stroke-linejoin="round" stroke-linecap="butt" id="path34-p" />
+    <path d="m 505,186 v 16 l -39,56" stroke="#000000" stroke-width="40" fill="none" stroke-linejoin="round" stroke-linecap="butt" id="path35-p" ns1:nodetypes="ccc" />
+    <path d="m 375,186 v 16 l 39,56" stroke="#c0c5c5" stroke-width="36.5" fill="none" stroke-linejoin="round" stroke-linecap="butt" id="path36-p" />
+    <path d="m 505,186 v 16 l -39,56" stroke="#c0c5c5" stroke-width="36.5" fill="none" stroke-linejoin="round" stroke-linecap="butt" id="path37-p" ns1:nodetypes="ccc" />
+    <path d="m 357,192 h 36 m -36,8 h 36" stroke="#000000" stroke-width="1.1" id="path38-p" />
+    <path d="m 487,192 h 36 m -36,8 h 36" stroke="#000000" stroke-width="1.1" id="path39-p" />
+    <rect x="393" y="252" width="94" height="30" fill="#c0c5c5" class="ch-o" id="rect39-p" />
+    <rect x="399" y="254" width="15" height="26" class="ch-hi" id="rect40-p" />
+    <rect x="391" y="282" width="98" height="38" fill="#939b9b" class="ch-o" id="rect41-p" />
+    <rect x="397" y="284" width="14" height="34" fill="#b4bbbb" id="rect42-p" />
+    <path d="m 391,290 h 98 m -98,8 h 98 m -98,8 h 98 m -98,8 h 98" stroke="#000000" stroke-width="0.9" id="path42-p" />
+  </g>
+  
+  <path xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" style="fill:#eef2f4;fill-opacity:1;stroke:#000000;stroke-width:1.856;stroke-dasharray:none" d="m 424.03834,239.03271 c 0,0 6.39014,9.61455 15.10553,10.02103 12.02443,0.56082 16.70695,-9.96585 16.70695,-9.96585" id="path113-p" ns1:nodetypes="csc" />
+  <path xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" style="fill:#c0c5c5;fill-opacity:1;stroke:#c0c5c5;stroke-width:1.40132;stroke-dasharray:none;stroke-opacity:1" d="m 427.90254,246.30832 -5.91485,3.97183 35.95686,0.0917 -5.22936,-3.8609 -11.38068,2.57765 z" id="path116-p" ns1:nodetypes="cccccc" />
+  
+  <path xmlns="http://www.w3.org/2000/svg" style="fill:#e3d184;fill-opacity:1;stroke:#e3d184;stroke-width:1.74759;stroke-dasharray:none;stroke-opacity:1" d="m 362.83614,156.21644 c 0.3161,0 0.079,7.39604 0.47414,7.32353 0.39511,-0.0725 19.99273,0.43506 19.99273,0.43506 l 0.94828,-9.28131 z" id="path115-p" />
+  <path xmlns="http://www.w3.org/2000/svg" style="fill:#e3d184;fill-opacity:1;stroke:#000000;stroke-width:1.70435;stroke-dasharray:none" d="m 356.43259,185.76178 37.31875,0.10427 -8.50648,-25.19869 -23.63782,-0.10427 z" id="path114-9-p" />
+  <path xmlns="http://www.w3.org/2000/svg" style="fill:#e3d184;fill-opacity:1;stroke:#e3d184;stroke-width:1.74759;stroke-dasharray:none;stroke-opacity:1" d="m 492.85801,156.32882 c 0.3161,0 0.079,7.39604 0.47414,7.32353 0.39511,-0.0725 19.99273,0.43506 19.99273,0.43506 l 0.94828,-9.28131 z" id="path115-8-p" />
+<path xmlns="http://www.w3.org/2000/svg" style="fill:#e3d184;fill-opacity:1;stroke:#000000;stroke-width:1.70435;stroke-dasharray:none" d="m 486.28545,185.8727 37.31875,0.10427 -8.50648,-25.19869 -23.63782,-0.10427 z" id="path114-p" />
+  </g>
+<g transform="translate(270.00,768.55) scale(1.3700) translate(-448.00,-280.00)"><rect xmlns="http://www.w3.org/2000/svg" x="358.31247" y="265.26804" width="180.45273" height="29.354691" class="ch-lbl" id="rect98-p" />
+  <text xmlns="http://www.w3.org/2000/svg" x="365.35056" y="283.94931" class="ch-t" id="text98-p">SLA 3D Printed Y-splitter</text>
+  </g>
+<g transform="translate(-278.00,531.10)"><rect xmlns="http://www.w3.org/2000/svg" x="392" y="320" width="96" height="80" fill="#d93520" class="ch-o" id="rect43-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="398" y="322" width="13" height="76" class="ch-hir" id="rect44-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="392" y="344" width="96" height="46" fill="#fff" class="ch-oth" id="rect45-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="392" y="400" width="96" height="22" fill="#b02a18" class="ch-o" id="rect47-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="405" y="422" width="70" height="26" fill="#efe9de" class="ch-o" id="rect48-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M405 430 h70 M405 438 h70" stroke="#000" stroke-width="0.8" id="path48-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M424 448 v18 M456 448 v18" stroke="#000" stroke-width="2.4" id="path49-p" />
+  <text xmlns="http://www.w3.org/2000/svg" x="404" y="360" class="ch-ts" id="text45-p">AO2 CiTiceL®</text>
+  <text xmlns="http://www.w3.org/2000/svg" x="404" y="373" class="ch-ts" id="text46-p">AA428-210</text>
+  <text xmlns="http://www.w3.org/2000/svg" x="404" y="385" class="ch-ts" id="text47-p">Oxygen</text>
+  </g>
+<g transform="translate(-322.00,601.10)"><rect xmlns="http://www.w3.org/2000/svg" x="647" y="250" width="106" height="119" rx="3" fill="#c0c5c5" class="ch-o" id="rect49-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="653" y="252" width="14" height="115" class="ch-hi" id="rect50-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="668" y="270" width="70" height="56" fill="#939b9b" class="ch-o" id="rect51-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="635" y="369" width="130" height="16" fill="#0e7a3a" class="ch-o" id="rect52-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M668 280 h70 M668 290 h70 M668 300 h70 M668 310 h70 M668 320 h70" stroke="#000" stroke-width="0.9" id="path51-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M652 385 v8 M676 385 v8 M700 385 v8 M724 385 v8 M748 385 v8" stroke="#000" stroke-width="1.6" id="path52-p" />
+  
+  </g>
+<g transform="translate(162.00,1069.07) scale(1.3700) translate(-440.00,-369.50)"><rect xmlns="http://www.w3.org/2000/svg" x="390.00784" y="351.87656" width="99.606766" height="34.515884" class="ch-lbl" id="rect104-p" />
+  <text xmlns="http://www.w3.org/2000/svg" x="400.31467" y="373.18341" class="ch-t" id="text105-p">O₂ sensor</text>
+  </g>
+<g transform="translate(378.00,1062.91) scale(1.3700) translate(-667.00,-345.00)"><rect xmlns="http://www.w3.org/2000/svg" x="616.79999" y="332.32156" width="100" height="26" class="ch-lbl" id="rect106-p" />
+  <text xmlns="http://www.w3.org/2000/svg" x="626.79999" y="350.32156" class="ch-t" id="text107-p">CO₂ sensor</text>
+  </g>
+<g transform="translate(-630.00,897.05)"><rect xmlns="http://www.w3.org/2000/svg" x="866" y="258" width="68" height="46" rx="2" fill="#c0c5c5" class="ch-o" id="rect53-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="871" y="260" width="10" height="42" class="ch-hi" id="rect54-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="888" y="268" width="22" height="20" fill="#939b9b" class="ch-o" id="rect55-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="870" y="304" width="60" height="15" fill="#0e7a3a" class="ch-o" id="rect56-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M882 319 v8 M898 319 v8 M914 319 v8" stroke="#000" stroke-width="1.6" id="path56-p" />
+  
+  </g>
+<g transform="translate(270.00,1275.67) scale(1.3700) translate(-931.00,-361.00)"><rect xmlns="http://www.w3.org/2000/svg" x="805.2417" y="335.09439" width="252.34787" height="52.098381" class="ch-lbl" id="rect99-p" />
+  <text xmlns="http://www.w3.org/2000/svg" x="815.29089" y="356.14359" class="ch-t" id="text100-p">BME280 — pressure, temperature,</text>
+  <text xmlns="http://www.w3.org/2000/svg" x="815.29089" y="377.14359" class="ch-t" id="text101-p">humidity, for the dry-gas correction</text>
+  </g>
+<g transform="translate(-442.50,878.29)"><g xmlns="http://www.w3.org/2000/svg" id="g86-p">
+    <rect x="614" y="495" width="171" height="85" rx="2" fill="#0e7a3a" class="ch-o" id="rect59-p" />
+    <g fill="#c9a03c" stroke="#000" stroke-width="0.7" id="g81-p">
+      <rect x="622" y="495" width="9" height="13" id="rect60-p" />
+      <rect x="636" y="495" width="9" height="13" id="rect61-p" />
+      <rect x="650" y="495" width="9" height="13" id="rect62-p" />
+      <rect x="664" y="495" width="9" height="13" id="rect63-p" />
+      <rect x="678" y="495" width="9" height="13" id="rect64-p" />
+      <rect x="692" y="495" width="9" height="13" id="rect65-p" />
+      <rect x="706" y="495" width="9" height="13" id="rect66-p" />
+      <rect x="720" y="495" width="9" height="13" id="rect67-p" />
+      <rect x="734" y="495" width="9" height="13" id="rect68-p" />
+      <rect x="748" y="495" width="9" height="13" id="rect69-p" />
+      <rect x="762" y="495" width="9" height="13" id="rect70-p" />
+      <rect x="622" y="567" width="9" height="13" id="rect71-p" />
+      <rect x="636" y="567" width="9" height="13" id="rect72-p" />
+      <rect x="650" y="567" width="9" height="13" id="rect73-p" />
+      <rect x="664" y="567" width="9" height="13" id="rect74-p" />
+      <rect x="678" y="567" width="9" height="13" id="rect75-p" />
+      <rect x="692" y="567" width="9" height="13" id="rect76-p" />
+      <rect x="706" y="567" width="9" height="13" id="rect77-p" />
+      <rect x="720" y="567" width="9" height="13" id="rect78-p" />
+      <rect x="734" y="567" width="9" height="13" id="rect79-p" />
+      <rect x="748" y="567" width="9" height="13" id="rect80-p" />
+      <rect x="762" y="567" width="9" height="13" id="rect81-p" />
+    </g>
+    <rect x="666" y="514" width="56" height="46" fill="#212129" class="ch-o" id="rect82-p" />
+    <rect x="632" y="520" width="20" height="14" fill="#212129" class="ch-ohair" id="rect83-p" />
+    <rect x="632" y="542" width="14" height="10" fill="#212129" class="ch-ohair" id="rect84-p" />
+    <rect x="734" y="514" width="18" height="16" fill="#c0c5c5" class="ch-ohair" id="rect85-p" />
+    <circle cx="756" cy="548" r="10" fill="#c9a03c" class="ch-oth" id="circle85-p" />
+    <rect x="785" y="517" width="26" height="40" rx="3" fill="#d0d1cc" class="ch-o" id="rect86-p" />
+    <path d="M791 525 h14 M791 533 h14 M791 541 h14" stroke="#000" stroke-width="0.8" id="path86-p" />
+  </g>
+  
+  </g>
+<g transform="translate(270.00,1492.10) scale(1.3700) translate(-696.00,-602.00)"><rect xmlns="http://www.w3.org/2000/svg" x="556.28235" y="588.51764" width="280" height="26" class="ch-lbl" id="rect107-p" />
+  <text xmlns="http://www.w3.org/2000/svg" x="566.28235" y="606.51764" class="ch-t" id="text108-p">Teensy 4.0 — all three over I²C</text>
+  </g>
+<g transform="translate(270.00,1615.72) scale(1.3700) translate(-1046.00,-534.00)"><rect xmlns="http://www.w3.org/2000/svg" x="910.79755" y="521.29614" width="270" height="26" class="ch-lbl" id="rect108-p" />
+  <text xmlns="http://www.w3.org/2000/svg" x="920.79755" y="539.29614" class="ch-t" id="text109-p">USB serial → timestamped CSV</text>
+  
+  </g>
+<g transform="translate(-1055.50,1442.53)"><rect xmlns="http://www.w3.org/2000/svg" x="1079.3737" y="208.7793" width="457.59506" height="320.34558" rx="4.3580484" fill="#f5f7f8" class="ch-o" id="rect88-p" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="1096.8059" y="224.79659" width="422.73068" height="288.31104" fill="#ffffff" class="ch-oth" id="rect89-p" />
+  <path xmlns="http://www.w3.org/2000/svg" d="m 1264.5907,550.48127 h 87.161" stroke="#939b9b" stroke-width="2.41185" id="path96-p" />
+  
+  <g xmlns="http://www.w3.org/2000/svg" id="plotgroup-p" transform="translate(-149.36,-37.22) scale(1.105)">
+  <g stroke="#c0c5c5" stroke-width="0.7" id="g89-p" transform="matrix(1.0895121,0,0,1.3347733,-140.87984,-191.65269)">
+    <path d="m 1200,456 h 304 m -304,-30 h 304 m -304,-30 h 304 m -304,-30 h 304 m -304,-30 h 304" id="path89-p" />
+  </g>
+  <path d="m 1166.5346,248.8225 v 208.22464 h 331.2117" fill="none" stroke="#000000" stroke-width="1.4" id="path90-p" />
+  <g stroke="#000000" stroke-width="1" id="g92-p" transform="matrix(1.0895121,0,0,1.3347733,-140.87984,-191.65269)">
+    <path d="m 1200,456 h -6 m 6,-30 h -6 m 6,-30 h -6 m 6,-30 h -6 m 6,-30 h -6" id="path91-p" />
+    <path d="m 1276,486 v 6 m 76,-6 v 6 m 76,-6 v 6" id="path92-p" />
+  </g>
+  <polyline fill="none" stroke="#345ecc" stroke-width="2.8" points="1200,478 1237,472 1273,459 1309,439 1340,414 1367,386 1392,364 1413,352 1431,349 1449,355 1468,377 1486,408 1504,433" id="polyline92-p" transform="matrix(1.0895121,0,0,1.3347733,-140.87984,-191.65269)" class="ch-curve" />
+  <polyline fill="none" stroke="#c8781e" stroke-width="2.8" points="1200,479 1237,473 1273,461 1309,441 1340,416 1367,386 1392,361 1413,346 1431,336 1449,338 1468,355 1486,383 1504,408" id="polyline93-p" transform="matrix(1.0895121,0,0,1.3347733,-140.87984,-191.65269)" class="ch-curve" />
+  <g transform="matrix(1.0895121,0,0,1.3347733,-140.87984,-191.65269)" class="ch-probe" id="probes-p">
+    <circle r="4" cx="0" cy="0" fill="#345ecc" stroke="#fff" stroke-width="1.2">
+      <animateMotion dur="9s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.78;1" path="M1200,478 L1237,472 L1273,459 L1309,439 L1340,414 L1367,386 L1392,364 L1413,352 L1431,349 L1449,355 L1468,377 L1486,408 L1504,433" />
+    </circle>
+    <circle r="4" cx="0" cy="0" fill="#c8781e" stroke="#fff" stroke-width="1.2">
+      <animateMotion dur="9s" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" keyTimes="0;0.78;1" path="M1200,479 L1237,473 L1273,461 L1309,441 L1340,416 L1367,386 L1392,361 L1413,346 L1431,336 L1449,338 L1468,355 L1486,383 L1504,408" />
+    </circle>
+  </g>
+
+  <g id="g94-p" transform="matrix(1.0895121,0,0,1.3347733,-140.87984,-191.65269)">
+    <path d="m 1218,346 h 28" stroke="#345ecc" stroke-width="2.8" id="path93-p" />
+    <text x="1252" y="350" class="ch-tp" id="text93-p">OUR</text>
+    <path d="m 1218,364 h 28" stroke="#c8781e" stroke-width="2.8" id="path94-p" />
+    <text x="1252" y="368" class="ch-tp" id="text94-p">CER</text>
+  </g>
+  <text x="1474.4762" y="439.45731" class="ch-tp" text-anchor="middle" id="text95-p" transform="scale(0.90346694,1.1068474)" style="stroke-width:1.20592">time</text>
+  <text x="-318.86493" y="1269.4691" class="ch-tp" text-anchor="middle" transform="matrix(0,-1.1068474,0.90346694,0,0,0)" id="text96-p" style="stroke-width:1.20592">mmol / L / h</text>
+  </g>
+  <polygon xmlns="http://www.w3.org/2000/svg" points="1572,572 1088,572 1104,540 1556,540 " fill="#c0c5c5" class="ch-o" id="polygon96-p" transform="matrix(1.066056,0,0,1.3354086,-103.99865,-192.00592)" />
+  </g>
+</svg>
+        <!-- fig:chainphone:end -->
+      </div>
       <figcaption>
         <span class="fig__no">Fig 03</span> — The measurement chain, vent line to CSV.
         Solid lines carry gas, dashed lines carry data.

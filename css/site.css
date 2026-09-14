@@ -175,6 +175,16 @@ figcaption{
   margin-left:calc(50% - var(--fig-w) / 2);
 }
 
+/* The chain figure has a second drawing for phones: the same components, the
+   same source file, re-laid-out as a portrait strip. 1568px of landscape in a
+   341px column is nearly five screens of sideways swiping, and a drawing
+   nobody swipes to the end of is a drawing nobody reads.
+
+   Two files rather than one responsive drawing because viewBox cannot be
+   changed by a media query and the two layouts have different aspect ratios.
+   Exactly one is ever displayed, so nothing is announced twice. */
+.fig__phone{display:none}
+
 /* ---------- the pinned hero ----------
    The draw-and-fill needs more scroll than the figure's own travel through the
    viewport gives it (viewport + figure height, about 1460px). So the figure
@@ -253,6 +263,13 @@ figcaption{
     width:var(--fig-min,900px);max-width:none;
   }
   .fig--fluid .fig__scroll>img,.fig--fluid .fig__scroll>picture>img{width:100%}
+  /* swap the chain for its portrait twin, which fits and so does not swipe.
+     Selectors deliberately more specific than .fig__scroll>svg above, so this
+     cannot be undone by anything that gets appended to this file later. */
+  .fig--wide>.fig__scroll:not(.fig__phone){display:none}
+  .fig--wide>.fig__phone{display:block}
+  .fig--wide>.fig__phone>svg{width:100%;max-width:none}
+  .fig--wide .fig__swipe{display:none}
   /* The hint is only true for figures whose content really is wider than the
      screen. The video shrinks to fit and the photos are fluid, so a "swipe"
      next to either of them points at something that cannot move. */

@@ -23,6 +23,8 @@ PAGE = os.path.join(ROOT, "index.html")
 FIGURES = {
     "train": os.path.join(ROOT, "svg", "perfusion-train.svg"),
     "chain": os.path.join(ROOT, "svg", "chain.svg"),
+    # the same drawing, re-laid-out as a portrait strip for phones
+    "chainphone": os.path.join(ROOT, "svg", "chain-phone.svg"),
 }
 
 
