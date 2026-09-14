@@ -31,6 +31,7 @@
 
   --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:40px; --s6:64px; --section:80px;
   --container:1180px;
+  --screen:#0f1011;        /* the recording's own ground, sampled from its edges */
   --gutter:var(--s4);      /* the page's side gutter: .wrap and .fig--wide share it
                               so a wide figure always lines up with the text above it */
   --nav-h:57px;          /* measured: 16px padding + 24px line + 16px + 1.6px rule */
@@ -152,11 +153,21 @@ figcaption{
 .fig__swipe{display:none;font:400 10px/1 var(--mono);letter-spacing:.14em;color:var(--blue)}
 .fig--plain .fig__scroll{border:0}
 
-/* A screen recording stands in for a screenshot. It is shown at its native
-   1000px so the UI text stays sharp; anything wider would be upscaling. The
-   still is what a reader gets when they have asked for less motion. */
-.fig--video{max-width:1000px}          /* native width: never upscale the recording */
-.fig--video .fig__scroll{background:#fff}
+/* A screen recording stands in for a screenshot, and it is the recording made
+   on a phone -- the designer is a responsive HTML file, so that is the tool
+   itself rather than a shrunken picture of it. One file for every screen: a
+   second, desktop-shaped capture would be downloaded by every visitor whatever
+   their screen, because autoplay overrides preload="none" and neither CSS nor
+   <source media> can gate a video by viewport without JavaScript.
+
+   The tool follows prefers-color-scheme, so the recording is dark. Rather than
+   set a dark panel on white paper and hope, the figure is framed as what it is:
+   the ground matches the recording's own #0f1011 so there is no seam, and the
+   2px ink border reads as the edge of a screen. The still is what a reader gets
+   when they have asked for less motion. */
+.fig--video .fig__scroll{background:var(--screen)}
+.fig--device{--screen:#0f1011}
+.fig--device .fig__scroll{border-width:2px;padding:0;line-height:0}
 .fig__video,.fig__still{display:block;width:100%;height:auto}
 .fig__still{display:none}
 @media (prefers-reduced-motion:reduce){
@@ -238,6 +249,10 @@ figcaption{
 @media (min-width:820px){
   .split--photo{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .split--about{grid-template-columns:300px minmax(0,1fr)}
+  /* The demo is a tall phone-shaped recording, so it sits beside the hook in a
+     fixed column rather than stretching across the measure. Below 820px the
+     grid is one column and it simply falls under the text. */
+  .split--demo{grid-template-columns:minmax(0,1fr) 340px;align-items:start}
 }
 
 /* ---------- footer ---------- */
@@ -281,8 +296,8 @@ figcaption{
   .fig--twin>.fig__phone>svg{width:100%;max-width:none}
   .fig--twin .fig__swipe{display:none}
   /* .fig__still is an <img> inside .fig__scroll, so the --fig-min rule above
-     would stretch the reduced-motion poster to 1000px and force the page
-     sideways for exactly the readers who asked for less movement. */
+     would stretch the reduced-motion poster to its intrinsic width and force
+     the page sideways for exactly the readers who asked for less movement. */
   .fig--video .fig__still{width:100%}
   /* The hint is only true for figures whose content really is wider than the
      screen. The video shrinks to fit and the photos are fluid, so a "swipe"

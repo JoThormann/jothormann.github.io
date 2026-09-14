@@ -225,14 +225,65 @@ definition silently won for both and the train's bubbles ran the chain's 150 px
 rise instead of their own 7 px one. Everything is now prefixed `tr-` or `ch-`.
 **Give a third drawing its own prefix.**
 
+## Phones
+
+Three traps here cost real time. All three were invisible until something was measured.
+
+**A later rule of equal specificity silently beat the media query.**
+`.hero__scroller{height:220vh}` and `.fig--pin{position:sticky}` sat in the motion section at
+the bottom of `site.css`, below `@media (max-width:900px)`. Plain class selectors, same
+specificity, so the media query lost and both overrides were dead code — 1,270 px of blank
+white in the hero on a phone, and readers who asked for reduced motion still got the pin.
+**Layout rules that a media query overrides must come before it.** They now do, with a
+comment saying so, and the mobile rules are written more specifically than the ones they
+undo so nothing appended later can undo them again.
+
+**Inkscape's `display:inline` is an inline style and outranks the stylesheet.**
+It is redundant — that is the default — but it lives in a `style` attribute, so
+`.tr-lbl{display:none}` hid 5 of 35 labels and looked simply broken. `build-drawings.py` now
+strips the declaration rather than reaching for `!important`.
+
+**A hidden `<video>` is still downloaded.** `autoplay` overrides `preload="none"`, and
+`display:none` does not stop the fetch. Proved with cache-busted URLs: a phone pulled the
+768 kB desktop recording it would never display. There is no CSS or HTML fix — `<source
+media>` was removed from `<video>` in Chrome — so the site ships **one** recording for every
+screen. If you ever add a second, measure the cost first:
+
+```js
+performance.getEntriesByType('resource')
+  .filter(r => /(webm|mp4)/.test(r.name))
+  .map(r => [r.name.split('/').pop(), Math.round(r.transferSize / 1024) + ' kB'])
+```
+
+Note that `transferSize: 0` means *served from cache*, not *not fetched* — the entry existing
+at all is the proof it was requested. Bust the cache or the measurement will lie to you.
+
+### One rule if you add a second drawing for phones
+
+Both drawings live in the same document, so every id in the portrait copy is suffixed `-p`.
+The first version of `chain-phone.py` suffixed only the children of `<svg>`, which left
+`brothClip` and the whole plot group colliding with the landscape copy — the same failure as
+the class collision that broke the signal lines. Suffix **every id in the subtree**, and the
+`url(#…)` and `href="#…"` references with them.
+
+Note that 47 duplicate ids already exist between the perfusion train and the chain, because
+Inkscape names them both `rect43`, `path39` and so on. Only one, `rect1`, is referenced, and
+it resolves correctly today only because the train happens to be inlined first and the
+element pointing at it is empty. Nothing renders wrong, but do not add to it.
+
 ## Accessibility
 
 - Hover barely changes anything by design, so `:focus-visible` is load-bearing rather than
   decorative: a 2 px outline on every interactive element. Do not remove it.
-- Each wide figure's scroller is focusable, so the sideways scroll is reachable by keyboard.
+- Each wide figure's scroller is focusable, so any sideways scroll is reachable by keyboard.
+- Exactly one of each portrait/landscape pair is ever displayed, so nothing is announced twice.
 - Both inline drawings carry `<title>` and `<desc>` and are exposed as `role="img"`.
 
 ## Deploying
 
-Push to `main`. The workflow publishes everything except `scripts/`, `*.src.svg`, `SPEC.md`
+Push to `main`. The workflow publishes everything except `scripts/`, `*.src.*`, `SPEC.md`
 and `README.md`. Enable Pages once, under Settings → Pages → Source: GitHub Actions.
+
+The exclusion is `*.src.*`, not `*.src.svg`: the raw phone recording lives beside its
+encoded output as `video/feed-designer-phone.src.mp4`, the way each Inkscape source sits
+beside its drawing, and it is 5 MB that must not ship.

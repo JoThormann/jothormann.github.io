@@ -77,10 +77,24 @@ No paragraph. The drawing does the rest.
 >
 > One HTML file, no install, MIT licensed. Fork it and swap in your own organism.
 
-- **FIG 02** — a screen recording of the designer in use, `<video>` not GIF, shown at its
-  native 1000 px. *Phases set, the batch predicted, and every switch placed on the wall clock.*
-  Cropped to remove browser chrome, which leaked an email address, internal tool names and a
-  claude.ai artifact URL. Poster still shown under reduced motion.
+- **FIG 02** — a screen recording of the designer **filmed on a phone**, `<video>` not GIF.
+  The designer is a responsive HTML file, so a phone capture is the tool itself rather than a
+  shrunken picture of it. *The designer in use, on the phone it was built to work on.*
+  One recording for every screen: on desktop it sits beside the hook in a 340 px column and
+  reads as a device; on a phone it is the full column width. Poster still under reduced motion.
+  - **Why not two recordings.** A second desktop-shaped capture is downloaded by every
+    visitor whatever their screen: `autoplay` overrides `preload="none"`, and neither CSS nor
+    `<source media>` can gate a video by viewport without JavaScript. Measured with
+    cache-busted URLs: two recordings cost every visitor 2,091 kB, of which 768–1,323 kB is
+    never displayed. One recording costs 1,323 kB and wastes nothing.
+  - **The recording is dark** because the tool follows `prefers-color-scheme`. Rather than
+    drop a dark panel on white paper and hope, the figure is framed as what it is: the
+    ground matches the recording's own `#0f1011` so there is no seam, and the 2 px ink
+    border reads as the edge of a screen.
+  - Cropped 576 × 1152 to remove the address bar and the Android gesture bar, and
+    **re-encoded without audio** — a screen recording carries whatever the room was saying.
+    Checked frame by frame before use. An earlier desktop capture leaked an email address,
+    internal tool names and a claude.ai artifact URL.
 - Badges `GOAL-SEEK` `ELECTRON BALANCE` `RUNS IN A BROWSER`
 - Button `Open the designer →` to `/tools/feed-profile-designer/`
 
@@ -192,11 +206,21 @@ and it is where the previous site failed. At 390 px the chain figure's 15 px lab
 render at **3.7 px**. Scaling wide technical drawings to fit does not make labels small, it
 deletes them.
 
-- **The two drawings scroll horizontally, they do not shrink.** Minimum render width ~900 px
-  inside `overflow-x: auto`, with `overscroll-behavior-x: contain` so a sideways swipe does
-  not steal the page scroll, and a visible `swipe →` hint in mono. The old site did this
-  silently, which is why nobody found the figure. The perfusion train behaves the same way
-  in the hero — one drawing, same treatment everywhere.
+- **Neither drawing swipes any more. They were the whole problem, and each is solved its
+  own way**, because the two drawings fail differently at 341 px.
+  - **The perfusion train scales to fit and drops its labels.** Its 3.175 px type would
+    render at about 1.2 px — not small type, grey fuzz — so the labels go and the shapes
+    carry it: vessels, pumps, balance, and the two control lines. The scroll-linked
+    draw-and-fill still runs. Labels are tagged `tr-lbl` in the build rather than split into
+    a second file, because the train is 97 kB inlined and a twin would nearly double the page.
+  - **The chain gets a second, portrait drawing** (`svg/chain-phone.svg`, generated from the
+    same source). Scaling it was not an option: it is a chain of labelled components, and at
+    0.22× every label dies. Laid out as a vertical strip it fits the column exactly.
+    Two files rather than one responsive drawing because `viewBox` cannot be changed by a
+    media query and the two layouts have different aspect ratios.
+  - Scroll ratio is now **1.00 for both**. The `swipe →` hint is gone with them.
+  - The figures keep `overflow-x: auto` and `overscroll-behavior-x: contain` as a floor, so
+    nothing can be clipped silently the way the old site clipped it.
 - **No mobile-specific screenshots — tested and rejected.** The Feed Designer's day grid is
   its own horizontal scroller by design, so a 390 px capture is truncated: a phone-width
   screenshot would be *worse* than the desktop one. Both screenshots therefore get the same
@@ -233,6 +257,7 @@ new_portfolio_website/
   svg/perfusion-train.svg         animated, generated
   svg/chain.src.svg               Jonas's Inkscape source — edit this
   svg/chain.svg                   animated, generated
+  svg/chain-phone.svg             the same drawing as a portrait strip, generated
   svg/vessel.svg                  the instrumented vessel, for the about
   tools/feed-profile-designer/    self-hosted, Google Fonts call stripped
   .github/workflows/deploy.yml
@@ -255,7 +280,7 @@ documents the block. That is the accepted cost of having no build step.
 | Instrumented vessel | ✅ same file, second drawing |
 | Chain figure | ✅ `references/chain.svg` + animated build |
 | Box photograph | ✅ `references/photo_5269443127645249040_y.jpg` |
-| Feed Designer demo | ✅ `video/` — mp4 + webm + poster, trimmed, cropped, chrome removed |
+| Feed Designer demo | ✅ `video/feed-designer-phone.*` — filmed on a phone, cropped, silent |
 | Feed Designer tool | ✅ self-hosted at `tools/feed-profile-designer/`, CDN font call stripped |
 
 ## 8. Build order
