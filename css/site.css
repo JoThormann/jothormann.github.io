@@ -175,14 +175,16 @@ figcaption{
   margin-left:calc(50% - var(--fig-w) / 2);
 }
 
-/* The chain figure has a second drawing for phones: the same components, the
-   same source file, re-laid-out as a portrait strip. 1568px of landscape in a
-   341px column is nearly five screens of sideways swiping, and a drawing
-   nobody swipes to the end of is a drawing nobody reads.
+/* Two figures ship a second, portrait version of themselves for phones, marked
+   .fig--twin: the chain drawing, whose landscape layout is nearly five screens
+   of sideways swiping at 341px, and the Feed Designer recording, which was
+   filmed on a phone rather than shrunk from the desktop capture.
 
-   Two files rather than one responsive drawing because viewBox cannot be
-   changed by a media query and the two layouts have different aspect ratios.
-   Exactly one is ever displayed, so nothing is announced twice. */
+   Two files rather than one responsive asset in both cases: a viewBox cannot be
+   changed by a media query, and <source media> was removed from <video> in
+   Chrome. Exactly one of each pair is ever displayed, so nothing is announced
+   twice, and both are preload="none" so a phone never spends a visitor's data
+   fetching the desktop recording it will not show. */
 .fig__phone{display:none}
 
 /* ---------- the pinned hero ----------
@@ -263,13 +265,25 @@ figcaption{
     width:var(--fig-min,900px);max-width:none;
   }
   .fig--fluid .fig__scroll>img,.fig--fluid .fig__scroll>picture>img{width:100%}
-  /* swap the chain for its portrait twin, which fits and so does not swipe.
+  /* swap each twin for its portrait version, which fits and so does not swipe.
      Selectors deliberately more specific than .fig__scroll>svg above, so this
-     cannot be undone by anything that gets appended to this file later. */
-  .fig--wide>.fig__scroll:not(.fig__phone){display:none}
-  .fig--wide>.fig__phone{display:block}
-  .fig--wide>.fig__phone>svg{width:100%;max-width:none}
-  .fig--wide .fig__swipe{display:none}
+     cannot be undone by anything appended to this file later. */
+  /* The perfusion train scales down to fit the column instead of swiping, and
+     drops its labels to pay for it: at 341px its 3.175px type would render at
+     about 1.2px. The shapes still read -- vessels, pumps, balance, the two
+     control lines -- and the caption says what the drawing shows. */
+  .fig--fit>.fig__scroll>svg{width:100%;max-width:none}
+  .fig--fit .fig__swipe{display:none}
+  .fig--fit .tr-lbl{display:none}
+
+  .fig--twin>.fig__scroll:not(.fig__phone){display:none}
+  .fig--twin>.fig__phone{display:block}
+  .fig--twin>.fig__phone>svg{width:100%;max-width:none}
+  .fig--twin .fig__swipe{display:none}
+  /* .fig__still is an <img> inside .fig__scroll, so the --fig-min rule above
+     would stretch the reduced-motion poster to 1000px and force the page
+     sideways for exactly the readers who asked for less movement. */
+  .fig--video .fig__still{width:100%}
   /* The hint is only true for figures whose content really is wider than the
      screen. The video shrinks to fit and the photos are fluid, so a "swipe"
      next to either of them points at something that cannot move. */

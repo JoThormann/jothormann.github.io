@@ -69,6 +69,43 @@ BLADES_RIGHT = ["rect49", "rect48", "rect49-9", "rect48-2", "rect49-3",
 
 CONTROL_LINES = ["rect15", "path30", "path61"]   # weight control / drain control
 
+# --- the labels ---------------------------------------------------------------
+# On a phone the drawing is scaled to fit the column rather than swiped, so its
+# 3.175px type would land at roughly 1.2px. That is not small type, it is grey
+# fuzz, and it would drag the whole schematic down with it. The labels are
+# therefore tagged here and hidden by the stylesheet below 900px; the drawing
+# itself still reads, because the shapes are what carry it.
+#
+# Each label is a <text> plus the small white plate behind it. The pairing was
+# found by measuring, for every <text>, the one fill:#ffffff element whose box
+# is the size of the text's own box. Re-measure the same way if the drawing
+# changes; a missing id fails the build.
+LABEL_TEXTS = [
+    "text3",        # Balance
+    "text7",        # Induction Bioreactor
+    "text5",        # Growth Bioreactor
+    "text5-1",      # Medium
+    "text5-8",      # Medium Pump
+    "text3-1",      # Weight control
+    "text3-5",      # pH probe
+    "text3-5-4",    # Sparger
+    "text3-5-0",    # Impeller
+    "text3-5-9",    # Foam Probe
+    "text3-5-6",    # Filter
+    "text3-5-4-8",  # Condenser
+    "text3-5-0-1",  # Temperature probe
+    "text3-5-9-9",  # DO probe
+    "text5-8-5",    # Drain Pump
+    # Inkscape flowed-text leftovers: empty, and they render nothing, but they
+    # are still <text> and are tagged so the set is "every text in the drawing".
+    "text4", "text32", "text35", "text1", "text54",
+]
+LABEL_PLATES = [
+    "rect21", "rect22", "rect20", "rect20-6", "rect23", "rect33",
+    "rect52-9-5-9", "rect52-9-5-8", "rect52-9-5-29", "rect52-9-5-29-4",
+    "rect52-9-5-3", "rect52-9-5-1", "rect52-9-5", "rect52-9-5-2", "rect23-9",
+]
+
 MOTION_CSS = """
 <style>
 /* ---- levels: one draw-and-fill cycle -------------------------------------
@@ -166,6 +203,39 @@ def add_class(text, eid, extra):
     return text.replace(el, new, 1)
 
 
+def drop_display_inline(text, eid):
+    """Remove Inkscape's redundant style="...display:inline..." from one element.
+
+    display:inline is the default for these elements, so the declaration does
+    nothing -- except sit in a style attribute, where it outranks any stylesheet
+    rule. Leaving it there means .tr-lbl{display:none} silently fails and the
+    only way to hide a label is !important. Dropping it is the honest fix."""
+    m = re.search(r'<[a-zA-Z]+[^>]*?id="%s"[^>]*?>' % re.escape(eid), text, re.S)
+    if not m:
+        sys.exit("element id=%s not found -- the drawing changed" % eid)
+    el = m.group(0)
+    if "display:inline" not in el:
+        return text
+    new = el.replace("display:inline;", "").replace(";display:inline", "")
+    return text.replace(el, new, 1)
+
+
+def add_class_paired(text, eid, extra):
+    """add_class only matches self-closing tags; <text> has a closing tag."""
+    m = re.search(r'<[a-zA-Z]+[^>]*?id="%s"[^>]*?>' % re.escape(eid), text, re.S)
+    if not m:
+        sys.exit("element id=%s not found -- the drawing changed" % eid)
+    el = m.group(0)
+    if el.endswith("/>"):
+        return add_class(text, eid, extra)
+    if 'class="' in el:
+        new = re.sub(r'class="([^"]*)"',
+                     lambda z: 'class="%s %s"' % (z.group(1), extra), el, count=1)
+    else:
+        new = el[:-1] + ' class="%s">' % extra
+    return text.replace(el, new, 1)
+
+
 def group_bubbles(text):
     """Move the bubbles into two clipped groups, one per vessel.
 
@@ -217,6 +287,12 @@ def add_motion(text):
         text = add_class(text, b, "tr-blade tr-blade-r")
     for c in CONTROL_LINES:
         text = add_class(text, c, "tr-ctrl")
+    for t in LABEL_TEXTS:
+        text = add_class_paired(text, t, "tr-lbl")
+        text = drop_display_inline(text, t)
+    for r in LABEL_PLATES:
+        text = add_class(text, r, "tr-lbl")
+        text = drop_display_inline(text, r)
     return text
 
 
