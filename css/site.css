@@ -1,0 +1,615 @@
+/* ============================================================
+   Jonas Thormann — portfolio
+   One stylesheet. No build step, no framework.
+   Colours are sampled from the author's own technical drawings.
+   ============================================================ */
+
+/* ---------- fonts ---------- */
+@font-face{font-family:'Plex Sans';font-style:normal;font-weight:400;font-display:swap;
+  src:url(../fonts/plexsans-400.woff2) format('woff2')}
+@font-face{font-family:'Plex Sans';font-style:normal;font-weight:600;font-display:swap;
+  src:url(../fonts/plexsans-600.woff2) format('woff2')}
+@font-face{font-family:'Plex Mono';font-style:normal;font-weight:400;font-display:swap;
+  src:url(../fonts/plexmono-400.woff2) format('woff2')}
+
+/* ---------- tokens ---------- */
+:root{
+  --paper:#faf8f4;
+  --ink:#17140f;
+  --ink-soft:#57514a;
+  --rule:#c0c5c5;
+
+  --broth:#d2b978;      /* the liquid, matched to the drawings */
+  --glass:#f5f7f8;
+  --steel:#939b9b;
+  --ochre:#e3d184;
+  --blue:#345ecc;
+  --blue-deep:#22409a;
+
+  --sans:'Plex Sans',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  --mono:'Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+
+  --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:40px; --s6:64px; --section:80px;
+  --container:1180px;
+  --screen:#0f1011;        /* the screenshots' own ground, sampled from their edges */
+  --gutter:var(--s4);      /* the page's side gutter: .wrap and .fig--wide share it
+                              so a wide figure always lines up with the text above it */
+  --nav-h:57px;          /* measured: 16px padding + 24px line + 16px + 1.6px rule */
+  --hero-head-h:168px;   /* measured, and stable 900-1680px: the 20ch measure
+                            keeps the h1 at three lines, so the pin sits flush
+                            under the head instead of hiding behind it */
+  --stroke-hair:1px; --stroke-box:1.2px; --stroke-obj:1.6px; --stroke-rule:2px;
+
+  color-scheme:light;
+}
+
+/* ---------- reset ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font:400 16px/1.65 var(--sans);
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:break-word;
+}
+img,svg{display:block;max-width:100%}
+h1,h2,h3,p,figure,figcaption,ul{margin:0}
+a{color:var(--ink)}
+a:hover{color:var(--blue)}
+
+.skip{
+  position:absolute;left:-9999px;top:0;z-index:10;
+  background:var(--ink);color:#fff;padding:var(--s2) var(--s3);
+  font:400 13px/1 var(--mono);
+}
+.skip:focus{left:0}
+
+:where(a,button,[tabindex]):focus-visible{
+  outline:2px solid var(--ink);
+  outline-offset:2px;
+}
+
+.wrap{max-width:var(--container);margin-inline:auto;padding-inline:var(--gutter)}
+
+/* ---------- type ---------- */
+.display{
+  font-weight:600;
+  font-size:clamp(28px,5.2vw,36px);
+  line-height:1.06;
+  letter-spacing:-.02em;
+  max-width:20ch;
+}
+.h2{font-weight:600;font-size:clamp(22px,3.4vw,26px);line-height:1.15;letter-spacing:-.01em}
+.h3{font-weight:600;font-size:18px;line-height:1.3}
+.prose{max-width:64ch}
+.prose p+p{margin-top:var(--s3)}
+.u{font-family:var(--mono);font-size:.92em}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:5;
+  background:var(--paper);
+  border-bottom:var(--stroke-obj) solid var(--ink);
+}
+.nav__in{
+  max-width:var(--container);margin-inline:auto;padding:var(--s3) var(--gutter);
+  display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);
+}
+.wordmark{
+  font-weight:600;font-size:15px;letter-spacing:.06em;
+  text-transform:uppercase;text-decoration:none;
+}
+.nav__links{display:flex;gap:var(--s4);font:400 15px/1 var(--sans)}
+.nav__links a{color:var(--ink);text-decoration:none}
+.nav__links a:hover{color:var(--blue)}
+
+/* ---------- sections ---------- */
+.section{padding-bottom:var(--section)}
+.hero{padding-bottom:var(--section)}
+.section__body{padding-top:var(--s5)}
+
+/* ---------- chapter heads ----------
+   Each section's eyebrow and heading sit in a band that sticks under the nav
+   while its own section is on screen, then scrolls away as the next one takes
+   its place. Sheets in a drawing set, sliding over one another.
+
+   Full-bleed on purpose: a container-width band would let the wider figures
+   show past its edges as they pass underneath. Opaque for the same reason. */
+.chapter{
+  position:sticky;
+  top:var(--nav-h);
+  z-index:2;
+  background:var(--paper);
+  border-top:var(--stroke-rule) solid var(--ink);
+  padding-block:var(--s3);
+}
+.chapter .h2,.chapter .display{margin-top:var(--s1)}
+.chapter--hero{padding-block:var(--s4) var(--s3);
+  /* The hero head is styled like a chapter band but must not stick: stuck,
+     it slid over the top of the lab scene and hid the shelf and lamps. */
+  position:relative;top:auto}   /* top:auto -- the bands' 57px sticky offset would shove a relative head down */
+
+/* ---------- figures ---------- */
+.fig{margin-top:var(--s5)}
+.fig__scroll{
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  border:var(--stroke-obj) solid var(--ink);
+  background:var(--paper);
+}
+.fig__scroll>svg,.fig__scroll>img,.fig__scroll>picture>img{width:100%;height:auto}
+figcaption{
+  margin-top:var(--s2);
+  font-size:14px;line-height:1.55;color:var(--ink-soft);
+  max-width:78ch;
+}
+.fig__no{font:400 10px/1 var(--mono);letter-spacing:.14em;color:var(--ink-soft)}
+.fig__swipe{display:none;font:400 10px/1 var(--mono);letter-spacing:.14em;color:var(--blue)}
+.fig--plain .fig__scroll{border:0}
+
+/* ---------- the deck: five phone screens, cycling ----------
+   This replaces a screen recording of the same sequence. Five stills are
+   279 kB of WebP against 1,323 kB of video, but the reason for the change is
+   the other one: a still holds long enough to be read, where a recording of a
+   dense UI moves on before the eye has finished a panel.
+
+   Five cards share one @keyframes and are spread by negative animation-delay,
+   so each walks slot 4 -> 3 -> 2 -> 1 -> 0, holds at the front, then slides
+   off to the right and reappears at the back. The delays sit one fifth of the
+   cycle apart, and that spacing is the whole mechanism: change the cycle and
+   the five stay in step, change one delay and they collide.
+
+   transform-origin is the TOP edge, not the centre. Scaled about its centre a
+   card behind shrinks towards the middle of the card in front and disappears
+   entirely; about its top edge it stays put and only its bottom rises, which
+   is what leaves the peek that makes a stack read as a stack.
+
+   The cards are dark because the tool follows prefers-color-scheme. Each
+   carries its own ground and 2px ink border, so it reads as a screen rather
+   than a dark rectangle dropped on warm paper. */
+.deck{
+  --deck-peek:46px;   /* how far the back of the stack shows above the front */
+  --deck-cycle:22s;   /* five slots, so 4.4s each: ~3.5s readable, ~0.9s moving */
+  position:relative;
+  /* REQUIRED, and its absence is not visible in this file. The cards carry
+     z-index 10-50 to order the stack. Without a stacking context here those
+     numbers compete with the whole document, where the sticky nav is z-index 5
+     and a sticky chapter head is 2 -- so every card painted over both: the
+     section headline vanished behind the deck on a phone, and the cards slid
+     over the nav on the way past. position:relative alone does NOT do this;
+     z-index stays auto and no context is formed. */
+  isolation:isolate;
+  list-style:none;margin:0 auto;
+  /* A phone screenshot has no business being 721px wide, which is what the
+     single-column layout between 560 and 820px would otherwise give it: half
+     a screen taller than the viewport, and upscaled past its native 576px
+     into the bargain. It stays near the width it has in the desktop column. */
+  max-width:380px;
+  padding:var(--deck-peek) 0 0;
+  overflow:hidden;    /* the exiting card leaves sideways; without this it
+                         reaches .fig__scroll's overflow-x and raises a scrollbar */
+}
+/* 1186/576, the card's own ratio, plus its 4px of border */
+.deck::before{content:"";display:block;padding-top:calc(205.9% + 4px)}
+.deck__card{
+  position:absolute;top:var(--deck-peek);left:0;right:0;margin:0;
+  transform-origin:top center;
+  background:var(--screen);
+  border:2px solid var(--ink);
+  line-height:0;
+  animation:deck-walk var(--deck-cycle) infinite;
+}
+.deck__card img{display:block;width:100%;height:auto}
+.deck__card:nth-child(1){animation-delay:calc(var(--deck-cycle) * -.08)}
+.deck__card:nth-child(2){animation-delay:calc(var(--deck-cycle) * -.88)}
+.deck__card:nth-child(3){animation-delay:calc(var(--deck-cycle) * -.68)}
+.deck__card:nth-child(4){animation-delay:calc(var(--deck-cycle) * -.48)}
+.deck__card:nth-child(5){animation-delay:calc(var(--deck-cycle) * -.28)}
+
+@keyframes deck-walk{
+  0%,16%  { transform:translate(0,0) scale(1) rotate(0deg); opacity:1; z-index:50 }
+  19.99%  { transform:translate(120%,-4%) scale(1.02) rotate(3deg); opacity:0; z-index:50 }
+  20%     { transform:translate(0,calc(var(--deck-peek) * -1)) scale(.82) rotate(0deg); opacity:0; z-index:10 }
+  24%,36% { transform:translate(0,calc(var(--deck-peek) * -1)) scale(.82) rotate(0deg); opacity:.45; z-index:10 }
+  40%,56% { transform:translate(0,calc(var(--deck-peek) * -.78)) scale(.865) rotate(0deg); opacity:.72; z-index:20 }
+  60%,76% { transform:translate(0,calc(var(--deck-peek) * -.57)) scale(.91) rotate(0deg); opacity:1; z-index:30 }
+  80%,96% { transform:translate(0,calc(var(--deck-peek) * -.30)) scale(.955) rotate(0deg); opacity:1; z-index:40 }
+  100%    { transform:translate(0,0) scale(1) rotate(0deg); opacity:1; z-index:50 }
+}
+
+/* ---------- picking a slide ----------
+   Six radios sit before the deck in source order so `~` can reach the cards;
+   their labels sit after it. Checking one stops the cycle and brings that card
+   to the front, with the rest behind it in wrap-around order so "next" still
+   means what it meant while it was running. AUTO hands it back to the clock.
+
+   The radios are the control, not the labels: that is what makes this work by
+   keyboard and to a screen reader without a line of JavaScript. They are
+   clipped rather than display:none, because display:none would take them out
+   of the tab order and the picker would be mouse-only. */
+.deck__radio{
+  position:absolute;width:1px;height:1px;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+}
+.deck__pick{
+  display:flex;gap:var(--s1);justify-content:center;flex-wrap:wrap;
+  max-width:380px;margin:var(--s3) auto 0;
+}
+.deck__pick label{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:44px;min-height:44px;padding:0 10px;   /* a real tap target */
+  border:var(--stroke-box) solid var(--ink);
+  font:600 15px/1 var(--sans);
+  color:var(--ink);cursor:pointer;
+}
+.deck__pick label:hover{background:var(--rule)}
+/* The button shows a number so the six fit one row in a 340px column; the word
+   rides along for a screen reader, and as a title on hover. The figcaption
+   lists the five in the same order, so the number has something to mean. */
+.vh{
+  position:absolute;width:1px;height:1px;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+}
+#dk-a:checked ~ .deck__pick label[for="dk-a"]{background:var(--ink);color:var(--paper)}
+#dk-1:checked ~ .deck__pick label[for="dk-1"]{background:var(--ink);color:var(--paper)}
+#dk-2:checked ~ .deck__pick label[for="dk-2"]{background:var(--ink);color:var(--paper)}
+#dk-3:checked ~ .deck__pick label[for="dk-3"]{background:var(--ink);color:var(--paper)}
+#dk-4:checked ~ .deck__pick label[for="dk-4"]{background:var(--ink);color:var(--paper)}
+#dk-5:checked ~ .deck__pick label[for="dk-5"]{background:var(--ink);color:var(--paper)}
+#dk-a:focus-visible ~ .deck__pick label[for="dk-a"]{outline:2px solid var(--blue);outline-offset:2px}
+#dk-1:focus-visible ~ .deck__pick label[for="dk-1"]{outline:2px solid var(--blue);outline-offset:2px}
+#dk-2:focus-visible ~ .deck__pick label[for="dk-2"]{outline:2px solid var(--blue);outline-offset:2px}
+#dk-3:focus-visible ~ .deck__pick label[for="dk-3"]{outline:2px solid var(--blue);outline-offset:2px}
+#dk-4:focus-visible ~ .deck__pick label[for="dk-4"]{outline:2px solid var(--blue);outline-offset:2px}
+#dk-5:focus-visible ~ .deck__pick label[for="dk-5"]{outline:2px solid var(--blue);outline-offset:2px}
+
+#dk-1:checked ~ .deck .deck__card{animation:none}
+#dk-1:checked ~ .deck .deck__card:nth-child(1){transform:translate(0,0) scale(1);opacity:1;z-index:50}
+#dk-1:checked ~ .deck .deck__card:nth-child(2){transform:translate(0,calc(var(--deck-peek) * -.30)) scale(.955);opacity:1;z-index:40}
+#dk-1:checked ~ .deck .deck__card:nth-child(3){transform:translate(0,calc(var(--deck-peek) * -.57)) scale(.91);opacity:1;z-index:30}
+#dk-1:checked ~ .deck .deck__card:nth-child(4){transform:translate(0,calc(var(--deck-peek) * -.78)) scale(.865);opacity:.72;z-index:20}
+#dk-1:checked ~ .deck .deck__card:nth-child(5){transform:translate(0,calc(var(--deck-peek) * -1)) scale(.82);opacity:.45;z-index:10}
+#dk-2:checked ~ .deck .deck__card{animation:none}
+#dk-2:checked ~ .deck .deck__card:nth-child(2){transform:translate(0,0) scale(1);opacity:1;z-index:50}
+#dk-2:checked ~ .deck .deck__card:nth-child(3){transform:translate(0,calc(var(--deck-peek) * -.30)) scale(.955);opacity:1;z-index:40}
+#dk-2:checked ~ .deck .deck__card:nth-child(4){transform:translate(0,calc(var(--deck-peek) * -.57)) scale(.91);opacity:1;z-index:30}
+#dk-2:checked ~ .deck .deck__card:nth-child(5){transform:translate(0,calc(var(--deck-peek) * -.78)) scale(.865);opacity:.72;z-index:20}
+#dk-2:checked ~ .deck .deck__card:nth-child(1){transform:translate(0,calc(var(--deck-peek) * -1)) scale(.82);opacity:.45;z-index:10}
+#dk-3:checked ~ .deck .deck__card{animation:none}
+#dk-3:checked ~ .deck .deck__card:nth-child(3){transform:translate(0,0) scale(1);opacity:1;z-index:50}
+#dk-3:checked ~ .deck .deck__card:nth-child(4){transform:translate(0,calc(var(--deck-peek) * -.30)) scale(.955);opacity:1;z-index:40}
+#dk-3:checked ~ .deck .deck__card:nth-child(5){transform:translate(0,calc(var(--deck-peek) * -.57)) scale(.91);opacity:1;z-index:30}
+#dk-3:checked ~ .deck .deck__card:nth-child(1){transform:translate(0,calc(var(--deck-peek) * -.78)) scale(.865);opacity:.72;z-index:20}
+#dk-3:checked ~ .deck .deck__card:nth-child(2){transform:translate(0,calc(var(--deck-peek) * -1)) scale(.82);opacity:.45;z-index:10}
+#dk-4:checked ~ .deck .deck__card{animation:none}
+#dk-4:checked ~ .deck .deck__card:nth-child(4){transform:translate(0,0) scale(1);opacity:1;z-index:50}
+#dk-4:checked ~ .deck .deck__card:nth-child(5){transform:translate(0,calc(var(--deck-peek) * -.30)) scale(.955);opacity:1;z-index:40}
+#dk-4:checked ~ .deck .deck__card:nth-child(1){transform:translate(0,calc(var(--deck-peek) * -.57)) scale(.91);opacity:1;z-index:30}
+#dk-4:checked ~ .deck .deck__card:nth-child(2){transform:translate(0,calc(var(--deck-peek) * -.78)) scale(.865);opacity:.72;z-index:20}
+#dk-4:checked ~ .deck .deck__card:nth-child(3){transform:translate(0,calc(var(--deck-peek) * -1)) scale(.82);opacity:.45;z-index:10}
+#dk-5:checked ~ .deck .deck__card{animation:none}
+#dk-5:checked ~ .deck .deck__card:nth-child(5){transform:translate(0,0) scale(1);opacity:1;z-index:50}
+#dk-5:checked ~ .deck .deck__card:nth-child(1){transform:translate(0,calc(var(--deck-peek) * -.30)) scale(.955);opacity:1;z-index:40}
+#dk-5:checked ~ .deck .deck__card:nth-child(2){transform:translate(0,calc(var(--deck-peek) * -.57)) scale(.91);opacity:1;z-index:30}
+#dk-5:checked ~ .deck .deck__card:nth-child(3){transform:translate(0,calc(var(--deck-peek) * -.78)) scale(.865);opacity:.72;z-index:20}
+#dk-5:checked ~ .deck .deck__card:nth-child(4){transform:translate(0,calc(var(--deck-peek) * -1)) scale(.82);opacity:.45;z-index:10}
+
+/* Asked for less motion: the deck stops and becomes a still stack with the
+   first card in front. Without this every card sits at its untransformed base
+   position and the last one in the DOM simply covers the other four.
+   The pick rules above carry an id and outrank this, so choosing a slide still
+   works for a reader who has asked for less movement. */
+@media (prefers-reduced-motion:reduce){
+  .deck__card{animation:none}
+  .deck__card:nth-child(1){transform:translate(0,0) scale(1);z-index:50}
+  .deck__card:nth-child(2){transform:translate(0,calc(var(--deck-peek) * -.30)) scale(.955);z-index:40}
+  .deck__card:nth-child(3){transform:translate(0,calc(var(--deck-peek) * -.57)) scale(.91);z-index:30}
+  .deck__card:nth-child(4){transform:translate(0,calc(var(--deck-peek) * -.78)) scale(.865);opacity:.72;z-index:20}
+  .deck__card:nth-child(5){transform:translate(0,calc(var(--deck-peek) * -1)) scale(.82);opacity:.45;z-index:10}
+}
+
+/* A drawing authored 1568px wide was being squeezed into the 1130px text
+   column, rendering every label at 72% -- smaller than the body text and hard
+   to read. Detail-dense figures break out of the text measure and stop at their
+   own native width, so they are shown at 1:1 and never upscaled. */
+.fig--wide{
+  --fig-w:min(calc(100vw - var(--gutter) * 2), 1568px);
+  width:var(--fig-w);
+  max-width:none;
+  margin-left:calc(50% - var(--fig-w) / 2);
+}
+
+/* Two figures ship a second, portrait version of themselves for phones, marked
+   .fig--twin: the chain
+   drawing, whose landscape layout is nearly five screens of sideways swiping
+   at 341px. Two files rather than one responsive drawing, because a viewBox
+   cannot be changed by a media query and the two layouts differ in aspect
+   ratio. Exactly one of the pair is ever displayed, so nothing is announced
+   twice. */
+.fig__phone{display:none}
+
+/* ---------- the hero scene ----------
+   A daylight lab, edge to edge across the page, with the perfusion train in
+   the middle of it (svg/hero-scene.svg, built by scripts/build-scene.py). No
+   frame: the room is the frame. Capped at 1800px so a very wide screen does
+   not get a scene taller than itself. */
+.fig--scene{max-width:1800px;margin-inline:auto}
+.fig--scene>.fig__scroll{border:0;background:none;overflow:hidden}
+.fig--scene>.fig__scroll>svg{display:block;width:100%;height:auto;max-width:none}
+
+/* ---------- the hero figure ----------
+   The drawing runs on its own clock, so it needs no scroll budget: the wrapper
+   is a plain block and the figure does not pin. Both class names are kept --
+   .hero__scroller in the markup, .fig--pin on the figure -- because they are
+   still the hooks the rest of this file uses. */
+.hero__scroller{ height:auto; }
+.fig--pin{ position:static; }
+
+/* ---------- components ---------- */
+.btn{
+  display:inline-flex;align-items:center;min-height:44px;
+  padding:0 var(--s4);
+  background:var(--blue);color:#fff;text-decoration:none;
+  border:var(--stroke-rule) solid var(--ink);
+  font-weight:600;font-size:15px;
+}
+.btn:hover{background:var(--ink);color:#fff}
+.btn:active{transform:translateY(1px)}
+.btn--ghost{background:var(--paper);color:var(--ink)}
+.btn--ghost:hover{background:var(--ink);color:#fff}
+
+
+
+/* ---------- layout blocks ---------- */
+.split{display:grid;gap:var(--s5);align-items:start}
+@media (min-width:820px){
+  /* The deck is a tall phone-shaped stack, so it sits beside the text in a
+     fixed column rather than stretching across the measure. */
+  .split--demo{grid-template-columns:minmax(0,1fr) 340px}
+  /* The cover title sits in the same grid as the deck, so the deck's top edge
+     meets the top of the big title instead of starting a row below it. */
+  .split--demo>.cover{grid-column:1;grid-row:1}
+  .split--demo>.split__text{grid-column:1;grid-row:2}
+  .split--demo>.fig--deck{grid-column:2;grid-row:1 / span 2}
+  .split--detail{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .split--about{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+}
+
+/* ---------- case files ----------
+   Each project is one case file: an oversized cover title in the project's
+   own accent, a one-line claim for the reader who stops there, three facts in
+   large type, then "How it works" in full for the reader who keeps going.
+   The accents come from each project's imagery -- the designer's own blue, the
+   sensor's ochre tubing -- so the two read as two distinct stories. The ochre
+   is darkened for text: at its drawn value it would not hold contrast on paper. */
+.case{--accent:var(--ink);--accent-ink:var(--ink)}
+#feed{--accent:#345ecc;--accent-ink:#2b4fb0}
+#sensor{--accent:#b8891f;--accent-ink:#7a5a10}
+
+/* keep "off-gas" whole: a balanced wrap otherwise breaks at its hyphen */
+.nowrap{white-space:nowrap}
+.cover{
+  font-weight:600;font-size:clamp(46px,9.4vw,128px);line-height:.94;letter-spacing:-.045em;
+  color:var(--accent-ink);text-wrap:balance;
+}
+.claim{
+  margin-top:var(--s4);max-width:30ch;
+  font-size:clamp(21px,2.3vw,28px);line-height:1.3;letter-spacing:-.01em;text-wrap:balance;
+}
+.case .split{margin-top:var(--s6)}
+.case .split--demo{margin-top:0}
+.split__text .claim{margin-top:0}
+
+.facts{list-style:none;margin:var(--s5) 0 0;padding:0;display:grid;gap:var(--s4)}
+.facts li{
+  border-top:2px solid var(--accent);padding-top:var(--s3);
+  font-weight:600;font-size:clamp(18px,1.6vw,21px);line-height:1.3;
+}
+@media (min-width:640px){ .facts{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.facts--wide{margin-top:var(--s6)}
+
+.detail{margin-top:var(--s5)}
+.detail h3{font-size:17px;font-weight:600;color:var(--accent-ink);margin-bottom:var(--s2)}
+.split--detail .detail{margin-top:0}
+
+/* Photographs sit in the same ink frame as the drawings. */
+.photo{display:block}
+.photo img{display:block;width:100%;height:auto;border:var(--stroke-obj) solid var(--ink)}
+
+/* The build-your-own link wears the sensor's own colour. White on the darkened
+   ochre holds 6:1; on the drawn ochre it would not. */
+.btn--sensor{background:var(--accent-ink)}
+.btn--sensor:hover{background:var(--ink)}
+/* not a link yet: the Printables page is still being written */
+.btn--soon{cursor:default;opacity:.7}
+.btn--soon:hover{background:var(--accent-ink)}
+.btn--soon:active{transform:none}
+.cta{margin-top:var(--s5)}
+.split--about .h2{margin-bottom:var(--s4)}
+
+/* Placeholders are meant to be seen, and to be replaced: a hatched box saying
+   what goes there, in the words the owner will use to find the file. */
+.placeholder{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:var(--s2);
+  min-height:220px;padding:var(--s4);text-align:center;
+  border:2px dashed var(--ink-soft);color:var(--ink-soft);font-size:16px;line-height:1.45;
+  background:repeating-linear-gradient(135deg,transparent 0 14px,rgba(23,20,15,.04) 14px 15px);
+}
+.placeholder strong{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.detail .placeholder{min-height:0;align-items:flex-start;text-align:left}
+
+/* ---------- the sticky bands ----------
+   Each section's band sticks under the nav while its section is on screen and
+   carries the project's name in the project's accent. Nothing in it moves. */
+.band__in{font-weight:600;font-size:18px;line-height:1.3;color:var(--accent-ink)}
+
+/* ---------- drawings that draw themselves ----------
+   Classes set by js/draw.js; without it none of this applies and every drawing
+   is simply shown. Strokes trace in, fills and plain shapes follow. */
+.dw .fig--draw:not(.dw-ready) svg{opacity:0;animation:dw-safety 0s 2.5s forwards}
+/* If draw.js never arrives (blocked, failed, slow network), a hidden drawing
+   would stay hidden. This shows it anyway after 2.5s, in CSS, needing nothing. */
+@keyframes dw-safety{to{opacity:1}}
+.dw-armed .dw-s{stroke-dashoffset:var(--dw-len) !important;fill-opacity:0 !important}
+.dw-armed .dw-f{opacity:0 !important}
+/* Round or square line-ends paint a dot even where the dash is still fully
+   offset, so an unstarted drawing showed as scattered specks. Butt ends while
+   the trace runs; the drawing's own ends come back when the classes go. */
+.dw-armed .dw-s,.dw-go .dw-s{stroke-linecap:butt !important}
+.dw-go .dw-s{transition:stroke-dashoffset 1.7s cubic-bezier(.55,0,.2,1),fill-opacity .7s ease 1.2s}
+.dw-go .dw-f{transition:opacity .7s ease 1.2s}
+
+/* ---------- desktop: one 12-column grid ----------
+   Text on columns 1-6 or 1-7, media on 8-12, inside the 1180px container. */
+@media (min-width:1100px){
+  :root{
+    --section:128px;
+    --grid:repeat(12,minmax(0,1fr));
+    --chapter-h:57px;      /* measured at 1440: 16+16 padding, 2px rule, 18px band name */
+  }
+  body{font-size:17px}
+
+  .display{font-size:56px;line-height:1.04;letter-spacing:-.025em;max-width:none}
+  .h2{font-size:40px}
+  .prose{max-width:62ch}
+  .fig{margin-top:56px}
+
+  .hero__row{display:grid;grid-template-columns:var(--grid);column-gap:var(--s4);align-items:end}
+  .hero__head{grid-column:1 / 13}   /* the forced two-line headline needs ~845px at 56px */
+
+  .split--demo,.split--detail,.split--about{grid-template-columns:var(--grid);column-gap:var(--s4)}
+
+  /* The text column is shorter than the deck beside it. Sticky keeps it level
+     as the deck scrolls past instead of leaving a hole. Layout, not motion. */
+  .split--demo>.cover{grid-column:1 / 9}
+  .split--demo>.split__text{grid-column:1 / 8;position:sticky;
+    top:calc(var(--nav-h) + var(--chapter-h) + var(--s5))}
+  .split--demo>.fig--deck{grid-column:9 / 13;justify-self:end;width:100%;max-width:380px}
+
+  .split--detail>.detail{grid-column:1 / 7}
+  .split--detail>.photo{grid-column:8 / 13}
+  .split--about>.photo{grid-column:1 / 6}
+  .split--about>:not(.photo){grid-column:7 / 13}
+}
+
+/* ---------- footer ---------- */
+.footer{background:var(--ink);color:#fff;padding-block:var(--s5)}
+.footer a{color:#fff}
+.footer a:hover{color:var(--ochre)}
+.footer__in{
+  max-width:var(--container);margin-inline:auto;padding-inline:var(--gutter);
+  display:flex;flex-wrap:wrap;gap:var(--s3) var(--s5);justify-content:space-between;
+  font:400 15px/1.6 var(--sans);
+}
+
+/* ============================================================
+   Narrow screens
+   Wide technical figures are not shrunk — they scroll sideways
+   at a width where their labels stay readable.
+   ============================================================ */
+@media (max-width:900px){
+  :root{--section:56px;--s5:28px;--s6:40px;--gutter:var(--s3)}
+  .nav__links{display:none}
+  /* A footer link was a 62x21px target. Touch wants 44px. */
+  .footer__in a{display:inline-flex;align-items:center;min-height:44px}
+  .fig__scroll>svg,.fig__scroll>img,.fig__scroll>picture>img{
+    width:var(--fig-min,900px);max-width:none;
+  }
+  .fig--fluid .fig__scroll>img,.fig--fluid .fig__scroll>picture>img{width:100%}
+  /* swap each twin for its portrait version, which fits and so does not swipe.
+     Selectors deliberately more specific than .fig__scroll>svg above, so this
+     cannot be undone by anything appended to this file later. */
+  /* The perfusion train scales down to fit the column instead of swiping, and
+     drops its labels to pay for it: at 341px its 3.175px type would render at
+     about 1.2px. The shapes still read -- vessels, pumps, balance, the two
+     control lines -- and the caption says what the drawing shows. */
+  .fig--fit>.fig__scroll>svg{width:100%;max-width:none}
+  .fig--fit .fig__swipe{display:none}
+  .fig--fit .tr-lbl{display:none}
+  .fig--scene>.fig__scroll>svg{width:100%}
+  .fig--scene .tr-lbl{display:none}
+
+  .fig--twin>.fig__scroll:not(.fig__phone){display:none}
+  .fig--twin>.fig__phone{display:block}
+  .fig--twin>.fig__phone>svg{width:100%;max-width:none}
+  .fig--twin .fig__swipe{display:none}
+  /* The deck's cards are <img> inside .fig__scroll, so the --fig-min rule
+     above would stretch each to its intrinsic 576px and force the page
+     sideways. They are sized by the stack, not by the scroller. */
+  .fig--deck .fig__scroll>.deck{width:100%}
+  .fig--deck .deck__card img{width:100%}
+  /* The hint is only true for figures whose content really is wider than the
+     screen. The deck is sized to the column and the photos are fluid, so a
+     "swipe" next to either of them points at something that cannot move. */
+  .fig__swipe{display:inline}
+  .fig--deck .fig__swipe,.fig--fluid .fig__swipe{display:none}
+  .chapter{padding-block:var(--s2)}          /* a sticky head costs phone screen */
+}
+
+/* ============================================================
+   Phones (up to 700px)
+   ============================================================ */
+@media (max-width:700px){
+  /* The headline's forced break keeps it to two lines on desktop. At phone
+     width the first half wraps on its own and strands "CAD," on a line of its
+     own, so the break is dropped and the browser balances the lines instead. */
+  .display{font-size:31px;line-height:1.1;max-width:none;text-wrap:balance}
+  .display br{display:none}
+
+  /* The hero drawing goes edge to edge: no side gutters and no side frame.
+     At 375 wide that is ~10% more drawing, which the paper depth needs. */
+  /* Phones crop the panorama to the train and its nearest surroundings: the
+     scene is drawn 140% wide and centred, so the far ends of the room fall
+     outside the frame. */
+  .fig--scene>.fig__scroll>svg{width:140%;margin-left:-20%}
+  .fig--fit.wrap{padding-inline:0}
+  .fig--fit>.fig__scroll{border-inline:0}
+
+  /* A band sits directly above its section's big title; on a phone the air
+     between them read as a gap rather than as a pause. */
+  .case .section__body{padding-top:var(--s4)}
+
+  /* In the sensor case the portrait chain drawing is ~1280px tall, 1.6
+     screens. The three facts come first, straight after the claim, so a
+     reader who stops early still gets them; the drawing follows. */
+  #sensor .section__body{display:flex;flex-direction:column}
+  #sensor .cover{order:1}
+  #sensor .claim{order:2}
+  #sensor .facts--wide{order:3;margin-top:var(--s5)}
+  #sensor .fig--draw{order:4}
+  #sensor .split--detail{order:5}
+}
+
+
+/* ============================================================
+   Motion
+   Only the two figures move, and only because the motion is the
+   content. Everything is CSS; there is no JavaScript on this page.
+   ============================================================ */
+/* ---------- the drawings keep their own clock ----------
+   Every animation is declared inside its SVG and runs on the document clock:
+   the liquid transfer loops on `9s linear infinite alternate`, the impellers,
+   bubbles and control dashes on their own shorter cycles. Nothing here starts
+   them; this section only records what was taken away.
+
+   The liquid transfer used to be scroll-linked -- a named view-timeline on
+   .hero__scroller re-pointed those four animations at the reader's scroll, so
+   scrolling down emptied the growth vessel and scrolling back refilled it. It
+   was removed deliberately. Two reasons, and the second decided it:
+
+   1. It cost a 220vh scroller and a sticky pin to buy enough scroll distance:
+      120vh of page whose only job was to feed one animation.
+   2. It only ran for a reader who scrolled through the hero at a particular
+      pace. Arriving from a link and stopping to read showed a still drawing,
+      so the visitor the page most wants was the least likely to see it move.
+
+   If it is ever restored: a scroll timeline can only retime an animation that
+   already runs on a document clock, it cannot start a stopped one. Keep the
+   timed loop as the base layer and put scroll on top under @supports, never
+   the other way round. */
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
