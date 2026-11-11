@@ -65,13 +65,36 @@
   }
 
   var figs = document.querySelectorAll('.fig--draw');
+  var pending = Array.prototype.slice.call(figs);
+
+  function start(fig) {
+    var i = pending.indexOf(fig);
+    if (i < 0) return;            // already drawn
+    pending.splice(i, 1);
+    // a figure can hold two drawings (landscape and portrait); only one is
+    // ever displayed, but both are drawn so a resize never finds one armed
+    fig.querySelectorAll('svg').forEach(draw);
+    io.unobserve(fig);
+    if (!pending.length) {
+      removeEventListener('scroll', sweep);
+      removeEventListener('resize', sweep);
+    }
+  }
+
+  // Belt and braces. An armed drawing is invisible, so if the observer below
+  // ever fails to report it (it has been seen to after a jump straight to the
+  // section), the frame stays empty for good. This measures by hand on scroll
+  // and draws anything that is on screen and still waiting.
+  function sweep() {
+    pending.slice().forEach(function (fig) {
+      var r = fig.getBoundingClientRect();
+      if (r.top < innerHeight * 0.85 && r.bottom > 0) start(fig);
+    });
+  }
+
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (en) {
-      if (!en.isIntersecting) return;
-      // a figure can hold two drawings (landscape and portrait); only one is
-      // ever displayed, but both are drawn so a resize never finds one armed
-      en.target.querySelectorAll('svg').forEach(draw);
-      io.unobserve(en.target);
+      if (en.isIntersecting) start(en.target);
     });
   // Start as soon as the top edge is a little way up the screen. A fraction of
   // the figure's own height is the wrong trigger: on a phone the portrait
@@ -83,4 +106,7 @@
     fig.classList.add('dw-ready');   // armed: the pre-paint hiding can lift
     io.observe(fig);
   });
+  addEventListener('scroll', sweep, { passive: true });
+  addEventListener('resize', sweep, { passive: true });
+  setTimeout(sweep, 600);         // covers a page that loads already scrolled there
 })();

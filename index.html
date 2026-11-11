@@ -25,7 +25,7 @@
       !matchMedia('(prefers-reduced-motion: reduce)').matches)
     document.documentElement.classList.add('dw');
 </script>
-<link rel="stylesheet" href="css/site.css?v=16">
+<link rel="stylesheet" href="css/site.css?v=17">
 </head>
 <body>
 
@@ -35,6 +35,7 @@
   <div class="nav__in">
     <a class="wordmark" href="#main">Jonas Thormann</a>
     <nav class="nav__links" aria-label="Sections">
+      <a class="nav__short" href="#projects">Projects</a>
       <a href="#feed">Feed designer</a>
       <a href="#sensor">Off-gas sensor</a>
       <a href="#about">About</a>
@@ -46,12 +47,8 @@
 
   <!-- ============================ HERO ============================ -->
   <section class="hero">
-    <div class="chapter chapter--hero">
-      <div class="wrap hero__row">
-        <div class="hero__head">
-          <h1 class="display">I solve lab problems with CAD,<br> 3D printers and microcontrollers.</h1>
-        </div>
-      </div>
+    <div class="wrap hero__head">
+      <h1 class="display">I solve lab problems with CAD,<br> 3D printers and microcontrollers.</h1>
     </div>
 
     <div class="hero__scroller">
@@ -2248,24 +2245,60 @@
     </div>
   </section>
 
-  <!-- ======================= 01 FEED DESIGNER ====================== -->
-  <section class="section case" id="feed">
-    <div class="chapter band">
-      <div class="wrap band__in" aria-hidden="true">Feed Profile Designer</div>
-    </div>
+  <!-- ========================= PROJECT INDEX ====================== -->
+  <!-- One row per project. Adding a project = one row here, one .proj below,
+       one link in the nav. -->
+  <nav class="index wrap" id="projects" aria-label="Projects">
+    <ol class="index__list">
+      <li><a class="index__row" href="#feed">
+        <span class="index__no">01</span>
+        <span><span class="index__name">Feed Profile Designer</span>
+          <span class="index__claim">Puts a fermentation plan on a real calendar, before the run starts.</span></span>
+        <span class="index__kind">Software</span>
+      </a></li>
+      <li><a class="index__row" href="#sensor">
+        <span class="index__no">02</span>
+        <span><span class="index__name">DIY off-gas sensor</span>
+          <span class="index__claim">Reads what a bioreactor breathes out, with parts you can easily order.</span></span>
+        <span class="index__kind">Hardware</span>
+      </a></li>
+    </ol>
+  </nav>
 
-    <div class="section__body wrap">
-    <div class="split split--demo">
-    <h2 class="cover">Feed Profile Designer</h2>
-    <div class="split__text">
-      <p class="claim">Puts a fermentation plan on a real calendar, before the run starts.</p>
-      <ul class="facts">
-        <li>Runs in any browser, nothing to install</li>
-        <li>Shows where every phase switch lands in the week</li>
-        <li>Open source, MIT licensed</li>
-      </ul>
-      <div class="detail prose">
-        <h3>How it works</h3>
+  <!-- ======================= 01 FEED DESIGNER ====================== -->
+  <section class="proj" id="feed">
+    <div class="wrap">
+    <p class="label proj__label"><b>01</b> &nbsp;Software</p>
+    <h2 class="proj__title">Feed Profile Designer</h2>
+    <p class="claim">Puts a fermentation plan on a real calendar, before the run starts.</p>
+
+    <!-- The stage is the tool itself. js/site.js loads it into the frame when
+         it nears the screen and runs the guided tour; the bar below the frame
+         is hidden until then, so without JavaScript this is a framed link. -->
+    <figure class="demo" id="demo">
+      <div class="demo__frame">
+        <p class="demo__fallback"><a href="tools/feed-profile-designer/">Open the Feed Profile Designer →</a></p>
+        <iframe class="demo__iframe" title="Feed Profile Designer, guided tour"
+                data-src="tools/feed-profile-designer/" tabindex="-1"></iframe>
+      </div>
+      <div class="demo__bar" hidden>
+        <p class="demo__cap" aria-live="polite"><span class="demo__n"></span><span class="demo__txt"></span></p>
+        <div class="demo__steps" role="group" aria-label="Tour steps"></div>
+        <button class="btn btn--ghost demo__live" type="button">Try it live</button>
+      </div>
+    </figure>
+
+    <ul class="facts">
+      <li><strong>One week</strong><span>One process, planned across the working week</span></li>
+      <li><strong>No install</strong><span>Free, and runs locally in your browser</span></li>
+      <li><strong>Substrate use</strong><span>Estimated before the run starts</span></li>
+    </ul>
+
+    <p class="actions"><a class="btn" href="tools/feed-profile-designer/">Open the designer →</a></p>
+
+    <details class="how">
+      <summary>How it works</summary>
+      <div class="how__body prose">
         <p>A feed profile is planned on paper and executed on a clock. A phase switch that
           looks reasonable in a spreadsheet can land at 3am, which you tend to discover once
           the run is already going.</p>
@@ -2276,80 +2309,19 @@
           changes into the working hours. Expert mode gives you OUR and specific growth rate
           information.</p>
       </div>
-      <p class="cta"><a class="btn" href="tools/feed-profile-designer/">Open the designer →</a></p>
-    </div>
-
-    <figure class="fig fig--plain fig--deck" style="margin-top:0">
-      <div class="fig__scroll">
-        <input class="deck__radio" type="radio" name="dk" id="dk-a" checked>
-        <input class="deck__radio" type="radio" name="dk" id="dk-1">
-        <input class="deck__radio" type="radio" name="dk" id="dk-2">
-        <input class="deck__radio" type="radio" name="dk" id="dk-3">
-        <input class="deck__radio" type="radio" name="dk" id="dk-4">
-        <input class="deck__radio" type="radio" name="dk" id="dk-5">
-        <ol class="deck">
-          <li class="deck__card">
-            <picture>
-              <source type="image/webp" srcset="img/designer-1.webp">
-              <img src="img/designer-1.jpg" width="576" height="1186"
-                   loading="lazy" decoding="async" alt="Feed phases: an exponential phase and a constant phase, each with its own rate, temperature and exit condition, above a results table giving batch length, final volume, feed used and peak oxygen uptake.">
-            </picture>
-          </li>
-          <li class="deck__card">
-            <picture>
-              <source type="image/webp" srcset="img/designer-2.webp">
-              <img src="img/designer-2.jpg" width="576" height="1186"
-                   loading="lazy" decoding="async" alt="Two annotated plots: the pump setpoint across the run, and specific substrate feed against the oxygen-uptake ceiling.">
-            </picture>
-          </li>
-          <li class="deck__card">
-            <picture>
-              <source type="image/webp" srcset="img/designer-3.webp">
-              <img src="img/designer-3.jpg" width="576" height="1186"
-                   loading="lazy" decoding="async" alt="A list of automatic checks on the planned run: the batch prediction, how many feed bottles it needs, where growth rate peaks, the headroom before overflow, and whether the oxygen-uptake ceiling is ever reached.">
-            </picture>
-          </li>
-          <li class="deck__card">
-            <picture>
-              <source type="image/webp" srcset="img/designer-4.webp">
-              <img src="img/designer-4.jpg" width="576" height="1186"
-                   loading="lazy" decoding="async" alt="The goal-seek panel: a goal of landing a phase switch in working hours, the switch to move, the knob to turn, and a Solve button.">
-            </picture>
-          </li>
-          <li class="deck__card">
-            <picture>
-              <source type="image/webp" srcset="img/designer-5.webp">
-              <img src="img/designer-5.jpg" width="576" height="1186"
-                   loading="lazy" decoding="async" alt="The run schedule: inoculation and feed start on the wall clock, each phase switch flagged when it falls outside working hours, and the whole run laid over a week grid.">
-            </picture>
-          </li>
-        </ol>
-        <div class="deck__pick" role="group" aria-label="Show one view, or cycle them">
-          <label for="dk-a">Auto</label>
-          <label for="dk-1" title="Phases">1<span class="vh"> — phases</span></label>
-          <label for="dk-2" title="Pump setpoint">2<span class="vh"> — pump setpoint</span></label>
-          <label for="dk-3" title="Checks">3<span class="vh"> — checks</span></label>
-          <label for="dk-4" title="Goal-seek">4<span class="vh"> — goal-seek</span></label>
-          <label for="dk-5" title="Run schedule">5<span class="vh"> — run schedule</span></label>
-        </div>
-      </div>
-    </figure>
-    </div>
+    </details>
     </div>
   </section>
 
   <!-- ======================== 02 OFF-GAS =========================== -->
-  <section class="section case" id="sensor">
-    <div class="chapter band">
-      <div class="wrap band__in" aria-hidden="true">DIY off-gas sensor</div>
-    </div>
-
-    <div class="section__body wrap">
-    <h2 class="cover">DIY <span class="nowrap">off-gas</span> sensor</h2>
+  <section class="proj proj--tall" id="sensor">
+    <div class="wrap">
+    <p class="label proj__label"><b>02</b> &nbsp;Hardware</p>
+    <h2 class="proj__title">DIY <span class="nowrap">off-gas</span> sensor</h2>
     <p class="claim">Reads what a bioreactor breathes out, continuously, with parts you can easily order.</p>
 
-    <figure class="fig fig--motion fig--wide fig--twin fig--draw" style="--fig-min:1568px">
-      <div class="fig__scroll" tabindex="0" role="group" aria-label="Measurement chain drawing, scrollable">
+    <figure class="fig fig--motion fig--wide fig--twin fig--draw">
+      <div class="fig__scroll" tabindex="0" role="group" aria-label="Measurement chain drawing">
         <!-- fig:chain:start -->
 <svg
    viewBox="16 97 1568 535"
@@ -3625,35 +3597,35 @@
       </div>
     </figure>
 
-    <ul class="facts facts--wide">
-      <li>Logs oxygen uptake, CO₂ production and RQ</li>
-      <li>About €500 in parts</li>
-      <li>Every reading to a timestamped CSV</li>
+    <ul class="facts">
+      <li><strong>About €500</strong><span>In parts you can order</span></li>
+      <li><strong>OUR · CER · RQ</strong><span>Oxygen uptake, CO₂ production and their ratio</span></li>
+      <li><strong>CSV</strong><span>Every reading, timestamped, over USB</span></li>
     </ul>
 
-    <div class="split split--detail">
-      <div class="detail prose">
-        <h3>How it works</h3>
-        <p>Every run vents a continuous record of its own metabolism. Reading it normally
-          means an analyser around €6,500, which is why it often goes unread.</p>
-        <p>An O₂ cell and a CO₂ cell sit in the vent line, a BME280 corrects both to dry gas,
-          and a Teensy 4.0 streams all three to a timestamped CSV. The cells ship with threads and
-          no mounts, so the Y adapter connecting them is printed with an SLA resin 3D printer.</p>
-        <p class="cta"><span class="btn btn--sensor btn--soon" aria-disabled="true">Build instructions and files: available soon</span></p>
+    <p class="actions"><span class="note">Build instructions and print files are in preparation.</span></p>
+
+    <details class="how">
+      <summary>How it works</summary>
+      <div class="how__body split split--detail">
+        <div class="prose">
+          <p>Every run vents a continuous record of its own metabolism. Reading it normally
+            means an analyser around €6,500, which is why it often goes unread.</p>
+          <p>An O₂ cell and a CO₂ cell sit in the vent line, a BME280 corrects both to dry gas,
+            and a Teensy 4.0 streams all three to a timestamped CSV. The cells ship with threads and
+            no mounts, so the Y adapter connecting them is printed with an SLA resin 3D printer.</p>
+        </div>
+        <picture class="photo"><source type="image/webp" sizes="(max-width:820px) 92vw, 460px" srcset="img/off-gas-box-v2-480.webp 480w, img/off-gas-box-v2-960.webp 960w"><img src="img/off-gas-box-v2-480.jpg" srcset="img/off-gas-box-v2-480.jpg 480w, img/off-gas-box-v2-960.jpg 960w" sizes="(max-width:820px) 92vw, 460px" width="960" height="1280" loading="lazy" decoding="async" alt="The assembled sensor with its lid off: a white 3D-printed box with brass inserts at the corners, a Teensy 4.0 and a BME280 among a tangle of coloured wire and silicone tubing, hose barbs out through the walls and a USB lead leaving the top."></picture>
       </div>
-      <picture class="photo"><source type="image/webp" sizes="(max-width:820px) 92vw, 460px" srcset="img/off-gas-box-v2-480.webp 480w, img/off-gas-box-v2-960.webp 960w"><img src="img/off-gas-box-v2-480.jpg" srcset="img/off-gas-box-v2-480.jpg 480w, img/off-gas-box-v2-960.jpg 960w" sizes="(max-width:820px) 92vw, 460px" width="960" height="1280" loading="lazy" decoding="async" alt="The assembled sensor with its lid off: a white 3D-printed box with brass inserts at the corners, a Teensy 4.0 and a BME280 among a tangle of coloured wire and silicone tubing, hose barbs out through the walls and a USB lead leaving the top."></picture>
-    </div>
+    </details>
 
     </div>
   </section>
 
   <!-- ========================== 03 ABOUT =========================== -->
-  <section class="section case" id="about">
-    <div class="chapter band">
-      <div class="wrap band__in" aria-hidden="true">About</div>
-    </div>
-
-    <div class="section__body wrap">
+  <section class="proj" id="about">
+    <div class="wrap">
+    <p class="label proj__label">About</p>
     <div class="split split--about">
       <picture class="photo"><source type="image/webp" sizes="(max-width:820px) 92vw, 460px" srcset="img/bench-480.webp 480w, img/bench-960.webp 960w"><img src="img/bench-480.jpg" srcset="img/bench-480.jpg 480w, img/bench-960.jpg 960w" sizes="(max-width:820px) 92vw, 460px" width="960" height="1280" loading="lazy" decoding="async" alt="Jonas at the bench beside a working perfusion rig: a steel bioreactor, a milk-can medium vessel, feed bottles on a balance, and a pump tower with its covers off and wiring exposed."></picture>
       <div>
@@ -3680,6 +3652,7 @@
   </div>
 </footer>
 
-<script src="js/draw.js?v=2" defer></script>
+<script src="js/draw.js?v=3" defer></script>
+<script src="js/site.js?v=1" defer></script>
 </body>
 </html>
