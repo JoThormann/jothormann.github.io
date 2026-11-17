@@ -44,10 +44,6 @@
     'tour.clock.text': 'Every switch gets a time on the wall clock, flagged when it lands outside working hours.',
     'tour.week.label': 'Week',
     'tour.week.text': 'The whole run laid over the week, hour by hour, before anything is inoculated.',
-    'tour.try': 'Try it live', 'tour.back': 'Back to the tour',
-    'tour.live.mark': 'LIVE',
-    'tour.live.text': 'Live: change any value and the schedule updates with it.',
-    'rtour.live.text': 'Live, on the holder that was on show: change the tube, the count or any setting; drag to turn it.'
   };
   SITE.wordDefaults = Object.assign({}, WORDS);
   var redraws = [];                 // each block that shows words adds how to show them again
@@ -254,31 +250,29 @@
      A .demo figure that is not .demo--plain plays a tour: its frame is
      fetched a screen before it is needed, then stepped through, one step
      every few seconds while it is on screen, with a caption and a button per
-     step below it. Clicking a step holds it; "Try it live" hands the tool
-     to the visitor. What a step shows is up to a driver:
+     step below it. Clicking a step holds it. The tour is there to catch the
+     eye: its "Open the designer" button opens the full tool on its own page.
+     What a step shows is up to a driver:
 
        connect()     once the frame has loaded: the steps, [{ label(), text() }],
                      or null if the tool cannot be driven (then it is simply live)
        show(i)       show step i; may return a promise that resolves once shown
-       live(on, i)   hand the tool over (on) or take it back
        awake(on)     optional: whether anyone is watching, so it can rest
-       hold()        ms a step is held
-       liveKey       WORDS key of the caption while live */
+       hold()        ms a step is held */
   function tour(fig, drv) {
     var frame = fig.querySelector('.demo__iframe');
     var bar = fig.querySelector('.demo__bar');
     var capN = fig.querySelector('.demo__n');
     var capTxt = fig.querySelector('.demo__txt');
     var stepsEl = fig.querySelector('.demo__steps');
-    var liveBtn = fig.querySelector('.demo__live');
     var steps = [], cur = -1, timer = null, seq = 0;
-    var live = false, inView = false, hover = false, manual = false, ready = false;
+    var inView = false, hover = false, manual = false, ready = false;
 
     function setHold() { fig.style.setProperty('--demo-hold', drv.hold() + 'ms'); }
     setHold();
 
     function playing() {
-      return ready && !live && !manual && !hover && inView && !reduce && !document.hidden;
+      return ready && !manual && !hover && inView && !reduce && !document.hidden;
     }
 
     function schedule() {
@@ -286,7 +280,7 @@
       var on = playing();
       fig.classList.toggle('is-playing', on);
       if (on) timer = setTimeout(function () { go((cur + 1) % steps.length); }, drv.hold());
-      if (ready && drv.awake) drv.awake(inView && !live && !document.hidden);
+      if (ready && drv.awake) drv.awake(inView && !document.hidden);
     }
 
     function go(i) {
@@ -300,30 +294,11 @@
       clearTimeout(timer);
       fig.classList.remove('is-playing');
       Promise.resolve(drv.show(i)).then(function () {
-        if (my !== seq || live) return;
+        if (my !== seq) return;
         // restart the progress bar on the active button
         void fig.offsetWidth;
         schedule();
       });
-    }
-
-    function setLive(on) {
-      live = on;
-      fig.classList.toggle('is-live', on);
-      drv.live(on, Math.max(0, cur));
-      liveBtn.textContent = WORDS[on ? 'tour.back' : 'tour.try'];
-      liveBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      if (on) {
-        clearTimeout(timer);
-        fig.classList.remove('is-playing');
-        capN.textContent = WORDS['tour.live.mark'];
-        capTxt.textContent = WORDS[drv.liveKey];
-        stepsEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
-        if (drv.awake) drv.awake(false);
-      } else {
-        manual = false;
-        go(Math.max(0, cur));
-      }
     }
 
     function init() {
@@ -342,20 +317,16 @@
         b.textContent = s.label();
         b.setAttribute('aria-pressed', 'false');
         b.addEventListener('click', function () {
-          if (live) setLive(false);
           manual = true;            // a chosen step stays put
           go(i);
         });
         stepsEl.appendChild(b);
       });
 
-      liveBtn.addEventListener('click', function () { setLive(!live); });
       // the words were rewritten (js/tweak.js): show them, without moving the tour
       redraws.push(function () {
         stepsEl.querySelectorAll('button').forEach(function (b, k) { b.textContent = steps[k].label(); });
-        liveBtn.textContent = WORDS[live ? 'tour.back' : 'tour.try'];
-        if (live) { capN.textContent = WORDS['tour.live.mark']; capTxt.textContent = WORDS[drv.liveKey]; }
-        else if (cur >= 0) capTxt.textContent = steps[cur].text();
+        if (cur >= 0) capTxt.textContent = steps[cur].text();
       });
       fig.addEventListener('mouseenter', function () { hover = true; schedule(); });
       fig.addEventListener('mouseleave', function () { hover = false; schedule(); });
@@ -422,7 +393,6 @@
     }
 
     var t = tour(fig, {
-      liveKey: 'tour.live.text',
       hold: function () { return SITE.hold; },
       connect: function () {
         try {
@@ -453,12 +423,6 @@
         var y = r.top + win.scrollY - Math.max(20, Math.min(room / 2, 190));
         win.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
         ring(el);
-      },
-      live: function (on) {
-        doc.documentElement.classList.toggle('tour', !on);
-        frame.setAttribute('title', on ? 'Feed Profile Designer, live' : 'Feed Profile Designer, guided tour');
-        if (on) { frame.removeAttribute('tabindex'); ring(null); }
-        else frame.setAttribute('tabindex', '-1');
       }
     });
     SITE.setHold = function (ms) { SITE.hold = ms; t.setHold(); };
@@ -468,38 +432,29 @@
      The frame holds the tool's own tour page (tools/holder-designer/tour.html):
      one holder at a time, turning slowly, its features pinned on the model.
      That page names its steps and writes their words itself
-     (window.holderTour). "Try it live" opens the real tool in a second
-     frame, on the holder that was on show. */
+     (window.holderTour). Its "Open the designer" button opens the full
+     tool on the holder that is on show (its share link). */
   (function () {
     var fig = document.getElementById('holder-demo');
     if (!fig) return;
-    var frame = fig.querySelector('.demo__iframe--tour');
-    var liveFrame = fig.querySelector('.demo__iframe--live');
+    var frame = fig.querySelector('.demo__iframe');
+    var open = fig.querySelector('.demo__open');
+    var base = open ? open.getAttribute('href') : '';
     var api = null;
     var t = tour(fig, {
-      liveKey: 'rtour.live.text',
       hold: function () { return SITE.rackHold; },
       connect: function () {
         try { api = frame.contentWindow.holderTour; } catch (e) { api = null; }
-        if (!api || !liveFrame) return null;
+        if (!api) return null;
         return api.steps.map(function (s) {
           return { label: function () { return s.label; }, text: function () { return s.text; } };
         });
       },
-      show: function (i) { return api.go(i); },
-      awake: function (on) { api.pause(!on); },
-      live: function (on, i) {
-        if (on) {
-          var link = api.link(i);
-          if (!liveFrame.getAttribute('src')) liveFrame.setAttribute('src', liveFrame.getAttribute('data-src') + '#' + link);
-          else {
-            try { liveFrame.contentWindow.location.hash = link; } catch (e) { /* not reachable: keep what it shows */ }
-          }
-          liveFrame.hidden = false;
-        } else {
-          liveFrame.hidden = true;
-        }
-      }
+      show: function (i) {
+        if (open) open.setAttribute('href', base + '#' + api.link(i));
+        return api.go(i);
+      },
+      awake: function (on) { api.pause(!on); }
     });
     SITE.setRackHold = function (ms) { SITE.rackHold = ms; t.setHold(); };
   })();

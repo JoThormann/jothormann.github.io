@@ -17,7 +17,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/archivo-800.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/plexsans-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/site.css?v=48">
+<link rel="stylesheet" href="css/site.css?v=49">
 </head>
 <body>
 
@@ -126,7 +126,7 @@
        the frame is hidden until then, so without JavaScript this is a framed
        link. -->
   <section class="scene scene--wide scene--feed proj" data-shot="feed">
-    <figure class="panel panel--demo demo" id="demo" style="--tilt:.4deg">
+    <figure class="panel panel--demo demo demo--open" id="demo" style="--tilt:.4deg">
       <p class="cap">The real tool, on a guided tour</p>
       <div class="demo__frame">
         <p class="demo__fallback"><a href="tools/feed-profile-designer/">Open the Feed Profile Designer →</a></p>
@@ -136,7 +136,7 @@
       <div class="demo__bar" hidden>
         <p class="demo__cap" aria-live="polite"><span class="demo__n"></span><span class="demo__txt"></span></p>
         <div class="demo__steps" role="group" aria-label="Tour steps"></div>
-        <button class="btn btn--ghost demo__live" type="button">Try it live</button>
+        <a class="btn demo__open" href="tools/feed-profile-designer/">Open the designer →</a>
       </div>
     </figure>
   </section>
@@ -222,8 +222,8 @@
       <p class="claim">Makes a rack for the tubes you actually use, and hands it to the 3D&nbsp;printer.</p>
 
       <ul class="facts">
-        <li><strong>12 vessels</strong><span>PCR tubes to 50&nbsp;ml, vials and cuvettes, or your own size</span></li>
-        <li><strong>Three styles</strong><span>Solid block, open stand or tray</span></li>
+        <li><strong>Fully adaptable</strong><span>Four kinds of holder; every size and detail is a setting</span></li>
+        <li><strong>All common vessels</strong><span>PCR tubes to 50&nbsp;ml, vials and cuvettes, or your own size</span></li>
         <li><strong>3MF · STL</strong><span>Shaped and turned for an FDM printer</span></li>
       </ul>
 
@@ -239,7 +239,9 @@
           <p>Racks come in the sizes a catalogue has. The one that fits this water bath, this
             ice bucket or this drawer, for the tubes actually in use, usually has to be made.</p>
           <p>Pick the vessel, set how many across and deep, and choose a solid block, an open
-            stand or a tray. The tool spaces the openings so that caps clear each other, warns
+            stand, a tray or a stand for a single tube. Every size can be changed, and extras
+            such as viewing slots, dividers, numbers and stacking feet are one setting each.
+            The tool spaces the openings so that caps clear each other, warns
             about thin walls, tipping and a print bed that is too small, and can fill a box of a
             given size. It picks which way up to print, turns sideways holes into teardrops, and
             exports the part as 3MF or STL. A design is shared as a link.</p>
@@ -251,22 +253,21 @@
   <!-- A showcase of finished holders: the tool's own tour page
        (tools/holder-designer/tour.html) shows one at a time, its features
        pinned on the model, and js/site.js steps it like the feed designer's
-       tour. "Try it live" swaps in the real tool, on the holder that was on
-       show. Loaded when it nears the screen, left out on a narrow screen. -->
+       tour. The button under it opens the full tool on its own page, on the
+       holder that is on show. Loaded when it nears the screen, left out on a
+       narrow screen. -->
   <section class="scene scene--wide scene--holder proj" data-shot="rack">
-    <figure class="panel panel--demo demo demo--two" id="holder-demo" style="--tilt:.5deg">
+    <figure class="panel panel--demo demo demo--open" id="holder-demo" style="--tilt:.5deg">
       <p class="cap">Every kind of holder, feature by feature</p>
       <div class="demo__frame">
         <p class="demo__fallback"><a href="tools/holder-designer/">Open the Holder Designer →</a></p>
-        <iframe class="demo__iframe demo__iframe--tour" title="Holder Designer, guided tour"
+        <iframe class="demo__iframe" title="Holder Designer, guided tour"
                 data-src="tools/holder-designer/tour.html?embed" tabindex="-1"></iframe>
-        <iframe class="demo__iframe demo__iframe--live" title="Holder Designer, live"
-                data-src="tools/holder-designer/?embed&amp;vessels=1" hidden></iframe>
       </div>
       <div class="demo__bar" hidden>
         <p class="demo__cap" aria-live="polite"><span class="demo__n"></span><span class="demo__txt"></span></p>
         <div class="demo__steps" role="group" aria-label="Tour steps"></div>
-        <button class="btn btn--ghost demo__live" type="button">Try it live</button>
+        <a class="btn demo__open" href="tools/holder-designer/">Open the designer →</a>
       </div>
     </figure>
   </section>
@@ -342,13 +343,13 @@
 <script src="js/toon.js?v=9" defer></script>
 <script src="js/tank-data.js?v=2" defer></script>
 <script src="js/tank.js?v=47" defer></script>
-<script src="js/site.js?v=36" defer></script>
+<script src="js/site.js?v=37" defer></script>
 <!-- The tweak bar: a workbench for the look of the page. Loaded only on a
      local server; js/tweak.js is in .gitignore, so it is never published. -->
 <script>
 if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
   var tw = document.createElement('script');
-  tw.src = 'js/tweak.js?v=13';
+  tw.src = 'js/tweak.js?v=14';
   document.head.appendChild(tw);
 }
 </script>
