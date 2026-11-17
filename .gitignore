@@ -19,3 +19,10 @@ SPEC.md
 svg/
 video/
 img/*.src.*
+
+# the Impeller Designer is not published yet: the page shows "Coming soon"
+# in its place (see the comment in the impeller section of index.html)
+tools/impeller-designer/
+
+# the tweak bar is a local workbench only (index.html loads it on localhost)
+js/tweak.js

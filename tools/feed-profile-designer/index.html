@@ -31,7 +31,7 @@
   --line-strong:#c6ccc3;
   --ink:#191d17;
   --ink-2:#4d5348;
-  --ink-3:#767d70;
+  --ink-3:#666e61;
   --accent:#2a78d6;
   --accent-ink:#ffffff;
   --accent-soft:#e6effb;
@@ -40,6 +40,11 @@
   --limit:#e34948;
   --good:#1baf7a;
   --warn:#eda100;
+  /* the status colours are for marks and borders; these darker steps are for text */
+  --limit-ink:#c22f2e; --warn-ink:#8f5f00; --good-ink:#0f7a54;
+  --limit-soft:#fdf0ef; --warn-soft:#fdf6e3;
+  /* the batch is its own neutral, so it never reads as a phase or as profile B */
+  --batch:#7f867a; --batch-b:rgba(110,118,104,.13);
   --grid:#e6eae4;
   --shadow:0 1px 2px rgba(20,30,18,.05), 0 8px 24px -14px rgba(20,30,18,.22);
   --r:10px;
@@ -58,6 +63,9 @@
     --accent:#3987e5; --accent-ink:#08121d; --accent-soft:#152740;
     --s1:#3987e5; --s2:#d95926;
     --limit:#e66767; --good:#199e70; --warn:#c98500;
+    --limit-ink:#f29090; --warn-ink:#e4b04a; --good-ink:#46cf9d;
+    --limit-soft:#2b1919; --warn-soft:#292211;
+    --batch:#8d948a; --batch-b:rgba(160,168,156,.13);
     --grid:#252a25;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -14px rgba(0,0,0,.7);
     --ramp1:#17293e; --ramp2:#1c5cab; --ramp3:#256abf; --ramp4:#3987e5;
@@ -75,6 +83,9 @@
   --accent:#3987e5; --accent-ink:#08121d; --accent-soft:#152740;
   --s1:#3987e5; --s2:#d95926;
   --limit:#e66767; --good:#199e70; --warn:#c98500;
+  --limit-ink:#f29090; --warn-ink:#e4b04a; --good-ink:#46cf9d;
+  --limit-soft:#2b1919; --warn-soft:#292211;
+  --batch:#8d948a; --batch-b:rgba(160,168,156,.13);
   --grid:#252a25;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -14px rgba(0,0,0,.7);
   --ramp1:#17293e; --ramp2:#1c5cab; --ramp3:#256abf; --ramp4:#3987e5;
@@ -95,36 +106,54 @@ body{
 
 /* ============ nameplate ============ */
 header.plate{
-  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px 24px;
-  padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px;
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px 28px;
+  padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:18px;
 }
-.plate h1{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:19px;letter-spacing:-.01em;margin:0;text-wrap:balance}
-.plate .sub{color:var(--ink-2);font-size:13px;max-width:62ch;margin:4px 0 0}
-.eyebrow{font-size:10.5px;text-transform:uppercase;letter-spacing:.13em;color:var(--ink-3);font-weight:600;margin:0 0 3px}
-.levels{display:flex;gap:4px;margin-left:auto;background:var(--surface-2);padding:4px;border-radius:var(--r);border:1px solid var(--line)}
+.plate h1{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:26px;line-height:1.15;letter-spacing:-.025em;margin:0;text-wrap:balance}
+.plate .sub{color:var(--ink-2);font-size:14px;max-width:60ch;margin:8px 0 0;text-wrap:pretty}
+/* one voice for every small label: sentence case, so units and symbols (mL, μ) keep their case */
+.glabel{font-size:12px;font-weight:600;color:var(--ink-2);margin:0 0 4px}
+.glabel .aside{font-weight:400;color:var(--ink-3)}
+/* one voice for every section title, whether it sits in a card, a summary or on the page */
+.st{font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600;letter-spacing:-.01em;margin:0;color:var(--ink)}
+.sechead{display:flex;align-items:baseline;gap:8px 12px;flex-wrap:wrap;margin:24px 2px 10px}
+.sechead .secnote{font-size:12px;color:var(--ink-3)}
+.levelbox{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:0}
+.levels{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:var(--r);border:1px solid var(--line)}
 .levels button{font:inherit;font-size:13px;font-weight:500;color:var(--ink-2);background:none;border:0;padding:7px 14px;border-radius:7px;cursor:pointer;white-space:nowrap}
-.levels button[aria-selected=true]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:600}
-.levels button:hover:not([aria-selected=true]){color:var(--ink)}
+.levels button[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:600}
+.levels button:hover:not([aria-pressed=true]){color:var(--ink)}
+.levelcap{font-size:12px;color:var(--ink-3);text-align:right;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.plate>div:first-child{flex:1 1 340px;min-width:0}
 
 /* ============ collapsible sections ============ */
 details.console,details.tbl{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;box-shadow:var(--shadow)}
 details.console>summary,details.tbl>summary{
-  cursor:pointer;padding:11px 14px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;list-style:none;
+  cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:9px;list-style:none;
 }
 details.console>summary::-webkit-details-marker,details.tbl>summary::-webkit-details-marker{display:none}
-details.console>summary::before,details.tbl>summary::before{content:"\25B8";color:var(--ink-3);font-size:11px;transition:transform .15s}
-details.console[open]>summary::before,details.tbl[open]>summary::before{transform:rotate(90deg)}
-details.console>summary .hint{margin-left:auto;font-weight:400;color:var(--ink-3);font-size:12px}
+details.console>summary::before,details.tbl>summary::before{content:"";width:6px;height:6px;flex:none;margin:0 2px 0 1px;
+  border-right:1.6px solid var(--ink-3);border-bottom:1.6px solid var(--ink-3);transform:rotate(-45deg);transition:transform .15s}
+details.console[open]>summary::before,details.tbl[open]>summary::before{transform:rotate(45deg) translate(-1px,-1px)}
+details.console>summary .hint,details.tbl>summary .hint{margin-left:auto;font-weight:400;color:var(--ink-3);font-size:12px;text-align:right}
 .console-body{padding:2px 14px 16px;border-top:1px solid var(--line)}
-.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-top:14px}
-fieldset{border:1px solid var(--line);border-radius:8px;padding:11px 12px 13px;margin:0;min-width:0}
-legend{font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;font-weight:600;color:var(--ink-3);padding:0 5px}
-.f{display:flex;align-items:center;gap:8px;margin-top:7px}
-.f:first-of-type{margin-top:2px}
-.f label{flex:1;font-size:12.5px;color:var(--ink-2);min-width:0;display:flex;align-items:center;gap:5px}
-.f input[type=number]{width:76px;flex:none;padding:4px 6px;font-size:12.5px;text-align:right;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px}
-.f input[type=number]:disabled{opacity:.55;cursor:not-allowed}
-.f .unit{font-size:11px;color:var(--ink-3);width:54px;flex:none}  /* fits "mL/min/h" with headroom */
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:14px;margin-top:14px}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 13px 14px;margin:0;min-width:0}
+legend{font-size:12.5px;font-weight:600;color:var(--ink);padding:0 6px;margin-left:-6px}
+.f{display:flex;align-items:center;gap:8px;margin-top:8px}
+.f:first-of-type{margin-top:3px}
+/* the label is ordinary inline text, so a subscript or the info dot can never be split off
+   from the words it belongs to, and a long name wraps instead of sliding under the field */
+.f label{flex:1;font-size:12.5px;line-height:1.35;color:var(--ink-2);min-width:0;display:flex;align-items:center;gap:6px}
+.f label .lt{min-width:0}
+.f label .lt+.info{vertical-align:0;flex:none}
+.f label .info,.chk .info,.glabel .info{vertical-align:-3px}   /* glued to its word by a no-break space */
+.f input[type=number]{width:74px;flex:none;padding:4px 6px;font-size:12.5px;text-align:right;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+.f input[type=number]:disabled{opacity:.6;cursor:not-allowed;border-style:dashed}
+.f .unit{font-size:11px;color:var(--ink-3);width:50px;flex:none;white-space:nowrap}  /* fits "mmol/L/h" */
+.f.sub{margin-left:22px}                                          /* a field that belongs to the tick-box above it */
+input[type=number]:hover:not(:disabled),input[type=text]:hover,select:hover,
+input[type=datetime-local]:hover:not(:disabled){border-color:var(--line-strong)}
 select{font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;max-width:100%}
 .seg{display:flex;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden}
 .seg button{font:inherit;font-size:12px;font-weight:500;padding:5px 10px;background:var(--surface-2);color:var(--ink-2);border:0;cursor:pointer;flex:1;white-space:nowrap}
@@ -133,10 +162,12 @@ select{font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2)
 .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .chip{font:inherit;font-size:11.5px;padding:5px 9px;border-radius:99px;cursor:pointer;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
 .chip:hover{color:var(--ink);border-color:var(--line-strong)}
-.chk{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2);margin-top:8px;cursor:pointer}
-.chk input{accent-color:var(--accent);width:15px;height:15px;flex:none}
+.chk{display:flex;align-items:flex-start;gap:7px;font-size:12.5px;line-height:1.35;color:var(--ink-2);margin-top:9px;cursor:pointer}
+.chk input{accent-color:var(--accent);width:15px;height:15px;flex:none;margin:1px 0 0}
+.chk input:disabled+span{opacity:.6}
 .btn{font:inherit;font-size:12px;font-weight:500;padding:5px 11px;border-radius:7px;cursor:pointer;background:var(--surface-2);color:var(--ink);border:1px solid var(--line)}
-.btn:hover{border-color:var(--line-strong)}
+.btn:hover:not(:disabled){border-color:var(--line-strong)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.pin[aria-pressed=true]{background:var(--s2);color:#fff;border-color:var(--s2)}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 .btn.sm{font-size:11px;padding:3px 8px}
@@ -147,15 +178,23 @@ select{font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2)
   border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink-3);cursor:help;
   line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center;
 }
-.info:hover,.info:focus-visible{border-color:var(--accent);color:var(--accent)}
+.info:hover,.info:focus-visible,.info[aria-expanded=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .card h3 .info{margin-left:auto}
 #tip{
   position:fixed;pointer-events:none;z-index:60;opacity:0;transition:opacity .1s;
-  background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;
-  box-shadow:0 6px 24px -6px rgba(0,0,0,.3);padding:9px 11px;font-size:12px;max-width:300px;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;
+  box-shadow:0 8px 28px -8px rgba(0,0,0,.34);padding:11px 13px 12px;font-size:12px;max-width:330px;color:var(--ink);
 }
 #tip.on{opacity:1}
-#tip .th{font-weight:600;font-size:11.5px;margin-bottom:5px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+#tip .th{font-weight:600;font-size:12px;line-height:1.3;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+/* a parameter tooltip: what it is, then two labelled rows (range or advice, consequence) */
+#tip .tt{font-weight:600;font-size:13px;line-height:1.3;margin-bottom:4px;color:var(--ink)}
+#tip .td{font-size:12px;line-height:1.5;color:var(--ink)}
+#tip .tm{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;margin:9px 0 0;padding-top:8px;border-top:1px solid var(--line);
+  font-size:11.5px;line-height:1.45}
+#tip .tm dt{color:var(--ink-3);font-weight:600;white-space:nowrap}
+#tip .tm dd{margin:0;color:var(--ink-2);font-variant-numeric:tabular-nums}
+#tip .tm dd.bad{color:var(--ink)}
 #tip .r{display:flex;gap:10px;justify-content:space-between;line-height:1.55}
 #tip .r span:first-child{color:var(--ink-2)}
 #tip .r span:last-child{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:500}
@@ -166,16 +205,14 @@ select{font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2)
 #tip .r2 .c2{color:var(--s2)}
 #tip .txt{font-size:12px;color:var(--ink-2);line-height:1.5}
 #tip .txt b{color:var(--ink)}
-#tip .rng{display:block;margin-top:6px;padding-top:5px;border-top:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3)}
-#tip .csq{display:block;margin-top:5px;font-size:11.5px;color:var(--ink-2)}
-
 
 /* ============ preset / saved / compare bar ============ */
 .bar{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-  padding:10px 14px 12px;margin-bottom:14px;box-shadow:var(--shadow);
-  display:flex;flex-direction:column;gap:9px}
-.barrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-height:28px}
-.barrow>.eyebrow{flex:none;min-width:82px;display:flex;align-items:center;gap:4px}
+  padding:4px 14px;margin-bottom:14px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column}
+.barrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-height:28px;padding:8px 0}
+.barrow+.barrow{border-top:1px solid var(--line)}
+.barrow>.glabel{flex:none;min-width:86px;margin:0;color:var(--ink)}
 .chip.del{padding-right:5px}
 .chip .x{margin-left:6px;opacity:.5;font-weight:600;padding:0 3px;border-radius:3px}
 .chip .x:hover{opacity:1;color:var(--limit);background:var(--surface-3)}
@@ -187,16 +224,17 @@ select{font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2)
 .cmpsel .sw{width:14px;height:3px;border-radius:2px;flex:none}
 .cmpsel select{max-width:210px}
 .cmpnote{font-size:11.5px;color:var(--ink-3)}
-.cmpnote.warn{color:var(--warn)}
+.cmpnote.warn{color:var(--warn-ink)}
+.cmpnote:empty{display:none}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.emptynote{font-size:11.5px;color:var(--ink-3);font-style:italic}
+.emptynote{font-size:12px;color:var(--ink-3)}
 
 /* ============ A/B difference strip ============ */
 .diffwrap:empty{display:none}
 .diffwrap{margin-bottom:14px}
-.diffhead{font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;color:var(--ink-3);
-  font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.diffhead .nm{display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink-2)}
+.diffhead{font-size:12px;color:var(--ink-2);
+  font-weight:600;margin:14px 2px 7px;display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+.diffhead .nm{display:flex;align-items:center;gap:5px;font-weight:500;color:var(--ink-2)}
 .diffhead .nm i{width:14px;height:3px;border-radius:2px;flex:none}
 .difftbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow)}
 .difftbl table{width:100%;font-size:12px}
@@ -209,80 +247,122 @@ select{font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2)
 
 /* ============ phase editor ============ */
 .phasewrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
-.phasehead{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
-.phasehead h2{margin:0;font-size:14px;font-weight:600;font-family:"IBM Plex Mono",monospace}
-.phasehead .lede{font-size:11.5px;color:var(--ink-3);flex:1 1 200px;min-width:0}
-.phasehead .phchk{margin-top:0;flex:none;white-space:nowrap}
+.phasehead{display:flex;align-items:center;gap:9px 12px;flex-wrap:wrap;margin-bottom:12px}
+.phasehead .lede{font-size:12px;color:var(--ink-3);flex:1 1 220px;min-width:0}
+.phasehead .phchk{margin-top:0;flex:none;white-space:nowrap;align-items:center}
+.phasehead .phchk input{margin:0}
 .pbar .cbadge{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;flex:none;
   padding:1px 6px;border-radius:4px;background:var(--accent-soft);color:var(--accent);
   border:1px solid var(--accent)}
-.plist{display:flex;flex-direction:column;gap:9px}
+.plist{display:flex;flex-direction:column;gap:8px}
 .pcard{border:1px solid var(--line);border-radius:9px;background:var(--surface-2);overflow:hidden}
-.pcard.open{border-color:var(--line-strong)}
-.pbar{display:flex;align-items:center;gap:9px;padding:9px 11px;cursor:pointer;flex-wrap:wrap}
+.pcard.open{border-color:var(--line-strong);background:var(--surface)}
+.pbar{display:flex;align-items:center;gap:10px;padding:9px 11px;cursor:pointer;flex-wrap:wrap}
+.pbar:hover{background:var(--surface-3)}
+.pcard.open .pbar{background:var(--surface-2)}
+/* the chevron is what says a phase opens; it is a real button so the keyboard can reach it */
+.pbar .pchev{font:inherit;flex:none;width:22px;height:22px;padding:0;border:0;background:none;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;border-radius:5px;margin:0 -3px 0 -4px}
+.pbar .pchev::before{content:"";width:6px;height:6px;border-right:1.6px solid var(--ink-2);border-bottom:1.6px solid var(--ink-2);
+  transform:rotate(-45deg);transition:transform .15s}
+.pcard.open .pbar .pchev::before{transform:rotate(45deg) translate(-1px,-1px)}
 .pbar .swat{width:9px;height:26px;border-radius:3px;flex:none}
-.pbar .pn{font-size:12.5px;font-weight:600;flex:none}
-.pbar .psum{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-3);flex:1 1 200px;min-width:0;font-variant-numeric:tabular-nums}
+.pbar .pn{font-size:13px;font-weight:600;flex:none}
+.pbar .pn .pidx{color:var(--ink-3);font-weight:500;font-variant-numeric:tabular-nums;margin-right:6px}
+.pbar .psum{font-size:12px;line-height:1.4;color:var(--ink-2);flex:1 1 240px;min-width:0;font-variant-numeric:tabular-nums}
+.pbar .psum .sep{color:var(--line-strong);margin:0 6px}
+.pbar .psum .pex{color:var(--ink);font-weight:500}
 .pbar .pacts{display:flex;gap:4px;flex:none}
-.pbar .iconbtn{
-  font:inherit;font-size:12px;line-height:1;width:24px;height:24px;border-radius:6px;cursor:pointer;
-  background:var(--surface);color:var(--ink-3);border:1px solid var(--line);
+.iconbtn{
+  font:inherit;font-size:12px;line-height:1;width:26px;height:26px;border-radius:6px;cursor:pointer;
+  background:var(--surface);color:var(--ink-2);border:1px solid var(--line);flex:none;
   display:inline-flex;align-items:center;justify-content:center;padding:0;
 }
-.pbar .iconbtn:hover:not(:disabled){color:var(--ink);border-color:var(--line-strong)}
-.pbar .iconbtn:disabled{opacity:.35;cursor:not-allowed}
-.pbody{padding:2px 11px 12px;border-top:1px solid var(--line);display:none}
+.iconbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.iconbtn:hover:not(:disabled){color:var(--ink);border-color:var(--line-strong)}
+.iconbtn.danger:hover:not(:disabled){color:var(--limit-ink);border-color:var(--limit)}
+.iconbtn:disabled{opacity:.35;cursor:not-allowed}
+.pbody{padding:4px 12px 14px;border-top:1px solid var(--line);display:none}
 .pcard.open .pbody{display:block}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:11px}
-.exits{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
-.exits .eyebrow{margin-bottom:7px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 16px;margin-top:13px}
+.pgrid .f{margin-top:0}
+.pgrid .f+.f{margin-top:6px}
+.pgrid .f .unit{width:auto;min-width:54px;white-space:nowrap}
+.pgrid input[type=text],.pgrid select{width:100%}
+input[type=text]{font:inherit;font-size:12.5px;padding:5px 7px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+.exits{margin-top:14px;border-top:1px solid var(--line);padding-top:11px}
+.exits .glabel{margin-bottom:8px}
 .exitrow{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
 .exitrow select{flex:0 1 auto}
-.exitrow input[type=number]{width:82px;padding:4px 6px;font-size:12.5px;text-align:right;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px}
-.exitrow input[type=datetime-local],.exitrow input[type=time]{padding:4px 6px;font-size:12px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;font-family:"IBM Plex Mono",monospace}
+.exitrow .or{font-size:11px;color:var(--ink-3);width:18px;flex:none;text-align:right}
+.exitrow input[type=number]{width:82px;padding:4px 6px;font-size:12.5px;text-align:right;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+.exitrow input[type=datetime-local],.exitrow input[type=time]{padding:4px 6px;font-size:12px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;font-family:"IBM Plex Mono",monospace}
 .exitrow .eu{font-size:11px;color:var(--ink-3);min-width:34px}
-.exitrow .del{margin-left:auto}
-.exitnote{font-size:11.5px;color:var(--ink-3);margin-top:4px}
-.exitnote.need{color:var(--warn)}
+.exitrow .del{margin-left:6px}
+.exitnote{font-size:11.5px;line-height:1.45;color:var(--ink-3);margin-top:6px}
+.exitnote b{color:var(--ink-2);font-weight:600}
+.exitnote:empty{display:none}
+.exitnote.need{color:var(--warn-ink)}
+.t-warn{color:var(--warn-ink)} .t-bad{color:var(--limit-ink)}
 
 /* ============ readout strip ============ */
+/* hairlines are drawn by each tile, so an unfilled last row is plain surface, not a grey block */
 .strip{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line);border-radius:var(--r);
-  overflow:hidden;margin-bottom:14px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);
 }
-.tile{background:var(--surface);padding:10px 12px}
-.tile .k{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:600}
-.tile .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:17px;font-weight:600;margin-top:3px;letter-spacing:-.02em}
-.tile .u{font-size:10.5px;color:var(--ink-3);font-weight:500;margin-left:2px}
+.tile{padding:11px 13px 12px;box-shadow:1px 0 0 var(--line),0 1px 0 var(--line);min-width:0}
+.tile .k{font-size:11.5px;line-height:1.3;color:var(--ink-3);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:19px;font-weight:600;margin-top:2px;letter-spacing:-.02em;white-space:nowrap}
+.tile .u{font-size:11px;color:var(--ink-3);font-weight:500;margin-left:4px;letter-spacing:0}
 .tile.hero .v{color:var(--accent)}
 
-/* ============ alerts ============ */
+/* ============ alerts ============
+   Problems and warnings come first and carry the colour; everything that is fine or merely
+   informative shares one quiet list, so a clean plan does not look like nine alarms. */
 .alerts{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
-.alert{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;padding:9px 12px;border-radius:8px;border:1px solid;background:var(--surface);color:var(--ink)}
-.alert b{font-weight:600}
-.alert .ic{font-weight:700;flex:none;width:15px;text-align:center}
-.alert.warn{border-color:var(--warn)} .alert.warn .ic{color:var(--warn)}
-.alert.bad{border-color:var(--limit)} .alert.bad .ic{color:var(--limit)}
-.alert.ok{border-color:var(--good)}   .alert.ok .ic{color:var(--good)}
+.alert{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.5;padding:9px 13px 10px;border-radius:8px;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
+.alert>span:last-child{max-width:118ch}
+.alert b{font-weight:600;color:var(--ink)}
+.alert .ic{flex:none;width:18px;height:18px;margin-top:1px;border-radius:50%;font-size:11px;font-weight:700;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center}
+.alert.warn{border-color:var(--warn);background:var(--warn-soft);color:var(--ink)}
+.alert.warn .ic{background:var(--warn);color:#fff}
+.alert.bad{border-color:var(--limit);background:var(--limit-soft);color:var(--ink)}
+.alert.bad .ic{background:var(--limit);color:#fff}
+.notelist{border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--shadow)}
+.notelist .alert{border:0;border-radius:0;background:none;padding:8px 13px}
+.notelist .alert+.alert{border-top:1px solid var(--line)}
+.alert.ok .ic{color:var(--good-ink);border:1.4px solid var(--good)}
+.alert.note .ic::before,.alert.mind .ic::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--line-strong)}
+.alert.mind .ic::before{background:var(--warn)}
+.counts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.count{font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface)}
+.count.bad{border-color:var(--limit);background:var(--limit-soft);color:var(--limit-ink)}
+.count.warn{border-color:var(--warn);background:var(--warn-soft);color:var(--warn-ink)}
+.count.ok{border-color:var(--good);color:var(--good-ink)}
 
 /* ============ charts ============ */
 .zoomrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.zoomrow .zl{font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;color:var(--ink-3);font-weight:600}
+.zoomrow .zl{font-size:12px;color:var(--ink-3);font-weight:500;margin-right:2px}
 .zchip{font:inherit;font-size:11.5px;padding:4px 10px;border-radius:99px;cursor:pointer;background:var(--surface);color:var(--ink-2);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px}
 .zchip .sw{width:8px;height:8px;border-radius:2px;flex:none}
 .zchip[aria-pressed=true]{border-color:var(--accent);color:var(--ink);background:var(--accent-soft);font-weight:600}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--chartcol,560px),1fr));gap:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px 8px;box-shadow:var(--shadow);min-width:0}
-.card h3{margin:0;font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.card h3 .tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:4px;flex:none}
-.card .desc{font-size:11.5px;color:var(--ink-3);margin:4px 0 2px}
+.card h3{margin:0;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h3 .tag{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:4px;flex:none}
+.card h3 .lead{font-size:12px;font-weight:500;color:var(--ink-3)}
+.card .desc{font-size:12px;line-height:1.5;color:var(--ink-3);margin:5px 0 2px;max-width:86ch}
 .plot{width:100%;display:block;overflow:visible}
-.legend{display:flex;flex-wrap:wrap;gap:12px;padding:2px 0 8px;font-size:11.5px;color:var(--ink-2)}
-.legend span{display:flex;align-items:center;gap:5px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:6px 0 6px;font-size:11.5px;color:var(--ink-2)}
+.legend>span{display:flex;align-items:center;gap:6px}
 .swatch{width:16px;height:3px;border-radius:2px;flex:none}
 .swatch.area{height:9px;border-radius:2px}
-.selrow{display:flex;gap:6px;align-items:center;margin:8px 0 2px;flex-wrap:wrap}
+.selrow{display:flex;gap:7px;align-items:center;margin:8px 0 2px;flex-wrap:wrap}
+.selrow label{font-size:12px;font-weight:600;color:var(--ink-2)}
 .nodata{font-size:12.5px;color:var(--ink-2);padding:6px 0 14px;line-height:1.55}
 
 /* ============ shared readout line ============ */
@@ -299,9 +379,9 @@ select{font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2)
 .xhbar .xht{display:flex;align-items:baseline;gap:8px;font-size:12.5px;flex:none}
 .xhbar .xht b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
 .xhbar .xht .sg{font-size:11.5px;color:var(--ink-2)}
-.xhbar .xht .lk{font-size:10px;text-transform:uppercase;letter-spacing:.09em;font-weight:600;
-  color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:1px 7px}
-.xhbar .xht .lk.hint{color:var(--ink-3);border-color:var(--line);font-weight:500;text-transform:none;letter-spacing:0}
+.xhbar .xht .lk{font-size:11px;font-weight:600;
+  color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:1px 8px}
+.xhbar .xht .lk.hint{color:var(--ink-3);border-color:var(--line);font-weight:500}
 .xhbar .xhc{display:flex;align-items:baseline;gap:5px;font-size:12px}
 .xhbar .xhc i{font-style:normal;color:var(--ink-3);font-size:11px}
 .xhbar .xhc b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:600;color:var(--s1)}
@@ -313,17 +393,19 @@ select{font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2)
 .tblwrap{overflow-x:auto;border-top:1px solid var(--line);padding:0}
 table{border-collapse:collapse;width:100%;font-size:12px}
 th,td{padding:6px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
-th{font-family:"IBM Plex Sans",sans-serif;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);font-weight:600;position:sticky;top:0;background:var(--surface-2)}
+th{font-family:"IBM Plex Sans",sans-serif;font-size:11.5px;color:var(--ink-2);font-weight:600;position:sticky;top:0;background:var(--surface-2)}
 td:first-child,th:first-child{text-align:left}
 tr.bnd td{background:var(--accent-soft);font-weight:600}
 .tblfoot{padding:9px 14px;font-size:11.5px;color:var(--ink-3);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tblfoot .key{display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--accent-soft);border:1px solid var(--accent);vertical-align:-1px;margin-right:5px}
 
 /* ============ goal-seek ============ */
-.seek{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px 14px;margin-top:14px;box-shadow:var(--shadow)}
-.seek h2{margin:0 0 3px;font-size:14px;font-weight:600;font-family:"IBM Plex Mono",monospace}
-.seek .lede{margin:0 0 12px;font-size:12.5px;color:var(--ink-2);max-width:72ch}
+.seek{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 16px;margin-top:14px;box-shadow:var(--shadow)}
+.seek .st,.sched .st{margin:0 0 4px}
+.seek .lede{margin:0 0 13px;font-size:12.5px;color:var(--ink-2);max-width:76ch}
 .seekctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px;align-items:end}
-.seekctl label.lb{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:600;margin-bottom:4px}
+.seekctl label.lb,.schedctl label.lb{display:block;font-size:12px;color:var(--ink-2);font-weight:600;margin-bottom:4px}
+label.lb .info{vertical-align:-3px}
 .seekctl select,.seekctl input{width:100%;font:inherit;font-size:12.5px;padding:5px 7px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px}
 .seekctl input[type=number],.seekctl input[type=datetime-local]{font-family:"IBM Plex Mono",monospace}
 .seekout{margin-top:12px;font-size:12.5px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);line-height:1.55}
@@ -332,43 +414,97 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
 .seekout b{color:var(--ink)}
 
 /* ============ model notes ============ */
-.notes{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
-.notes h4{margin:0 0 8px;font-size:12.5px}
-.notes h4+h4{margin-top:16px}
-.notes ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:12.5px}
+/* reference reading: one topic per block, set in columns so no line runs the width of the page */
+.notes{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 16px;box-shadow:var(--shadow)}
+.notes .st{margin:0 0 4px}
+.notes .lede{margin:0 0 12px;font-size:12.5px;color:var(--ink-2);max-width:76ch}
+.notes .topics{columns:2 420px;column-gap:34px;margin-top:6px}
+.notes .topic{break-inside:avoid;padding-top:12px}
+.notes h3{margin:0 0 5px;font-size:13px;font-weight:600;color:var(--ink)}
+.notes ul{margin:0;padding-left:17px;color:var(--ink-2);font-size:12.5px;line-height:1.55}
 .notes li{margin:5px 0}
+.notes li b{color:var(--ink)}
 .notes code{font-family:"IBM Plex Mono",monospace;font-size:11.5px;background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--ink)}
-.eq{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 10px;overflow-x:auto;white-space:nowrap;color:var(--ink)}
+.eq{font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.75;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:0;color:var(--ink);
+  display:grid;grid-template-columns:auto 1fr;gap:0 16px}
+.eq dt{color:var(--ink-3);font-family:"IBM Plex Sans",sans-serif;font-size:12px;white-space:nowrap}
+.eq dd{margin:0;min-width:0;overflow-wrap:anywhere}
 
 /* ============ run schedule ============ */
 .sched{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 16px;box-shadow:var(--shadow)}
-.sched h2{margin:0 0 3px;font-size:15px;font-weight:600;font-family:"IBM Plex Mono",monospace}
-.sched .lede{margin:0 0 13px;font-size:12.5px;color:var(--ink-2);max-width:70ch}
+.sched .lede{margin:0 0 13px;font-size:12.5px;color:var(--ink-2);max-width:76ch}
 .schedctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:11px;margin-bottom:14px}
-.schedctl label.lb{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);font-weight:600;margin-bottom:4px}
-.schedctl input,.schedctl select{width:100%;font:inherit;font-size:12.5px;padding:5px 7px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;font-family:"IBM Plex Mono",monospace}
+.schedctl input:not([type=checkbox]),.schedctl select{width:100%;font:inherit;font-size:12.5px;padding:5px 7px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;font-family:"IBM Plex Mono",monospace}
+.schedctl input:disabled{opacity:.6;border-style:dashed;cursor:not-allowed}
+.schedctl .chk{margin-top:6px;font-size:12px;align-items:center}
+.schedctl .chk input{margin:0}
+.schedctl .pair{display:flex;gap:6px;align-items:center}
+.schedctl .pair span{font-size:12px;color:var(--ink-3);flex:none}
+.schedctl .withunit{display:flex;gap:7px;align-items:center}
+.schedctl .withunit span{font-size:11.5px;color:var(--ink-3);flex:none}
+.schedctl .pair input,.schedctl .withunit input{flex:1;min-width:0}
+/* three blocks: Plan (inputs) · Agenda (the answer) · Calendar (the picture) */
+.sblk{border-top:1px solid var(--line);padding-top:13px;margin-top:16px}
+.sbh{font-size:13px;font-weight:600;margin:0 0 10px;color:var(--ink)}
+.sbhead{display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;margin-bottom:10px}
+.sbhead .sbh{margin:0}
+.sbsum{font-size:12.5px;color:var(--ink-2)}
+.sbsum b{color:var(--ink);font-weight:600}
+.sbsum b.off{color:var(--warn-ink)}
+#sc-plan .schedctl{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:0}
+#sc-plan .schedctl>div:nth-child(2){grid-column:span 2}
+.feedrow{display:flex;gap:7px;align-items:center}
+.feedrow .seg{flex:none}
+.feedrow .seg button{padding:5px 10px}
+.feedrow input{flex:1;min-width:0}
+.viewbar{margin-left:auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.viewbar label{font-weight:600}
+.viewbar label .info{vertical-align:-3px}
+.viewbar select{max-width:240px}
+.viewbar input{width:58px;font:inherit;font-size:12.5px;padding:4px 6px;background:var(--surface-2);color:var(--ink);
+  border:1px solid var(--line);border-radius:6px;font-family:"IBM Plex Mono",monospace;text-align:right}
+/* the agenda: one aligned row per event, so the times can be read straight down */
+.agenda{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.arow{display:grid;grid-template-columns:10px 132px 66px minmax(0,1fr) auto;gap:4px 12px;align-items:baseline;
+  padding:7px 12px;font-size:12.5px;border-top:1px solid var(--line)}
+.arow:first-child{border-top:0}
+.arow.ahead{font-size:11.5px;font-weight:600;color:var(--ink-3);background:var(--surface-2);padding:6px 12px}
+.arow .dotm{width:8px;height:8px;border-radius:50%;align-self:center}
+.arow .when{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
+.arow .rel{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink-3);text-align:right}
+.arow .ev b{font-weight:600;color:var(--ink)}
+.arow .ev .det{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.arow .flag{font-size:11px;font-weight:600;white-space:nowrap}
+.arow.off{background:var(--warn-soft);box-shadow:inset 3px 0 0 var(--warn)}
+.arow.off .flag{color:var(--warn-ink)}
 .mile{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px}
 .mchip{display:flex;align-items:baseline;gap:7px;font-size:11.5px;padding:5px 10px;border-radius:7px;background:var(--surface-2);border:1px solid var(--line)}
 .mchip b{font-weight:600}
 .mchip .tm{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink-2)}
-.mchip.off{border-color:var(--warn)}
-.mchip.off .tm{color:var(--warn);font-weight:600}
+.mchip.off{border-color:var(--warn);background:var(--warn-soft)}
+.mchip.off .tm{color:var(--warn-ink);font-weight:600}
 .mchip .dotm{width:7px;height:7px;border-radius:50%;flex:none;align-self:center}
 .gridwrap{overflow-x:auto;padding-bottom:4px;margin-bottom:6px}
 .hgrid{min-width:700px;display:grid;grid-template-columns:70px repeat(24,1fr);gap:2px;position:relative}
 .hgrid .hh{font-size:9px;color:var(--ink-3);text-align:center;font-family:"IBM Plex Mono",monospace;padding-bottom:2px}
 .hgrid .hh.off{opacity:.55}
 .hgrid .dl{font-size:10.5px;color:var(--ink-2);font-family:"IBM Plex Mono",monospace;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;white-space:nowrap}
-.hgrid .dl.we{color:var(--warn)}
+.hgrid .dl.we{color:var(--warn-ink)}
 .hgrid .cell{height:19px;border-radius:2px;background:transparent;position:relative}
 .hgrid .cell.night{background:var(--surface-3)}
 .hgrid .cell.has{cursor:help}
 .hgrid .cell .mk{position:absolute;inset:0;border-radius:2px;border:2px solid var(--ink);box-sizing:border-box}
 .hgrid .cell .pb{position:absolute;left:0;right:0;bottom:0;height:3px;border-radius:0 0 2px 2px}
-.ramp{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-2);margin:2px 0 10px;flex-wrap:wrap}
+.ramp{display:flex;align-items:center;gap:5px 7px;font-size:11.5px;color:var(--ink-2);margin:2px 0 10px;flex-wrap:wrap}
 .ramp .steps{display:flex;gap:2px}
 .ramp .steps i{width:20px;height:9px;border-radius:2px;display:block}
 .ramp .nb{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.ramp .keys{display:flex;gap:4px 14px;flex-wrap:wrap;margin-left:10px;color:var(--ink-3)}
+.ramp .keys span{display:flex;align-items:center;gap:5px}
+.ramp .keys i{width:14px;height:10px;border-radius:2px;display:block;flex:none;box-sizing:border-box}
+.ramp .keys .nb{color:var(--ink-3)}
+.ramp .brk{flex-basis:100%;height:0}
+.ramp .note{color:var(--warn-ink);font-weight:600}
 .phlegend{display:flex;gap:11px;flex-wrap:wrap;font-size:11px;color:var(--ink-2);margin-bottom:12px}
 .phlegend span{display:flex;align-items:center;gap:5px}
 .phlegend i{width:14px;height:8px;border-radius:2px;display:block;flex:none}
@@ -379,8 +515,9 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
 @media (max-width:560px){
   .wrap{padding:14px 12px 40px}
   .grid{grid-template-columns:1fr}
-  .levels{margin-left:0;width:100%}
+  .levelbox{margin-left:0;width:100%;align-items:stretch}
   .levels button{flex:1}
+  .levelcap{text-align:left;white-space:normal}
   .pbar .psum{flex-basis:100%;order:5}
 }
 
@@ -404,15 +541,20 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
   body{background:#fff;color:#000}
   .wrap{max-width:100%;padding:0;margin:0}
   .printhead{display:block;margin-bottom:12px;padding-bottom:8px;border-bottom:1.5px solid #000}
-  header.plate, .bar, .console, .diffwrap, .zoomrow, .xhbar, .grid, #seek, .notes, .exportbox{
+  header.plate, .bar, .console, .diffwrap, .zoomrow, .xhbar, .grid, #seek, .notes, .exportbox, #sec-charts{
     display:none !important;
   }
   .info{display:none !important}
-  .phasewrap .phasehead .phchk, .phasewrap #btn-addph, .phasewrap .pacts, .phasewrap .pbody{
+  .phasewrap .phasehead .phchk, .phasewrap #btn-addph, .phasewrap .pacts, .phasewrap .pbody, .phasewrap .pchev{
     display:none !important;
   }
+  .sechead{margin:14px 0 6px}
+  .alert, .notelist, .strip, .count{background:#fff !important;box-shadow:none !important}
   .phasewrap, .pcard{break-inside:avoid}
-  .sched .schedctl, .sched .gridwrap, .sched .tlwrap, .sched .ramp, .sched .lede{display:none !important}
+  .sched #sc-plan, .sched #sc-cal, .sched .lede{display:none !important}
+  .sched .sblk{border-top:0;padding-top:0;margin-top:8px}
+  .arow{break-inside:avoid}
+  .arow.off{background:#fff;box-shadow:inset 3px 0 0 #000}
   .sched h2{border-bottom:1px solid #000;padding-bottom:4px}
   details.tbl > summary{
     cursor:default;font-size:13px;font-weight:600;padding:0 0 6px;border-bottom:1px solid #000;margin-bottom:8px;
@@ -451,10 +593,24 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
 }
 
 @media (max-width:560px){
-  .plate h1{font-size:17px}
-  .plate .sub{font-size:12.5px}
-  .bar{padding:10px 12px 12px}
-  .barrow>.eyebrow{min-width:100%;margin-bottom:-3px}
+  .plate h1{font-size:22px}
+  .plate .sub{font-size:13px}
+  .bar{padding:4px 12px}
+  .barrow>.glabel{min-width:100%;margin-bottom:-3px}
+  .notes .topics{columns:1}
+  .eq{grid-template-columns:1fr}
+  .eq dd{margin-bottom:6px}
+  .sechead{margin-top:20px}
+  .exitrow .del{margin-left:auto}
+  #sc-plan .schedctl>div:nth-child(2){grid-column:auto}
+  .viewbar{margin-left:0;width:100%}
+  .viewbar select{flex:1;max-width:none}
+  /* agenda on a phone: time and flag on the first line, the event under them */
+  .arow{grid-template-columns:10px minmax(0,1fr) auto;padding:8px 10px}
+  .arow.ahead,.arow .rel{display:none}
+  .arow .dotm,.arow .when{grid-row:1}
+  .arow .flag{grid-row:1;grid-column:3}
+  .arow .ev{grid-row:2;grid-column:2 / -1}
   .saveform{margin-left:0;width:100%}
   .saveform input{flex:1 1 auto;width:auto}
   .cmpsel{flex:1 1 100%}
@@ -465,7 +621,7 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
   .f input[type=number]{flex:1 1 auto;width:auto;min-width:0}
   .f .unit{width:auto;min-width:46px}
   .groups,.pgrid,.seekctl,.schedctl{grid-template-columns:1fr}
-  .strip{grid-template-columns:repeat(auto-fit,minmax(108px,1fr))}
+  .strip{grid-template-columns:repeat(2,minmax(0,1fr))}
   .exitrow{gap:5px}
   .exitrow input[type=number]{width:72px}
   .card{padding:11px 11px 6px}
@@ -478,13 +634,13 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
   .chk{flex-wrap:wrap}
   /* the hour grid and timeline are wider than a phone by design; hint that they scroll */
   .gridwrap,.tlwrap{position:relative}
-  .gridwrap::after,.tlwrap::after{content:"swipe \2192";position:absolute;right:2px;top:-13px;
-    font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .gridwrap::after,.tlwrap::after{content:"swipe \2192";position:absolute;right:2px;top:-14px;
+    font-size:10.5px;color:var(--ink-3)}
 }
 
 /* ============ credit / disclaimer footer ============ */
-.credit{margin-top:18px;padding-top:12px;border-top:1px solid var(--line);
-  display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--ink-3)}
+.credit{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.5;color:var(--ink-3)}
 .credit b{color:var(--ink-2)}
 .credit a{color:var(--accent);text-decoration:none}
 .credit a:hover{text-decoration:underline}
@@ -498,35 +654,36 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
 <div id="printHead" class="printhead"></div>
 <header class="plate">
   <div>
-    <p class="eyebrow">Fed-batch feed design</p>
     <h1>Feed Profile Designer</h1>
-    <p class="sub">Build a feed as a sequence of phases &mdash; constant, ramping, exponential or
-      demand-matched &mdash; each with its own temperature, each ending on whatever comes first: a time,
-      a state, or a moment on the clock. Predict the batch, read the pump setpoint, and check where every
-      switch lands in your week.</p>
+    <p class="sub">Plan a fed-batch feed as a sequence of phases, read off the pump setpoints it
+      needs, and see where every switch lands in your working week.</p>
   </div>
-  <div class="levels" role="tablist" aria-label="Detail level">
-    <button role="tab" id="lv-hyd" aria-selected="false">Hydraulic</button>
-    <button role="tab" id="lv-std" aria-selected="true">Standard</button>
-    <button role="tab" id="lv-exp" aria-selected="false">Expert</button>
+  <div class="levelbox">
+    <div class="levels" role="group" aria-label="Detail level">
+      <button id="lv-hyd" aria-pressed="false">Hydraulic</button>
+      <button id="lv-std" aria-pressed="true">Standard</button>
+      <button id="lv-exp" aria-pressed="false">Expert</button>
+    </div>
+    <div class="levelcap"><span id="lv-cap"></span>
+      <button class="info" data-tip="level" aria-label="About the detail levels">i</button></div>
   </div>
 </header>
 
 <div class="bar">
   <div class="barrow">
-    <span class="eyebrow" style="margin:0">Presets</span>
+    <span class="glabel">Presets&nbsp;<button class="info" data-tip="preset" aria-label="About presets">i</button></span>
     <div class="chips" id="presetrow"></div>
   </div>
   <div class="barrow">
-    <span class="eyebrow" style="margin:0">Saved <button class="info" data-tip="save" aria-label="About saved profiles">i</button></span>
+    <span class="glabel">Saved&nbsp;<button class="info" data-tip="save" aria-label="About saved profiles">i</button></span>
     <div class="chips" id="savedrow"></div>
     <span class="saveform">
-      <input type="text" id="save-name" placeholder="name this profile" aria-label="Profile name">
+      <input type="text" id="save-name" placeholder="Name this profile" aria-label="Profile name">
       <button class="btn" id="btn-save">Save current</button>
     </span>
   </div>
   <div class="barrow">
-    <span class="eyebrow" style="margin:0">Compare <button class="info" data-tip="compare" aria-label="About comparing">i</button></span>
+    <span class="glabel">Compare&nbsp;<button class="info" data-tip="compare" aria-label="About comparing two profiles">i</button></span>
     <span class="cmpsel"><i class="sw" style="background:var(--s1)"></i>
       <label for="cmp-a" class="vh">Profile A</label><select id="cmp-a"></select></span>
     <span class="cmpsel"><i class="sw" style="background:var(--s2)"></i>
@@ -534,64 +691,46 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
     <span class="cmpnote" id="cmp-note"></span>
   </div>
   <div class="barrow">
-    <span class="eyebrow" style="margin:0">Export <button class="info" data-tip="export" aria-label="About exporting">i</button></span>
+    <span class="glabel">Export&nbsp;<button class="info" data-tip="export" aria-label="About exporting">i</button></span>
     <button class="btn" id="btn-export-json">Copy profile JSON</button>
     <button class="btn" id="btn-export-print">Print summary</button>
-    <span class="cmpnote" id="export-msg"></span>
+    <span class="cmpnote" id="export-msg" role="status"></span>
   </div>
 </div>
 
 <details class="console" open>
-  <summary>Process parameters <span class="hint" id="con-hint">organism, carbon source, batch, vessel, kinetics</span></summary>
+  <summary><h2 class="st">Process parameters</h2> <span class="hint" id="con-hint">organism, carbon source, batch, vessel, kinetics</span></summary>
   <div class="console-body">
     <div class="groups">
       <fieldset id="fs-bio">
         <legend>Organism &amp; metabolism</legend>
-        <div class="f"><label for="p-org">Organism <button class="info" data-tip="org" aria-label="About organism">i</button></label>
-          <select id="p-org" style="width:118px;flex:none"></select></div>
-        <div class="f"><label for="p-mode">Metabolic mode <button class="info" data-tip="mode" aria-label="About metabolic mode">i</button></label>
-          <select id="p-mode" style="width:118px;flex:none">
+        <div class="f"><label for="p-org"><span class="lt">Organism</span><button class="info" data-tip="org" aria-label="About the organism">i</button></label>
+          <select id="p-org" style="width:138px;flex:none"></select></div>
+        <div class="f"><label for="p-mode"><span class="lt">Metabolic mode</span><button class="info" data-tip="mode" aria-label="About the metabolic mode">i</button></label>
+          <select id="p-mode" style="width:138px;flex:none">
             <option value="aerobic">Aerobic</option>
-                  <option value="anaerobic">Anaerobic</option>
+            <option value="anaerobic">Anaerobic</option>
           </select></div>
-        <div class="f"><label for="p-Y">Yield Y<sub>X/S</sub> <button class="info" data-tip="Y" aria-label="About yield">i</button></label>
+        <div class="f"><label for="p-Y"><span class="lt">Yield Y<sub>X/S</sub></span><button class="info" data-tip="Y" aria-label="About the yield">i</button></label>
           <input class="mono" type="number" id="p-Y" step="0.01" min="0.02" max="0.75"><span class="unit">g/g</span></div>
-        <div class="f"><label for="p-o2">O&#8322; per g substrate <button class="info" data-tip="o2" aria-label="About oxygen demand">i</button></label>
+        <div class="f"><label for="p-o2"><span class="lt">O&#8322; per g substrate</span><button class="info" data-tip="o2" aria-label="About the oxygen demand">i</button></label>
           <input class="mono" type="number" id="p-o2" step="0.1" min="0"><span class="unit">mmol/g</span></div>
         <label class="chk" id="w-o2man"><input type="checkbox" id="p-o2man">
-          Override with a measured off-gas value</label>
+          <span>Override with a measured off-gas value</span></label>
         <div class="exitnote" id="n-o2"></div>
         <div class="exitnote" id="n-org"></div>
       </fieldset>
 
-      <fieldset id="fs-bottle">
-        <legend>Feed bottle</legend>
-        <div class="f"><label for="p-cbasis">Specified as <button class="info" data-tip="cbasis" aria-label="About how the bottle is specified">i</button></label>
-          <select id="p-cbasis" style="width:104px;flex:none">
-            <option value="gl">g per litre</option>
-            <option value="ww">% w/w</option>
-            <option value="gkg">g per kg</option>
-          </select></div>
-        <div class="f" id="w-cww"><label for="p-cww"><span id="l-cww">Strength</span> <button class="info" data-tip="cfeed" aria-label="About feed concentration">i</button></label>
-          <input class="mono" type="number" id="p-cww" step="0.5" min="0.1" max="95"><span class="unit" id="u-cww">% w/w</span></div>
-        <div class="f"><label for="p-rho">Density <button class="info" data-tip="rho" aria-label="About feed density">i</button></label>
-          <input class="mono" type="number" id="p-rho" step="0.005" min="0.5" max="2"><span class="unit">g/mL</span></div>
-        <div style="display:flex;gap:6px;margin-top:7px">
-          <button class="btn sm" id="btn-rho-est">Use estimated density</button>
-        </div>
-        <div class="exitnote" id="n-bottle"></div>
-      </fieldset>
-
       <fieldset>
         <legend>Carbon source</legend>
-        <div class="seg" role="group" style="margin:4px 0 9px">
+        <div class="seg" role="group" aria-label="Carbon source" style="margin:5px 0 10px">
           <button data-src="lactose" aria-pressed="false">Lactose</button>
           <button data-src="glucose" aria-pressed="true">Glucose</button>
           <button data-src="glycerol" aria-pressed="false">Glycerol</button>
         </div>
         <div id="w-form">
-          <div class="eyebrow" style="margin:0 0 4px">Weighed as <button class="info" data-tip="form" aria-label="About the weighed form">i</button></div>
-          <div class="seg" role="group" style="margin:0 0 9px">
+          <div class="glabel">Weighed as&nbsp;<button class="info" data-tip="form" aria-label="About the weighed form">i</button></div>
+          <div class="seg" role="group" aria-label="Weighed form of glucose" style="margin:0 0 2px">
             <button data-form="glucose" aria-pressed="true">Anhydrous</button>
             <button data-form="glucoseMH" aria-pressed="false">Monohydrate</button>
           </div>
@@ -599,80 +738,98 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
         <div class="exitnote" id="n-src"></div>
       </fieldset>
 
+      <fieldset id="fs-bottle">
+        <legend>Feed bottle</legend>
+        <div class="f"><label for="p-cbasis"><span class="lt">Strength unit</span><button class="info" data-tip="cbasis" aria-label="About the strength unit">i</button></label>
+          <select id="p-cbasis" style="width:138px;flex:none">
+            <option value="gl">g per litre</option>
+            <option value="ww">% w/w</option>
+            <option value="gkg">g per kg</option>
+          </select></div>
+        <div class="f" id="w-cww"><label for="p-cww"><span class="lt"><span id="l-cww">Strength</span></span><button class="info" data-tip="cfeed" aria-label="About the feed strength">i</button></label>
+          <input class="mono" type="number" id="p-cww" step="0.5" min="0.1" max="95"><span class="unit" id="u-cww">% w/w</span></div>
+        <div class="f"><label for="p-rho"><span class="lt">Density</span><button class="info" data-tip="rho" aria-label="About the feed density">i</button></label>
+          <input class="mono" type="number" id="p-rho" step="0.005" min="0.5" max="2"><span class="unit">g/mL</span></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:7px">
+          <button class="btn sm" id="btn-rho-est">Use the estimated density</button>
+        </div>
+        <div class="exitnote" id="n-bottle"></div>
+      </fieldset>
+
       <fieldset id="fs-batch">
         <legend>Batch phase</legend>
-        <div class="f"><label for="p-S0">Batch substrate <button class="info" data-tip="S0" aria-label="About batch substrate">i</button></label>
+        <div class="f"><label for="p-S0"><span class="lt">Batch substrate</span><button class="info" data-tip="S0" aria-label="About the batch substrate">i</button></label>
           <input class="mono" type="number" id="p-S0" step="0.5" min="0"><span class="unit">g/L</span></div>
-        <div class="f"><label for="p-xinoc">Inoculum density <button class="info" data-tip="xinoc" aria-label="About inoculum density">i</button></label>
+        <div class="f"><label for="p-xinoc"><span class="lt">Inoculum density</span><button class="info" data-tip="xinoc" aria-label="About the inoculum density">i</button></label>
           <input class="mono" type="number" id="p-xinoc" step="0.05" min="0.001"><span class="unit">g/L</span></div>
-        <div class="f"><label for="p-batchT">Batch temperature <button class="info" data-tip="batchT" aria-label="About batch temperature">i</button></label>
+        <div class="f"><label for="p-batchT"><span class="lt">Batch temperature</span><button class="info" data-tip="batchT" aria-label="About the batch temperature">i</button></label>
           <input class="mono" type="number" id="p-batchT" step="0.5" min="10" max="50"><span class="unit">&deg;C</span></div>
-        <div class="f"><label for="p-laginoc">Lag after inoculation <button class="info" data-tip="laginoc" aria-label="About lag">i</button></label>
+        <div class="f"><label for="p-laginoc"><span class="lt">Lag after inoculation</span><button class="info" data-tip="laginoc" aria-label="About the lag after inoculation">i</button></label>
           <input class="mono" type="number" id="p-laginoc" step="0.25" min="0"><span class="unit">h</span></div>
-        <label class="chk"><input type="checkbox" id="p-batchfix">
-          Fix the batch length <button class="info" data-tip="batchfix" aria-label="About fixed batch length">i</button></label>
-        <div class="f"><label for="p-batchlen">Batch length</label>
-          <input class="mono" type="number" id="p-batchlen" step="0.5" min="0" disabled><span class="unit">h</span></div>
-        <label class="chk"><input type="checkbox" id="p-showbatch" checked>
-          Show the batch on the charts</label>
-        <label class="chk"><input type="checkbox" id="p-x0man">
-          Override biomass at feed start</label>
-        <div class="f"><label for="p-x0">Measured DCW <button class="info" data-tip="x0" aria-label="About measured DCW">i</button></label>
-          <input class="mono" type="number" id="p-x0" step="0.5" min="0.1" disabled><span class="unit">g/L</span></div>
         <div class="exitnote" id="n-batch"></div>
+        <label class="chk"><input type="checkbox" id="p-batchfix">
+          <span>Fix the batch length&nbsp;<button class="info" data-tip="batchfix" aria-label="About fixing the batch length">i</button></span></label>
+        <div class="f sub"><label for="p-batchlen">Batch length</label>
+          <input class="mono" type="number" id="p-batchlen" step="0.5" min="0" disabled><span class="unit">h</span></div>
+        <label class="chk"><input type="checkbox" id="p-x0man">
+          <span>Use a measured biomass at feed start&nbsp;<button class="info" data-tip="x0" aria-label="About the measured biomass">i</button></span></label>
+        <div class="f sub"><label for="p-x0">Measured DCW</label>
+          <input class="mono" type="number" id="p-x0" step="0.5" min="0.1" disabled><span class="unit">g/L</span></div>
+        <label class="chk"><input type="checkbox" id="p-showbatch" checked>
+          <span>Show the batch on the charts</span></label>
       </fieldset>
 
       <fieldset>
         <legend>Vessel</legend>
-        <div class="f"><label for="p-V0">Start volume V&#8320; <button class="info" data-tip="V0" aria-label="About start volume">i</button></label>
+        <div class="f"><label for="p-V0"><span class="lt">Start volume V&#8320;</span><button class="info" data-tip="V0" aria-label="About the start volume">i</button></label>
           <input class="mono" type="number" id="p-V0" step="0.1" min="0.05"><span class="unit">L</span></div>
-        <div class="f"><label for="p-Vmax">Vessel max <button class="info" data-tip="Vmax" aria-label="About vessel maximum">i</button></label>
+        <div class="f"><label for="p-Vmax"><span class="lt">Maximum volume</span><button class="info" data-tip="Vmax" aria-label="About the maximum volume">i</button></label>
           <input class="mono" type="number" id="p-Vmax" step="0.1" min="0.1"><span class="unit">L</span></div>
-        <div class="f"><label for="p-ramp">Vessel ramp rate <button class="info" data-tip="ramprate" aria-label="About the ramp rate">i</button></label>
+        <div class="f"><label for="p-ramp"><span class="lt">Temperature ramp rate</span><button class="info" data-tip="ramprate" aria-label="About the temperature ramp rate">i</button></label>
           <input class="mono" type="number" id="p-ramp" step="0.5" min="0.05"><span class="unit">&deg;C/h</span></div>
         <label class="chk"><input type="checkbox" id="p-massunits">
-          Show flows and volumes as mass <button class="info" data-tip="massunits" aria-label="About the mass basis">i</button></label>
-        <div class="f" id="w-brothrho"><label for="p-brothrho">Broth density <button class="info" data-tip="brothrho" aria-label="About broth density">i</button></label>
+          <span>Show flows and volumes as mass&nbsp;<button class="info" data-tip="massunits" aria-label="About showing mass instead of volume">i</button></span></label>
+        <div class="f sub" id="w-brothrho"><label for="p-brothrho"><span class="lt">Broth density</span><button class="info" data-tip="brothrho" aria-label="About the broth density">i</button></label>
           <input class="mono" type="number" id="p-brothrho" step="0.01" min="0.5" max="2"><span class="unit">g/mL</span></div>
-      </fieldset>
-
-      <fieldset id="fs-kin">
-        <legend>Kinetics</legend>
-        <label class="chk"><input type="checkbox" id="p-auto" checked>
-          Scale m<sub>s</sub> &amp; &mu;<sub>max</sub> from temperature</label>
-        <div class="f"><label for="p-ms">Maintenance m<sub>s</sub> <button class="info" data-tip="ms" aria-label="About maintenance">i</button></label>
-          <input class="mono" type="number" id="p-ms" step="0.005" min="0"><span class="unit">g/g/h</span></div>
-        <div class="f"><label for="p-mumax">Assumed &mu;<sub>max</sub> <button class="info" data-tip="mumax" aria-label="About maximum specific growth rate">i</button></label>
-          <input class="mono" type="number" id="p-mumax" step="0.01" min="0.02"><span class="unit">1/h</span></div>
-        <div class="f"><label for="p-qcrit">Overflow onset q<sub>S,crit</sub> <button class="info" data-tip="qcrit" aria-label="About critical uptake rate">i</button></label>
-          <input class="mono" type="number" id="p-qcrit" step="0.05" min="0.05"><span class="unit">g/g/h</span></div>
-        <div class="f"><label for="p-yof">Overflow yield <button class="info" data-tip="yof" aria-label="About the overflow yield">i</button></label>
-          <input class="mono" type="number" id="p-yof" step="0.01" min="0.01" max="0.9"><span class="unit">g/g</span></div>
-        <div class="f"><label for="p-lag">Starvation gap <button class="info" data-tip="lag" aria-label="About the starvation gap">i</button></label>
-          <input class="mono" type="number" id="p-lag" step="0.1" min="0"><span class="unit">h</span></div>
-        <div class="f" id="w-uncert"><label for="p-uncert">Uncertainty band <button class="info" data-tip="uncert" aria-label="About uncertainty band">i</button></label>
-          <input class="mono" type="number" id="p-uncert" step="5" min="0" max="60"><span class="unit">&plusmn; %</span></div>
-        <div class="exitnote" id="n-kin"></div>
       </fieldset>
 
       <fieldset>
         <legend>Pump &amp; supply</legend>
-        <div class="f"><label for="p-pmin">Pump minimum <button class="info" data-tip="pmin" aria-label="About pump minimum">i</button></label>
+        <div class="f"><label for="p-pmin"><span class="lt">Pump minimum</span><button class="info" data-tip="pmin" aria-label="About the pump minimum">i</button></label>
           <input class="mono" type="number" id="p-pmin" step="0.01" min="0"><span class="unit">mL/min</span></div>
-        <div class="f"><label for="p-pmax">Pump maximum <button class="info" data-tip="pmax" aria-label="About pump maximum">i</button></label>
+        <div class="f"><label for="p-pmax"><span class="lt">Pump maximum</span><button class="info" data-tip="pmax" aria-label="About the pump maximum">i</button></label>
           <input class="mono" type="number" id="p-pmax" step="1" min="0.1"><span class="unit">mL/min</span></div>
-        <div class="f"><label for="p-bottle">Bottle volume <button class="info" data-tip="bottle" aria-label="About feed bottle">i</button></label>
+        <div class="f"><label for="p-bottle"><span class="lt">Bottle volume</span><button class="info" data-tip="bottle" aria-label="About the bottle volume">i</button></label>
           <input class="mono" type="number" id="p-bottle" step="0.1" min="0.05"><span class="unit">L</span></div>
       </fieldset>
 
       <fieldset>
         <legend>Run limits</legend>
-        <div class="f" id="w-our"><label for="p-our">OUR ceiling <button class="info" data-tip="our" aria-label="About the OUR ceiling">i</button></label>
+        <div class="f" id="w-our"><label for="p-our"><span class="lt">OUR ceiling</span><button class="info" data-tip="our" aria-label="About the OUR ceiling">i</button></label>
           <input class="mono" type="number" id="p-our" step="10" min="10" max="2000"><span class="unit">mmol/L/h</span></div>
         <div class="exitnote" id="n-our"></div>
-        <div class="f"><label for="p-hor">Run horizon <button class="info" data-tip="horizon" aria-label="About the run horizon">i</button></label>
+        <div class="f"><label for="p-hor"><span class="lt">Run horizon</span><button class="info" data-tip="horizon" aria-label="About the run horizon">i</button></label>
           <input class="mono" type="number" id="p-hor" step="2" min="0.5" max="1000"><span class="unit">h</span></div>
         <div class="exitnote" id="n-hor"></div>
+      </fieldset>
+
+      <fieldset id="fs-kin">
+        <legend>Kinetics</legend>
+        <label class="chk" style="margin-top:3px"><input type="checkbox" id="p-auto" checked>
+          <span>Scale m<sub>s</sub> and &mu;<sub>max</sub> with temperature&nbsp;<button class="info" data-tip="auto" aria-label="About scaling the kinetics with temperature">i</button></span></label>
+        <div class="f"><label for="p-ms"><span class="lt">Maintenance m<sub>s</sub></span><button class="info" data-tip="ms" aria-label="About maintenance">i</button></label>
+          <input class="mono" type="number" id="p-ms" step="0.005" min="0"><span class="unit">g/g/h</span></div>
+        <div class="f"><label for="p-mumax"><span class="lt">Assumed &mu;<sub>max</sub></span><button class="info" data-tip="mumax" aria-label="About the maximum growth rate">i</button></label>
+          <input class="mono" type="number" id="p-mumax" step="0.01" min="0.02"><span class="unit">1/h</span></div>
+        <div class="f"><label for="p-qcrit"><span class="lt">Overflow onset q<sub>S,crit</sub></span><button class="info" data-tip="qcrit" aria-label="About the overflow onset">i</button></label>
+          <input class="mono" type="number" id="p-qcrit" step="0.05" min="0.05"><span class="unit">g/g/h</span></div>
+        <div class="f"><label for="p-yof"><span class="lt">Overflow yield Y<sub>of</sub></span><button class="info" data-tip="yof" aria-label="About the overflow yield">i</button></label>
+          <input class="mono" type="number" id="p-yof" step="0.01" min="0.01" max="0.9"><span class="unit">g/g</span></div>
+        <div class="f"><label for="p-lag"><span class="lt">Starvation gap</span><button class="info" data-tip="lag" aria-label="About the starvation gap">i</button></label>
+          <input class="mono" type="number" id="p-lag" step="0.1" min="0"><span class="unit">h</span></div>
+        <div class="f" id="w-uncert"><label for="p-uncert"><span class="lt">Uncertainty band</span><button class="info" data-tip="uncert" aria-label="About the uncertainty band">i</button></label>
+          <input class="mono" type="number" id="p-uncert" step="5" min="0" max="60"><span class="unit">&plusmn; %</span></div>
+        <div class="exitnote" id="n-kin"></div>
       </fieldset>
     </div>
   </div>
@@ -680,37 +837,41 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
 
 <section class="phasewrap">
   <div class="phasehead">
-    <h2>Feed phases</h2>
-    <span class="lede">Each phase sets a pump rate and a temperature target, and ends on the first
-      of its conditions to fire. Phases run in order from feed start.</span>
+    <h2 class="st">Feed phases</h2>
+    <span class="lede">Phases run in order from feed start. Each sets a pump rate and a temperature,
+      and ends on the first of its conditions to be met. Click a phase to edit it.</span>
     <label class="chk phchk"><input type="checkbox" id="p-perfeed">
-      Feed bottle per phase <button class="info" data-tip="perfeed" aria-label="About per-phase feed concentration">i</button></label>
+      <span>Feed bottle per phase&nbsp;<button class="info" data-tip="perfeed" aria-label="About a feed bottle per phase">i</button></span></label>
     <button class="btn primary" id="btn-addph">Add phase</button>
   </div>
   <div class="plist" id="plist"></div>
 </section>
 
+<div class="sechead"><h2 class="st">Results</h2><span class="secnote" id="res-note"></span></div>
 <div class="strip" id="strip"></div>
 <div class="diffwrap" id="diffwrap"></div>
+<div class="sechead"><h2 class="st">Checks</h2><span class="counts" id="alert-counts"></span></div>
 <div class="alerts" id="alerts"></div>
+<div class="sechead" id="sec-charts"><h2 class="st">Charts</h2>
+  <span class="secnote">Time counts from feed start, so the batch sits before zero. Hover a chart to read values.</span></div>
 <div class="zoomrow" id="zoomrow"></div>
 <div class="xhbar" id="xhbar"></div>
 <div class="grid" id="grid"></div>
 
-<details class="tbl">
-  <summary>Setpoint table</summary>
+<details class="tbl" style="margin-top:14px">
+  <summary><h2 class="st">Setpoint table</h2> <span class="hint" id="tbl-hint"></span></summary>
   <div class="tblwrap" id="tblwrap"></div>
   <div class="tblfoot">
     <button class="btn" id="btn-copy">Copy as TSV</button>
-    <span id="copy-msg"></span>
-    <span style="margin-left:auto">Rows highlighted in accent are phase boundaries.</span>
+    <span id="copy-msg" role="status"></span>
+    <span style="margin-left:auto"><i class="key"></i>row where a phase switches</span>
   </div>
 </details>
 
 <section class="seek" id="seek">
-  <h2>Goal-seek</h2>
-  <p class="lede">Choose what you want to land, and which single knob may move to get there. The solver
-    reruns the whole profile until it converges, and tells you plainly when a target is out of reach.</p>
+  <h2 class="st">Goal-seek</h2>
+  <p class="lede">Pick a target and the one knob that may move to reach it. The solver reruns the whole
+    profile until it lands, and says so plainly when the target is out of reach.</p>
   <div class="seekctl">
     <div><label class="lb" for="gs-goal">Goal</label><select id="gs-goal">
       <option value="bnd-work">Phase switch lands in working hours</option>
@@ -726,42 +887,76 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
       <option value="3">Afternoon after next</option>
     </select></div>
     <div id="gs-w-tgt"><label class="lb" for="gs-tgt">Target value</label><input class="mono" type="number" id="gs-tgt" step="1" value="40"></div>
-    <div id="gs-w-when"><label class="lb" for="gs-when">By when</label><input type="datetime-local" id="gs-when"></div>
-    <div><label class="lb" for="gs-knob">Knob to turn</label><select id="gs-knob"></select></div>
+    <div id="gs-w-when"><label class="lb" for="gs-when">At this time</label><input type="datetime-local" id="gs-when"></div>
+    <div><label class="lb" for="gs-knob">Knob to turn&nbsp;<button class="info" data-tip="knob" aria-label="About the knobs">i</button></label><select id="gs-knob"></select></div>
     <div><button class="btn primary" id="gs-run" style="width:100%;padding:7px 11px">Solve</button></div>
   </div>
-  <div class="exitnote" id="gs-scope" style="margin-top:8px;color:var(--warn)"></div>
-  <div class="seekout" id="gs-out">Pick a goal and a knob, then press Solve. Nothing changes until you apply the result.</div>
+  <div class="exitnote need" id="gs-scope" style="margin-top:8px"></div>
+  <div class="seekout" id="gs-out" role="status">Pick a goal and a knob, then press Solve. Nothing changes until you apply the result.</div>
 </section>
 
 <section class="sched">
-  <h2>Run schedule</h2>
-  <p class="lede">Anchor the profile to the wall clock. Feed start follows from the batch prediction
-    unless you set it yourself. The grid shows the run day by day; the timeline below carries the exact
-    shape, with each phase in its own colour.</p>
-  <div class="schedctl">
-    <div><label class="lb" for="sc-inoc">Inoculation</label><input type="datetime-local" id="sc-inoc"></div>
-    <div><label class="lb" for="sc-feed">Feed start</label><input type="datetime-local" id="sc-feed">
-      <label class="chk" style="margin-top:5px"><input type="checkbox" id="sc-feedman"> Set feed start manually</label></div>
-    <div><label class="lb" for="sc-param">Anchored parameter</label><select id="sc-param"></select></div>
-    <div><label class="lb" for="sc-span">Days shown</label><input type="number" id="sc-span" min="1" max="14" step="1"></div>
-    <div><label class="lb" for="sc-wh0">Working hours</label>
-      <div style="display:flex;gap:5px;align-items:center">
-        <input type="number" id="sc-wh0" min="0" max="23" step="1" style="width:50%" aria-label="Working hours start">
-        <input type="number" id="sc-wh1" min="1" max="24" step="1" style="width:50%" aria-label="Working hours end">
-      </div></div>
-    <div><label class="lb" for="sc-samp">Sampling every</label><input type="number" id="sc-samp" min="0" max="24" step="0.5"></div>
+  <h2 class="st">Run schedule</h2>
+  <p class="lede">Puts the run on the wall clock. Set when it starts and when your lab is staffed; the
+    agenda then lists every event and flags the ones outside working hours, and the calendar shows each
+    hour of the run.</p>
+
+  <div class="sblk" id="sc-plan">
+    <h3 class="sbh">Plan</h3>
+    <div class="schedctl">
+      <div><label class="lb" for="sc-inoc">Inoculation</label><input type="datetime-local" id="sc-inoc"></div>
+      <div><label class="lb" for="sc-feed">Feed start&nbsp;<button class="info" data-tip="feedstart" aria-label="About feed start">i</button></label>
+        <div class="feedrow">
+          <div class="seg" role="group" aria-label="How feed start is set">
+            <button data-feedmode="auto" aria-pressed="true">After batch</button>
+            <button data-feedmode="hand" aria-pressed="false">By hand</button>
+          </div>
+          <input type="datetime-local" id="sc-feed" aria-label="Feed start time">
+        </div></div>
+      <div><label class="lb" for="sc-wh0">Working hours&nbsp;<button class="info" data-tip="workhours" aria-label="About working hours">i</button></label>
+        <div class="pair">
+          <input type="number" id="sc-wh0" min="0" max="23" step="1" aria-label="Working hours start">
+          <span>to</span>
+          <input type="number" id="sc-wh1" min="1" max="24" step="1" aria-label="Working hours end">
+          <span>o&rsquo;clock, Mon&ndash;Fri</span>
+        </div></div>
+      <div><label class="lb" for="sc-samp">Sample every&nbsp;<button class="info" data-tip="sampling" aria-label="About the sampling interval">i</button></label>
+        <div class="withunit"><input type="number" id="sc-samp" min="0" max="24" step="0.5"><span>h</span></div></div>
+    </div>
   </div>
-  <div class="mile" id="sc-miles"></div>
-  <div class="phlegend" id="sc-phleg"></div>
-  <div class="ramp" id="sc-ramp"></div>
-  <div class="gridwrap"><div class="hgrid" id="sc-grid"></div></div>
-  <div class="tlwrap"><div id="sc-tl"></div></div>
+
+  <div class="sblk" id="sc-agenda">
+    <div class="sbhead"><h3 class="sbh">Agenda</h3><span class="sbsum" id="sc-sum"></span></div>
+    <div class="agenda" id="sc-miles" role="table" aria-label="Run agenda"></div>
+  </div>
+
+  <div class="sblk" id="sc-cal">
+    <div class="sbhead"><h3 class="sbh">Calendar</h3>
+      <div class="viewbar">
+        <label for="sc-param">Colour by&nbsp;<button class="info" data-tip="schedparam" aria-label="About the quantity shown">i</button></label>
+        <select id="sc-param"></select>
+        <label for="sc-span">Days</label>
+        <input type="number" id="sc-span" min="1" max="14" step="1">
+      </div></div>
+    <div class="ramp" id="sc-ramp"></div>
+    <div class="gridwrap"><div class="hgrid" id="sc-grid"></div></div>
+    <div class="tlwrap"><div id="sc-tl"></div></div>
+  </div>
 </section>
 
-<div class="notes">
-  <h4>The model</h4>
-  <p class="eq">F is the pump setpoint in mL/min &nbsp;&rarr;&nbsp; F<sub>g</sub> = F &middot; 0.06 &middot; c<sub>feed</sub> (g/h) &nbsp;&middot;&nbsp; uptake U = min(F<sub>g</sub> + pool, q<sub>S,max</sub>&middot;X&middot;V) &nbsp;&middot;&nbsp; U<sub>ox</sub> = min(U, q<sub>S,crit</sub>&middot;X&middot;V), U<sub>of</sub> = U &minus; U<sub>ox</sub> &nbsp;&middot;&nbsp; d(XV)/dt = Y (U<sub>ox</sub> &minus; m<sub>s</sub>XV) + Y<sub>of</sub> U<sub>of</sub> &nbsp;&middot;&nbsp; OUR = (O&#8322;/g &middot; U<sub>ox</sub> + O&#8322;<sub>of</sub> &middot; U<sub>of</sub>) / V &le; ceiling</p>
+<section class="notes">
+  <h2 class="st">How the model works</h2>
+  <p class="lede">Every curve on this page comes from these five balances, stepped forward in time.
+    F is the pump setpoint in mL/min; X&middot;V is the biomass in the vessel.</p>
+  <dl class="eq">
+    <dt>Substrate fed</dt><dd>F<sub>g</sub> = F &middot; 0.06 &middot; c<sub>feed</sub> &nbsp;(g/h)</dd>
+    <dt>Uptake</dt><dd>U = min(F<sub>g</sub> + pool, q<sub>S,max</sub>&middot;X&middot;V)</dd>
+    <dt>Respired, overflow</dt><dd>U<sub>ox</sub> = min(U, q<sub>S,crit</sub>&middot;X&middot;V), &nbsp;U<sub>of</sub> = U &minus; U<sub>ox</sub></dd>
+    <dt>Biomass</dt><dd>d(X&middot;V)/dt = Y &middot; (U<sub>ox</sub> &minus; m<sub>s</sub>&middot;X&middot;V) + Y<sub>of</sub> &middot; U<sub>of</sub></dd>
+    <dt>Oxygen</dt><dd>OUR = (O&#8322;/g &middot; U<sub>ox</sub> + O&#8322;<sub>of</sub>/g &middot; U<sub>of</sub>) / V &nbsp;&le;&nbsp; OUR ceiling</dd>
+  </dl>
+  <div class="topics">
+  <div class="topic"><h3>Feed and uptake</h3>
   <ul>
     <li><b>One controlled variable.</b> Every phase sets volumetric flow, because that is what a pump
       actually takes. A fixed-k exponential is an open-loop programme: the pump follows the curve whether
@@ -783,9 +978,9 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
     <li><b>Dilution split.</b> Absolute demand grows at &mu;. Volume grows at <code>D = (dV/dt)/V</code>,
       so concentration only grows at <code>&mu; &minus; D</code>. A dilute feed spends a large share of
       the exponential on water.</li>
-  </ul>
+  </ul></div>
 
-  <h4>The batch phase</h4>
+  <div class="topic"><h3>The batch phase</h3>
   <ul>
     <li>The batch is modelled as unrestricted exponential growth at &mu;<sub>max</sub> for the batch
       temperature: <code>t_batch = lag + ln(X_end / X_inoc) / &mu;max</code>, with
@@ -797,9 +992,9 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
       from t = 0.</li>
     <li>Oxygen uptake during the batch comes from the same stoichiometry as the feed phase, so the
       predicted OUR peak at exhaustion is directly comparable to what the off-gas will show.</li>
-  </ul>
+  </ul></div>
 
-  <h4>Temperature</h4>
+  <div class="topic"><h3>Temperature</h3>
   <ul>
     <li>Each phase carries a target, and the vessel moves toward it at the ramp rate you set rather than
       stepping instantly. Maintenance is scaled with Q<sub>10</sub> = 2 and &mu;<sub>max</sub> by a
@@ -808,9 +1003,9 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
     <li>That means &mu;<sub>max</sub> is a curve, not a constant: a &mu; setpoint chosen at batch
       temperature can end up above &mu;<sub>max</sub> once the vessel has cooled. The growth panel draws
       &mu;<sub>max</sub> as a moving line so you can see it happen.</li>
-  </ul>
+  </ul></div>
 
-  <h4>Where the oxygen number comes from</h4>
+  <div class="topic"><h3>Where the oxygen number comes from</h3>
   <ul>
     <li>O&#8322; per gram is <b>derived</b>, not typed: an electron balance over biomass, substrate and
       oxygen. With biomass of degree of reduction &gamma;<sub>X</sub> and substrate &gamma;<sub>S</sub>,
@@ -822,9 +1017,9 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
       describing different organisms and one of the numbers is wrong. Maintenance cannot explain a
       measurement that comes in <i>below</i> the balance &mdash; it pushes oxygen demand up. Secreted
       product can: a reduced product carries electrons that would otherwise have gone to oxygen.</li>
-  </ul>
+  </ul></div>
 
-  <h4>How the organism and the oxygen supply change the answer</h4>
+  <div class="topic"><h3>Organism, oxygen supply and overflow</h3>
   <ul>
     <li><b>The organism sets the balance.</b> Biomass composition fixes &gamma;<sub>X</sub> and the
       C-mol mass, so the same yield implies different oxygen demand for <i>E. coli</i>
@@ -842,18 +1037,23 @@ tr.bnd td{background:var(--accent-soft);font-weight:600}
     <li><b>Overflow is a carbon limit, not an oxygen one.</b> Crabtree-positive yeast makes ethanol
       above roughly 0.25 1/h even under full aeration, and <i>E. coli</i> makes acetate above its
       critical uptake rate. Feeding below q<sub>S,crit</sub> is the entire reason exponential fed-batch
-      exists. Past it the tool splits the flux (see above), so DCW and OUR both come out lower than a
+      exists. Past it the tool splits the flux (see Feed and uptake), so DCW and OUR both come out lower than a
       single-yield model would say. The overflow product is <b>not taken back up</b> here, which makes
       the product figure an upper bound; and the batch keeps its simple single-yield picture, on the
       assumption that batch overflow is re-consumed before the DO spike.</li>
     <li><b>Weighed form.</b> Glucose is usually weighed as the monohydrate; pick it under Carbon source
       and the strength you type is what went on the balance, while every g/L shown is anhydrous
       glucose (600 g monohydrate per kg of solution is about 685 g/L of glucose, not 773).</li>
-    <li><b>Not modelled:</b> recombinant product formation drawing on the same carbon, re-uptake of
-      overflow product, inhibition by it, oxygen transfer falling as fill height rises, evaporation,
-      and sampling losses. Treat the endgame numbers as an upper bound.</li>
-  </ul>
-</div>
+  </ul></div>
+
+  <div class="topic"><h3>What is not modelled</h3>
+  <ul>
+    <li>Recombinant product formation drawing on the same carbon, re-uptake of overflow product and
+      inhibition by it, oxygen transfer falling as the fill height rises, evaporation, and sampling
+      losses. Treat the numbers late in the run as an upper bound.</li>
+  </ul></div>
+  </div>
+</section>
 
 <footer class="credit">
   <span><b>Feed Profile Designer</b> &mdash; an open planning aid for fed-batch feed profiles.</span>
@@ -1040,129 +1240,158 @@ function overflowStoich(gS, gX, MS, MX, yof, prod){
 
 /* ================= tooltip corpus: what it is / typical range / what breaks ================= */
 const TIPS = {
-  org:{t:"Organism", d:"Sets the biomass elemental formula, and with it the degree of reduction and C-mol mass used in every balance — plus μ<sub>max</sub>, maintenance and the temperature response.",
+  /* t title (matches the label on the page) · d what it is · r range or advice, labelled rl
+     (default "Typical") · c consequence, labelled cl (default "Watch out") */
+  level:{t:"Detail level", d:"How much of the model is on show. <b>Hydraulic</b> is pump and volume only, with no biology. <b>Standard</b> adds the estimated biology (batch length, biomass, oxygen uptake, overflow) from the organism's built-in constants. <b>Expert</b> unlocks every constant and adds the uncertainty band and goal-seek.",
+    rl:"Start with", r:"Standard; move to Expert once you have your own yield or off-gas numbers",
+    cl:"Note", c:"Switching level never changes what you entered, only what is shown."},
+  preset:{t:"Presets", d:"Seven worked starting points. Loading one replaces the whole working profile: the process parameters and every phase.",
+    rl:"Tip", r:"save the current profile first if you want it back",
+    cl:"Kept", c:"Your strength unit, the mass or volume display and the inoculation time stay as they are."},
+  org:{t:"Organism", d:"Sets the biomass elemental formula, and with it the degree of reduction and C-mol mass used in every balance. It also sets μ<sub>max</sub>, maintenance, the overflow threshold and the temperature response.",
     r:"γ<sub>X</sub> 4.0–4.3 for most microbial biomass",
-    c:"Pick the wrong one and oxygen demand per gram shifts by a few percent, and μ<sub>max</sub> by a factor of two."},
-  mode:{t:"Metabolic mode", d:"Aerobic runs the full electron balance to oxygen, with overflow above q<sub>S,crit</sub> handled by the kinetics. Anaerobic sets OUR to zero and collapses the yield, sending the electrons into a reduced product instead.",
-    r:"aerobic Y 0.4–0.5 · anaerobic Y ~0.10 g/g",
-    c:"Leaving this on aerobic for an anaerobic run overstates biomass roughly fivefold and invents an oxygen ceiling that does not exist."},
-  Y:{t:"Yield Y<sub>X/S</sub>", d:"Grams of dry biomass per gram of substrate consumed. Drives F₀, the biomass curve, and — through the electron balance — the oxygen demand.",
+    c:"Pick the wrong one and oxygen demand per gram shifts by a few percent, and μ<sub>max</sub> by up to a factor of two. Changing it also resets yield, overflow onset and every temperature to the organism's defaults."},
+  mode:{t:"Metabolic mode", d:"<b>Aerobic</b> runs the full electron balance to oxygen, with overflow above q<sub>S,crit</sub> handled by the kinetics. <b>Anaerobic</b> sets oxygen uptake to zero and collapses the yield, sending the electrons into a reduced product instead.",
+    r:"aerobic Y 0.4–0.5 g/g · anaerobic Y ~0.10 g/g",
+    c:"Leave an anaerobic run on aerobic and biomass is overstated roughly fivefold, with an oxygen ceiling that does not exist."},
+  Y:{t:"Yield Y<sub>X/S</sub>", d:"Grams of dry biomass made per gram of substrate consumed. It sets the starting flow F₀, the biomass curve and, through the electron balance, the oxygen demand. Taken from the organism and carbon source; unlock it in Expert.",
     r:"0.40–0.50 aerobic on glucose · 0.35–0.45 on lactose · ~0.10 anaerobic",
-    c:"Set too high and F₀ is undersized, so μ undershoots and the OUR ceiling arrives later than planned."},
-  o2:{t:"O₂ per g substrate", d:"Millimoles of oxygen consumed per gram of substrate fed. Derived from the electron balance unless you override it with a measured off-gas value.",
-    r:"~15 glucose · ~18 lactose · ~19 glycerol, at typical yields",
-    c:"Entering a measured number that disagrees with the yield makes the DCW and OUR curves describe different organisms — the implied yield is shown so you can see the gap."},
-  S0:{t:"Batch substrate", d:"Substrate charged before the feed starts. With the inoculum density it sets both how long the batch runs and the biomass present when feeding begins.",
+    c:"Too high and F₀ comes out undersized, so μ undershoots and the OUR ceiling arrives later than planned."},
+  o2:{t:"O₂ per g substrate", d:"Millimoles of oxygen consumed per gram of substrate respired. Worked out from the electron balance, so it always agrees with the yield. In Expert you can replace it with a measured off-gas value.",
+    r:"~14–15 glucose · ~18 lactose · ~19 glycerol, at typical yields",
+    c:"A measured number that disagrees with the yield makes the DCW and OUR curves describe different organisms. The implied yield is shown so you can see the gap."},
+  S0:{t:"Batch substrate", d:"Substrate in the vessel before the feed starts. With the inoculum density it sets how long the batch runs and how much biomass is there when feeding begins.",
     r:"5–20 g/L (a 0.5–2 % batch)",
-    c:"Too high and the batch runs longer than planned, and the feed starts from a biomass that never existed."},
-  V0:{t:"Start volume V₀", d:"Broth volume the moment feeding begins, after inoculation and any base addition.",
-    r:"0.2–0.5 L bench · 1–5 L pilot",
-    c:"Every specific rate is per litre of this, so an error here scales the entire feed."},
-  Vmax:{t:"Vessel maximum", d:"Working volume the run has to stop at. With a dilute feed this is usually what ends the run rather than time or oxygen.",
-    r:"typically 2–4× the starting volume",
-    c:"Set it above the real working volume and the plan overflows the vessel."},
-  x0:{t:"Measured DCW at feed start", d:"Use a real dry-cell-weight measurement instead of the value the batch predictor works out. The more reliable input when you have it.",
-    r:"3–6 g/L after a 1 % batch",
-    c:"An estimate that is off propagates straight into F₀, since the whole feed is scaled to biomass."},
-  xinoc:{t:"Inoculum density", d:"Dry cell weight in the vessel immediately after inoculation. With the batch substrate and μ<sub>max</sub> this sets how long the batch takes to exhaust.",
+    c:"Enter more than is really there and the model predicts a longer batch and more biomass than you will get, so F₀ comes out oversized."},
+  V0:{t:"Start volume V₀", d:"Broth volume at the moment feeding begins, after inoculation and any base addition.",
+    r:"0.2–0.5 L in a mini-bioreactor · 1–5 L on the bench",
+    c:"Every specific rate is per litre of this, so an error here scales the whole feed."},
+  Vmax:{t:"Maximum volume", d:"The working volume at which the run has to stop. With a dilute feed this, rather than time or oxygen, is usually what ends the run.",
+    r:"typically 2–4× the start volume",
+    c:"Set it above the real working volume and the plan overfills the vessel."},
+  x0:{t:"Measured biomass at feed start", d:"Replaces the biomass the batch prediction works out with a dry cell weight you measured. The more reliable input whenever you have it.",
+    r:"3–6 g/L after a 10 g/L batch",
+    c:"The whole feed is scaled to this biomass, so an error passes straight into F₀."},
+  xinoc:{t:"Inoculum density", d:"Dry cell weight in the vessel immediately after inoculation. With the batch substrate and μ<sub>max</sub> it sets how long the batch takes to run out.",
     r:"0.05–0.5 g/L, i.e. a 1–10 % v/v seed",
-    c:"A thin inoculum costs you generations: halving it adds one doubling time to the batch, which moves feed start by hours."},
-  laginoc:{t:"Lag after inoculation", d:"Time before the culture starts growing exponentially. Added to the predicted batch length without producing any biomass.",
+    c:"A thin inoculum costs generations: halving it adds one doubling time to the batch, which moves feed start by hours."},
+  laginoc:{t:"Lag after inoculation", d:"Time before the culture starts growing exponentially. It is added to the predicted batch length and makes no biomass.",
     r:"0–2 h for a healthy seed in matched medium",
-    c:"Ignoring a real lag makes the predictor call feed start too early."},
-  batchfix:{t:"Fixed batch length", d:"Take the batch duration as given rather than predicted — which is how it usually works in practice, since the DO spike is the real signal. The predictor still shows what it expected, so you can see the disagreement.",
-    r:"set it from your own history for this medium",
-    c:"If the fixed length is shorter than the batch really needs, substrate is left over and the feed starts into a culture that is not carbon-limited."},
+    c:"Ignore a real lag and feed start is predicted too early."},
+  batchfix:{t:"Fix the batch length", d:"Takes the batch duration as given instead of predicted, which is how it usually works in practice, since the DO spike is the real signal. The prediction stays visible so you can see any disagreement.",
+    rl:"Set it", r:"from your own history with this strain and medium",
+    c:"If the fixed length is shorter than the batch really needs, substrate is left over and the feed starts into a culture that is not yet carbon-limited."},
   batchT:{t:"Batch temperature", d:"Temperature during the batch, and the temperature the vessel is at when feeding starts. Each feed phase then ramps from here to its own target.",
     r:"at or near the organism's optimum for a fast batch",
-    c:"A cool batch takes longer to exhaust, moving feed start later than the schedule assumes."},
-  phaseT:{t:"Phase temperature", d:"Target temperature for this phase. The vessel ramps toward it at the vessel ramp rate, and maintenance and μ_max are recalculated from the actual temperature at every step — so the kinetics change while the vessel is still moving.",
+    c:"A cool batch takes longer to run out, which moves feed start later than the schedule assumes."},
+  phaseT:{t:"Phase temperature", d:"Target temperature for this phase. The vessel moves toward it at the temperature ramp rate, and maintenance and μ<sub>max</sub> are recalculated from the actual temperature at every step, so the kinetics change while the vessel is still moving.",
     r:"a 4–8 °C drop at feed start is a common production shift",
     c:"Cooling lowers μ<sub>max</sub>, so a μ setpoint that was safe at batch temperature can end up above μ<sub>max</sub> after the shift."},
-  ramprate:{t:"Vessel ramp rate", d:"How fast the vessel can actually change temperature — a property of the jacket and the working volume, not of the phase. Applies to every temperature change.",
+  ramprate:{t:"Temperature ramp rate", d:"How fast the vessel can really change temperature. It is a property of the jacket and the working volume, not of a phase, and applies to every temperature change in the run.",
     r:"0.5–5 °C/h for jacketed lab vessels",
     c:"Assume an instant step and the kinetics change hours before they really would."},
-  ms:{t:"Maintenance m<sub>s</sub>", d:"Substrate consumed per gram of biomass per hour just to stay alive, before any growth. Adds a term to F₀ that matters most at high cell density.",
+  auto:{t:"Scale kinetics with temperature", d:"When ticked, maintenance doubles for every 10 °C (Q<sub>10</sub> = 2) and μ<sub>max</sub> follows a square-root (Ratkowsky) law, both from the organism's reference values and the vessel temperature at each step. Untick it to type fixed values of your own.",
+    rl:"Keep it", r:"ticked whenever a phase changes temperature",
+    c:"With fixed values a temperature shift no longer slows the culture in the model, so a cooled phase looks safer than it is."},
+  ms:{t:"Maintenance m<sub>s</sub>", d:"Substrate each gram of biomass burns per hour just to stay alive, before any growth. It adds a term to the feed that matters most at high cell density. Shown at batch temperature; untick temperature scaling to type your own.",
     r:"0.02–0.04 g/g/h, doubling per 10 °C",
-    c:"Ignore it and the feed slowly falls behind demand as biomass accumulates."},
-  mumax:{t:"Assumed μ<sub>max</sub>", d:"The fastest the strain can grow under these conditions. The feed can only set μ while μ stays comfortably below it. Recalculated from temperature at every step.",
+    c:"Ignore it and the feed slowly falls behind demand as biomass builds up."},
+  mumax:{t:"Assumed μ<sub>max</sub>", d:"The fastest the strain can grow under these conditions. The feed only sets μ while μ stays comfortably below it. Shown at batch temperature; untick temperature scaling to type your own.",
     r:"0.3–0.5 1/h for many aerobes on glucose; higher for E. coli",
-    c:"Design above it and the culture cannot follow the feed — substrate accumulates and the run stops being substrate-limited."},
-  qcrit:{t:"Critical uptake q<sub>S,crit</sub>", d:"Specific substrate uptake above which the organism spills carbon into a reduced product even with full aeration. Watch the growth rate it corresponds to, shown underneath: μ<sub>crit</sub> = (q<sub>S,crit</sub> − m<sub>s</sub>) · Y. The two are easy to confuse, and a μ figure typed into this g/g/h field makes the threshold far too strict.",
+    c:"Design above it and the culture cannot follow the feed: substrate accumulates and the run stops being substrate-limited."},
+  qcrit:{t:"Overflow onset q<sub>S,crit</sub>", d:"Specific substrate uptake above which the organism spills carbon into a reduced product even with full aeration. The growth rate it corresponds to is shown underneath: μ<sub>crit</sub> = (q<sub>S,crit</sub> − m<sub>s</sub>) · Y. The two are easy to confuse, and a μ figure typed into this g/g/h field makes the threshold far too strict.",
     r:"0.5–0.6 g/g/h for yeast and E. coli, i.e. μ<sub>crit</sub> near 0.25 1/h",
-    c:"Feed past it and the extra uptake goes down the overflow branch: little biomass, the organism's product (acetate, ethanol) and less oxygen per gram. It is modelled — the product appears as its own series — so a feed above the line shows lower DCW and a flatter OUR than the feed alone would suggest."},
-  yof:{t:"Overflow yield Y<sub>X/S,of</sub>", d:"Biomass made per gram of substrate taken up <i>above</i> q<sub>S,crit</sub>. With q<sub>S,crit</sub> and μ<sub>max</sub> it fixes the most substrate the culture can take up at all: q<sub>S,max</sub> = q<sub>S,crit</sub> + (μ<sub>max</sub> − μ<sub>crit</sub>)/Y<sub>of</sub>, so that growth on excess substrate lands exactly on μ<sub>max</sub>. Anything fed faster than that stays in the broth as residual substrate.",
+    c:"Feed past it and the extra uptake goes down the overflow branch: little biomass, the organism's product (acetate, ethanol) and less oxygen per gram. DCW comes out lower and OUR flatter than the feed alone would suggest."},
+  yof:{t:"Overflow yield Y<sub>of</sub>", d:"Biomass made per gram of substrate taken up <i>above</i> q<sub>S,crit</sub>. With q<sub>S,crit</sub> and μ<sub>max</sub> it fixes the most substrate the culture can take up at all: q<sub>S,max</sub> = q<sub>S,crit</sub> + (μ<sub>max</sub> − μ<sub>crit</sub>) / Y<sub>of</sub>, so that growth on excess substrate lands exactly on μ<sub>max</sub>. Anything fed faster stays in the broth as residual substrate.",
     r:"0.10–0.20 g/g for E. coli and yeast overflow",
     c:"Set it high and the overflow branch looks almost as productive as respiration, so overfeeding looks harmless. Set it very low and q<sub>S,max</sub> becomes implausibly large."},
-  form:{t:"Weighed as", d:"Glucose is usually bought as the monohydrate, C₆H₁₂O₆·H₂O. One molecule of water of crystallisation comes with every molecule of sugar, so <b>600 g of monohydrate is only 545 g of glucose</b>. The strength you enter is what you weighed; the model always feeds anhydrous glucose.",
-    r:"check the label: dextrose monohydrate, D-(+)-glucose monohydrate, E.C. 'Glucose·H₂O'",
-    c:"Entering a monohydrate weighing as anhydrous overstates the carbon in every millilitre by 10 %, and the predicted DCW and OUR with it."},
-  lag:{t:"Starvation before feed start", d:"Gap between the batch exhausting and the feed starting. The culture burns maintenance with no growth, so F₀ is scaled down to the biomass that actually survives.",
+  form:{t:"Weighed as", d:"Glucose is usually bought as the monohydrate, C₆H₁₂O₆·H₂O. Every molecule of sugar comes with one of water, so <b>600 g of monohydrate is only 545 g of glucose</b>. The strength you enter is what you weighed; the model always feeds anhydrous glucose.",
+    rl:"Check", r:"the label on the tub: “dextrose monohydrate” or “glucose·H₂O” means monohydrate",
+    c:"Enter a monohydrate weighing as anhydrous and the carbon in every millilitre is overstated by 10 %, and the predicted DCW and OUR with it."},
+  lag:{t:"Starvation gap", d:"Time between the batch running out of substrate and the feed starting. The culture burns maintenance with no growth, so F₀ is scaled down to the biomass that actually survives.",
     r:"0 h ideally · 1–3 h is common in practice",
-    c:"An unrecorded gap means F₀ is set for more biomass than is present, briefly overfeeding."},
-  pmin:{t:"Pump minimum", d:"Slowest flow the pump meters reliably. Below it, delivery becomes pulsed rather than continuous, and the smooth curve here stops being what the culture sees.",
-    r:"0.02–0.2 mL/min depending on tubing and head (shown in g/min on the mass basis)",
-    c:"An F₀ under this floor is not actually deliverable — dilute the feed or start from more biomass."},
-  pmax:{t:"Pump maximum", d:"Fastest flow the pump can deliver. The exponential will reach it eventually.",
-    r:"10–50 mL/min for typical lab heads (shown in g/min on the mass basis)",
-    c:"Hit it and the feed silently stops following the profile."},
-  bottle:{t:"Feed bottle", d:"Volume of one bottle of feed solution. Used to work out how much to prepare and when a swap falls due — which then shows up on the run schedule.",
+    c:"An unrecorded gap means F₀ is set for more biomass than is present, which briefly overfeeds."},
+  pmin:{t:"Pump minimum", d:"The slowest flow the pump meters reliably. Below it delivery becomes pulsed rather than continuous, and the smooth curve here stops being what the culture sees.",
+    r:"0.02–0.2 mL/min depending on tubing and pump head",
+    c:"An F₀ under this floor is not really deliverable. Dilute the feed, or start from more biomass."},
+  pmax:{t:"Pump maximum", d:"The fastest flow the pump can deliver. A long enough exponential will always reach it.",
+    r:"10–50 mL/min for typical lab pump heads",
+    c:"Reach it and the feed silently stops following the profile."},
+  bottle:{t:"Bottle volume", d:"Volume of one bottle of feed solution. Used to work out how much feed to prepare and when a bottle swap falls due, which then appears on the run schedule.",
     r:"0.5–2 L",
-    c:"Undersized and someone has to swap bottles at three in the morning."},
-  uncert:{t:"Uncertainty band", d:"Yield and starting biomass are the least certain inputs. This shades the DCW and OUR curves over that range so you can see how early the ceiling might really arrive.",
+    c:"Undersized, and someone has to swap bottles at three in the morning."},
+  uncert:{t:"Uncertainty band", d:"Yield and starting biomass are the least certain inputs. This shades the DCW and OUR curves over that range, so you can see how early the ceiling might really arrive.",
     r:"± 20 % is a fair reflection of how well these are known",
-    c:"Planning to the central line alone means the ceiling can arrive hours before you expect it."},
-  cfeed:{t:"Feed concentration", d:"Grams of substrate per litre of feed solution. Sets how much volume each gram of carbon drags into the vessel, and the biomass ceiling Y · c<sub>feed</sub> you can never exceed.",
-    r:"lactose ≤190 · glucose ≤774 · glycerol ≤1261 g/L",
+    c:"Plan to the central line alone and the ceiling can arrive hours before you expect it. The band is hidden while two profiles are compared."},
+  cfeed:{t:"Feed strength", d:"How concentrated the feed solution is, in the strength unit chosen above. It sets how much volume each gram of carbon brings into the vessel, and the biomass ceiling Y · c<sub>feed</sub> that no amount of feeding can pass. For a hydrate, enter what you weighed.",
+    rl:"Solubility", r:"lactose ≤ 190 · glucose ≤ 774 · glycerol ≤ 1261 g/L",
     c:"Above the solubility limit the feed cannot be made, and it will crystallise in the line."},
   our:{t:"OUR ceiling", d:"The most oxygen the vessel can transfer, in mmol per litre per hour. Because oxygen demand is tied to carbon stoichiometrically, this is the same thing as a ceiling on the specific feed rate.",
-    r:"150–250 mmol/L/h typical · higher with pure O₂ enrichment",
-    c:"Set it above real transfer capacity and the plan walks the culture into a DO crash."},
-  horizon:{t:"Run horizon", d:"How far forward to simulate the feed. The run still ends early when the vessel fills or the last phase exits.",
-    r:"long enough that the run ends on a real constraint, not on this",
+    r:"150–250 mmol/L/h · higher with pure O₂ enrichment",
+    c:"Set it above the real transfer capacity and the plan walks the culture into a DO crash."},
+  horizon:{t:"Run horizon", d:"How far forward the feed is simulated. The run still ends earlier when the vessel fills or the last phase ends.",
+    rl:"Set it", r:"long enough that the run ends on a real constraint, not on this",
     c:"Too short and the profile looks time-bound when it is really volume-bound."},
-  shape:{t:"Phase shape", d:"Constant holds the flow. Linear ramps it by a fixed mL/min per hour. Exponential multiplies it by e^(k·t), which is what an open-loop pump programme does. Demand-matched recomputes flow each step from current biomass to hold μ.",
-    r:"exponential for growth · constant after a ceiling · linear to taper",
+  shape:{t:"Phase shape", d:"<b>Constant</b> holds the flow. <b>Linear</b> changes it by a fixed amount per hour. <b>Exponential</b> multiplies it by e<sup>k·t</sup>, which is what an open-loop pump programme does. <b>Demand-matched</b> recomputes the flow at every step from the current biomass, to hold μ.",
+    rl:"Use", r:"exponential for growth · constant after a ceiling · linear to taper",
     c:"An exponential that outruns oxygen transfer is the classic way to crash DO."},
-  startmode:{t:"Starting flow", d:"Where this phase picks up. Continue takes the exact flow the previous phase ended at, so the pump never steps. Times a factor makes a deliberate step. Absolute sets a number outright. On the first phase, Continue means match demand at feed start.",
-    r:"continue for a smooth handover · absolute to pin a known setpoint",
-    c:"An accidental absolute value at a boundary steps the feed and either starves or overfeeds the culture."},
-  k:{t:"Exponential constant k", d:"Flow multiplies by e^(k·t). While the run stays demand-matched this equals μ, so k is how you set growth rate in an open-loop feed.",
-    r:"0.05–0.30 1/h · always below μ_max",
-    c:"Above μ_max the culture cannot keep up and substrate pools instead of becoming biomass."},
-  slope:{t:"Ramp slope", d:"Flow changes by this much for every hour of the phase, in whichever flow unit is on display. Negative tapers the feed down.",
-    r:"small next to the starting flow, or the phase ends up steeper than an exponential",
-    c:"A steep negative slope can drive flow to zero mid-phase and starve the culture."},
-  muset:{t:"μ setpoint", d:"The specific growth rate a demand-matched phase holds. Flow is recomputed each step from current biomass, so μ is controlled rather than assumed.",
-    r:"70–80 % of μ_max is the usual target",
-    c:"Above μ_max the feed cannot force the culture to comply, and the model stops being valid."},
-  exit:{t:"Exit condition", d:"Ends the phase. Stack several and whichever fires first wins. Elapsed counts from the start of this phase; since feed start counts from t = 0. Clock conditions end the phase at a wall-clock moment.",
-    r:"pair a state condition with a time backstop so a phase can never stall",
-    c:"A condition that never fires leaves the phase running until the vessel fills or the horizon ends."},
-  perfeed:{t:"Feed bottle per phase", d:"Give each phase its own feed concentration, so the run can start on a dilute bottle and swap to a concentrated one later. A dilute bottle raises F₀ for the same carbon demand, which is how you get a small F₀ above the pump's reliable minimum; the concentrated bottle then keeps the vessel from filling.",
-    r:"a 3–4× step is typical, e.g. 170 g/L then 600 g/L",
-    c:"At the swap, a phase set to Continue holds the substrate rate and drops the pump rate by the concentration ratio — that is what a bottle change means. Set it to Absolute instead and you get a step in carbon, not just in flow."},
-  cbasis:{t:"How the bottle is specified", d:"<b>g/L</b> is grams of substrate per litre of finished solution. <b>% w/w</b> and <b>g/kg</b> are the same mass fraction at two scales — grams per 100 g and per 1000 g of solution, which is how you actually make it up on a balance. Density converts either to g/L: c = 10 · %w/w · ρ = g/kg · ρ. The unit is global; a phase overrides the strength of its bottle, not how it is said.",
-    r:"600 g in 1000 g of solution is 60 % w/w, i.e. 600 g/kg — of whatever you weighed, so pick monohydrate above if that is what went on the balance",
-    c:"Mass fraction and g/L are not interchangeable. 600 g/kg at 1.2 g/mL is 720 g/L, not 600 — entering the gravimetric figure into a g/L field understates the feed by the density, here 20 %."},
-  rho:{t:"Feed density", d:"Mass of a millilitre of the finished feed solution. Weigh a measured volume: 50 mL at 60 g is 1.20 g/mL. It converts % w/w to g/L, and the pump's mL/min to the g/min a gravimetric calibration reads.",
-    r:"~1.0 for dilute · ~1.29 for 60 % w/w sugar · 1.26 for neat glycerol",
-    c:"Get it wrong and both the substrate concentration and the mass flow are wrong by the same factor, so the carbon fed is off while the volume stays right."},
-  massunits:{t:"Mass basis", d:"Switches the <b>extensive</b> quantities between volumetric and gravimetric units: pump rate and ramp slope in g/min, feed and vessel in kg. <b>Intensive</b> figures stay per litre — feed concentration g/L, specific feed g/min/L, OUR mmol/L/h and DCW g/L are conventionally per litre and do not move. The model itself is volumetric throughout; only the presentation changes.",
-    r:"use whichever your pump was calibrated in",
-    c:"A peristaltic pump displaces volume, so its floor and ceiling are volumetric; those are converted for display using the first bottle's density and labelled with it."},
-  brothrho:{t:"Broth density", d:"Mass of a millilitre of culture broth, used only to show vessel contents as a mass when the mass basis is on.",
-    r:"1.00–1.05 g/mL; rises a little with dissolved solids and biomass",
-    c:"Only affects the displayed kilograms, never the simulation, which works in litres throughout."},
-  export:{t:"Export", d:"Copies the WORKING profile you are editing — not whatever Compare is currently showing — as JSON: every input, the derived biology constants, and the predicted series resampled to 15-minute steps with every phase and batch boundary kept exactly. Paste it into chat to compare against real fermentation data. ‘Print summary’ opens the browser print dialog with a clean one-document view: parameters, alerts, phases, the setpoint table and the schedule.",
-    r:"re-export after any change — nothing is saved automatically",
-    c:"Each export carries a model-version stamp, so if the simulator changes later you can tell whether an old export is still comparable."},
-  save:{t:"Saved profiles", d:"A save captures the whole scenario — phases, organism, carbon source, vessel, feed, pump, batch and schedule — so loading it reproduces the run exactly. Saves are kept in this browser.",
-    r:"name them for what makes them different, not by date",
-    c:"Saves live in this browser only, so they do not travel with the shared link."},
-  compare:{t:"Compare A and B", d:"Pick any two profiles — saved ones or the profile you are editing — and both draw on every chart, with the differences that matter called out underneath.",
-    r:"compare one variable at a time to learn anything from it",
-    c:"The phase editor always edits the working profile, never A or B directly."}
+  startmode:{t:"Starting flow", d:"Where this phase picks up. <b>Continue</b> takes the exact flow the previous phase ended at, so the pump never steps. <b>Continue × factor</b> makes a deliberate step. <b>Absolute</b> sets a number outright. On the first phase, the first option matches the culture's demand at feed start.",
+    rl:"Use", r:"continue for a smooth handover · absolute to pin a known setpoint",
+    c:"An accidental absolute value at a switch steps the feed, and either starves or overfeeds the culture."},
+  k:{t:"Exponent k", d:"The flow multiplies by e<sup>k·t</sup>. While the feed stays matched to demand this equals μ, so k is how you set the growth rate in an open-loop feed.",
+    r:"0.05–0.30 1/h · always below μ<sub>max</sub>",
+    c:"Above μ<sub>max</sub> the culture cannot keep up, and substrate pools instead of becoming biomass."},
+  slope:{t:"Slope", d:"The flow changes by this much for every hour of the phase, in whichever flow unit is on display. A negative value tapers the feed down.",
+    rl:"Keep it", r:"small next to the starting flow, or the phase ends up steeper than an exponential",
+    c:"A steep negative slope can drive the flow to zero mid-phase and starve the culture."},
+  muset:{t:"μ setpoint", d:"The specific growth rate a demand-matched phase holds. The flow is recomputed at every step from the current biomass, so μ is controlled rather than assumed.",
+    r:"70–80 % of μ<sub>max</sub> is the usual target",
+    c:"Above μ<sub>max</sub> the feed cannot make the culture comply, and substrate builds up in the broth."},
+  exit:{t:"End conditions", d:"What ends the phase. Add several and whichever is met first wins. <b>Elapsed in phase</b> counts from the start of this phase; <b>Since feed start</b> counts from t = 0. <b>Clock time</b> ends the phase at the next given hour, or at one exact date and time.",
+    rl:"Tip", r:"pair a state condition (OUR, volume) with a time backstop, so a phase can never stall",
+    c:"A condition that is never met leaves the phase running until the vessel fills or the horizon ends."},
+  perfeed:{t:"Feed bottle per phase", d:"Gives each phase its own bottle, so the run can start dilute and swap to a concentrated feed later. A dilute bottle raises F₀ for the same carbon demand, which is how a small F₀ gets above the pump's reliable minimum; the concentrated bottle then keeps the vessel from filling.",
+    r:"a 3–4× step, e.g. 170 g/L then 600 g/L",
+    cl:"At the swap", c:"A phase set to Continue holds the substrate rate and drops the pump rate by the concentration ratio, which is what a bottle change means. Set it to Absolute instead and you get a step in carbon, not only in flow."},
+  cbasis:{t:"Strength unit", d:"<b>g per litre</b> is grams of substrate per litre of finished solution. <b>% w/w</b> and <b>g per kg</b> are the same mass fraction at two scales (grams per 100 g and per 1000 g of solution), which is how a feed is actually made up on a balance. Density converts either to g/L: c = 10 · % w/w · ρ. The unit applies to every bottle.",
+    rl:"Example", r:"600 g in 1000 g of solution is 60 % w/w, or 600 g/kg. At 1.2 g/mL that is 720 g/L, not 600",
+    c:"Mass fraction and g/L are not interchangeable. Type a gravimetric figure into a g/L field and the feed is understated by the density, here 20 %."},
+  rho:{t:"Feed density", d:"Mass of one millilitre of the finished feed solution. To measure it, weigh a known volume: 50 mL weighing 60 g is 1.20 g/mL. It converts % w/w to g/L, and the pump's mL/min to the g/min a gravimetric calibration reads. Until you type a value, it is estimated from the strength.",
+    r:"~1.0 dilute · ~1.29 for 60 % w/w sugar · 1.26 for neat glycerol",
+    c:"Get it wrong and the substrate concentration and the mass flow are off by the same factor: the carbon fed is wrong while the volume stays right."},
+  massunits:{t:"Show flows and volumes as mass", d:"Switches the quantities that add up between volume and mass: pump rate and slope in g/min, feed and vessel contents in kg. Figures that are per litre by convention stay that way: feed concentration, specific feed rate, OUR and DCW. Only the presentation changes; the model works in volume throughout.",
+    rl:"Use", r:"whichever your pump was calibrated in",
+    cl:"Note", c:"A peristaltic pump displaces volume, so its minimum and maximum are volumetric. They are converted for display with the first bottle's density."},
+  brothrho:{t:"Broth density", d:"Mass of one millilitre of culture broth. Used only to show the vessel contents as a mass.",
+    r:"1.00–1.05 g/mL, rising a little with dissolved solids and biomass",
+    cl:"Note", c:"It changes the displayed kilograms only, never the simulation."},
+  export:{t:"Export", d:"<b>Copy profile JSON</b> puts the working profile on the clipboard: every input, the derived constants, and the predicted curves in 15-minute steps with every phase switch kept exact. Paste it into a script, a notebook or an AI assistant to compare against real run data. <b>Print summary</b> opens the print dialog with a clean one-document view: phases, results, checks, the setpoint table and the schedule milestones.",
+    rl:"Tip", r:"export again after any change; nothing is exported automatically",
+    cl:"Note", c:"It is always the profile you are editing that is exported, not a saved one shown through Compare. Each export carries the model version."},
+  save:{t:"Saved profiles", d:"A save keeps the whole scenario (parameters, phases, bottles and schedule), so loading it reproduces the run exactly. Click a saved profile to load it, or the ✕ on it to delete it. Saving under an existing name overwrites that profile.",
+    rl:"Tip", r:"name profiles for what makes them different, not by date",
+    cl:"Note", c:"Saves live in this browser on this device only. They are not uploaded and do not travel with a link."},
+  compare:{t:"Compare two profiles", d:"Pick any two profiles, saved ones or the one you are editing, and both are drawn on every chart: A solid, B dashed. A table of the differences that matter appears under the results.",
+    rl:"Tip", r:"change one thing at a time between A and B, or the difference tells you nothing",
+    cl:"Note", c:"The editor always edits the working profile, never a saved A or B directly."},
+  knob:{t:"Knob to turn", d:"The one input the solver may change. <b>Feed concentration</b> rescales the bottle (every bottle, when phases have their own). <b>μ / k of the first growth phase</b> changes how fast the first exponential or demand-matched phase climbs. <b>Inoculation time</b> shifts the whole run on the clock without touching the profile.",
+    rl:"Ranges", r:"concentration 20 g/L up to solubility · μ 0.01 up to μ<sub>max</sub> · inoculation −24 to +48 h",
+    cl:"Note", c:"Nothing changes until you press Apply on a solution."},
+  feedstart:{t:"Feed start", d:"Follows from inoculation plus the batch length (predicted or fixed) and the starvation gap. Switch to <b>By hand</b> to pin it to a time of your own, for example when you start feeding on the DO spike.",
+    rl:"Tip", r:"leave it automatic while planning; pin it once the run is under way",
+    cl:"Note", c:"A pinned feed start no longer moves when the batch prediction changes."},
+  schedparam:{t:"Colour by", d:"The quantity that colours the hour grid and is drawn on the timeline. The letter in front is the chart panel it comes from.",
+    rl:"Tip", r:"pump setpoint shows when the feed needs attention; OUR shows when the vessel works hardest",
+    cl:"Note", c:"The colour scale runs from the lowest to the highest value in this run, so it shows shape, not absolute size."},
+  workhours:{t:"Working hours", d:"Monday to Friday between these two hours counts as working time. Everything else is shaded on the grid and the timeline, and any switch, bottle swap or sample that falls there is flagged.",
+    rl:"Format", r:"whole hours on the 24-hour clock, e.g. 8 to 18",
+    cl:"Also used by", c:"Goal-seek, for its “lands in working hours” goal."},
+  sampling:{t:"Sampling interval", d:"Marks a sample every so many hours, counted from feed start, and counts how many fall outside working hours.",
+    r:"1–4 h during the growth phase · 0 turns the marks off",
+    cl:"Note", c:"The marks are for planning only. Sampling losses are not taken out of the volume."},
+  readout:{t:"Readout line", d:"One vertical line at the same moment in every chart, with the exact value marked on each curve and a bar above the charts listing every quantity at that time.",
+    rl:"Use", r:"move the mouse over a chart to slide it · click to lock it in place · click again to release",
+    cl:"On a phone", c:"Drag the line with a finger."}
 };
 
 /* ================= state ================= */
@@ -1633,7 +1862,7 @@ function simulate(D, phases, feedMs){
       const ex = ph.exits[fired];
       const reason = ex.on === "clock"
         ? "clock · " + (ex.clockAt ? "set time" : String(ex.clockHour).padStart(2,"0") + ":00")
-        : EXIT_LABEL[ex.on] + " " + ex.op + " " + ex.value + " " + EXIT_UNIT[ex.on];
+        : EXIT_LABEL[ex.on] + " " + (ex.op === "<=" ? "≤" : "≥") + " " + ex.value + " " + EXIT_UNIT[ex.on];
       lastF = F;
       if(pi + 1 >= phases.length){
         bounds.push({t, from:pi, to:-1, reason, Fbefore:F, Fafter:0, cBefore:cF, cAfter:cF,
@@ -1735,6 +1964,28 @@ function showTip(html, ev){
   tp.style.top  = Math.max(6, y) + "px";
 }
 function hideTip(){ const tp = tipEl(); tp.classList.remove("on"); tp.setAttribute("aria-hidden","true"); }
+/* One builder for every parameter tooltip, whether it opens on hover, focus or tap.
+   TIPS is static author content, so real subscripts (μ<sub>max</sub>) render as intended.
+   Anything user-typed is escaped at its own call site, never here. */
+function tipHTML(key){
+  const k = TIPS[key];
+  if(!k) return null;
+  return '<div class="tt">' + k.t + '</div><div class="td">' + k.d + '</div><dl class="tm">' +
+    (k.r ? '<dt>' + (k.rl || "Typical") + '</dt><dd>' + k.r + '</dd>' : "") +
+    (k.c ? '<dt>' + (k.cl || "Watch out") + '</dt><dd>' + k.c + '</dd>' : "") + '</dl>';
+}
+/* positioned against the element rather than the cursor: used for keyboard focus and for taps */
+function showTipAtEl(html, el){
+  const tp = tipEl();
+  tp.innerHTML = html;
+  tp.classList.add("on"); tp.setAttribute("aria-hidden","false");
+  const r = el.getBoundingClientRect(), t = tp.getBoundingClientRect();
+  const x = r.left + r.width/2 - t.width/2;
+  let y = r.bottom + 10;
+  if(y + t.height > innerHeight - 8) y = Math.max(8, r.top - t.height - 10);
+  tp.style.left = Math.min(Math.max(8, x), Math.max(8, innerWidth - t.width - 8)) + "px";
+  tp.style.top  = y + "px";
+}
 
 /* ================= copy-to-clipboard, with a manual fallback =================
    The clipboard API is blocked in some hosting contexts (we hit this earlier with
@@ -1751,8 +2002,8 @@ function showCopyBox(title, text){
 }
 function hideCopyBox(){ const box = $("#exportbox"); if(box) box.style.display = "none"; }
 function copyOrShow(text, title, msgEl){
-  const done = () => { if(msgEl){ msgEl.textContent = "Copied — paste into chat."; setTimeout(()=>{ msgEl.textContent=""; }, 3000); } };
-  const fallback = () => { showCopyBox(title, text); if(msgEl) msgEl.textContent = "Clipboard blocked — copy from the box below."; };
+  const done = () => { if(msgEl){ msgEl.textContent = "Copied to the clipboard."; setTimeout(()=>{ msgEl.textContent=""; }, 3000); } };
+  const fallback = () => { showCopyBox(title, text); if(msgEl) msgEl.textContent = "The clipboard is blocked here — copy from the box instead."; };
   if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
   else fallback();
 }
@@ -1762,17 +2013,26 @@ document.addEventListener("mouseover", e=>{
   if(el){ showTip('<div class="txt">' + el.getAttribute("data-tipinfo") + "</div>", e); return; }
   const inf = e.target.closest("[data-tip]");
   if(inf){
-    const k = TIPS[inf.getAttribute("data-tip")];
-    /* TIPS is static author content, so real subscripts (μ<sub>max</sub>) render as intended.
-       Anything user-typed is escaped at its own call site, never here. */
-    if(k) showTip('<div class="th">' + k.t + '</div><div class="txt">' + k.d +
-      '<span class="rng">Typical · ' + k.r + '</span>' +
-      '<span class="csq">' + k.c + '</span></div>', e);
+    const h = tipHTML(inf.getAttribute("data-tip"));
+    if(h) showTip(h, e);
   }
 });
 document.addEventListener("mouseout", e=>{
   if(e.target.closest("[data-tipinfo]") || e.target.closest("[data-tip]")) hideTip();
 });
+/* the info dots are real buttons, so tabbing to one opens its tooltip too */
+document.addEventListener("focusin", e=>{
+  const inf = e.target.closest && e.target.closest(".info[data-tip]");
+  if(!inf || !inf.matches(":focus-visible")) return;
+  const h = tipHTML(inf.getAttribute("data-tip"));
+  if(h) showTipAtEl(h, inf);
+});
+document.addEventListener("focusout", e=>{
+  if(e.target.closest && e.target.closest(".info[data-tip]")) hideTip();
+});
+document.addEventListener("keydown", e=>{ if(e.key === "Escape") hideTip(); });
+/* a fixed tooltip must not float over content that has scrolled out from under it */
+addEventListener("scroll", ()=>{ if(tipEl().classList.contains("on")) hideTip(); }, {passive:true});
 document.addEventListener("mousemove", e=>{
   const el = e.target.closest("[data-tipinfo],[data-tip]");
   if(el && tipEl().classList.contains("on")){
@@ -1865,12 +2125,12 @@ function drawChart(host, cfg){
     const a = Math.max(cfg.batchBand.t0, x0), z = Math.min(cfg.batchBand.t1, x1);
     if(z > a){
       s += '<rect x="' + sx(a).toFixed(1) + '" y="' + PAD.t + '" width="' + (sx(z)-sx(a)).toFixed(1) +
-           '" height="' + ih + '" fill="var(--s2)" opacity="0.10"/>';
+           '" height="' + ih + '" fill="var(--batch-b)"/>';
       if(sx(z)-sx(a) > 26)
-        s += '<text x="' + ((sx(a)+sx(z))/2).toFixed(1) + '" y="' + (PAD.t+11) +
-             '" text-anchor="middle" font-size="9.5" fill="var(--s2)" font-weight="600">batch</text>';
+        s += '<text x="' + ((sx(a)+sx(z))/2).toFixed(1) + '" y="' + (PAD.t+12) +
+             '" text-anchor="middle" font-size="10" fill="var(--ink-3)" font-weight="600">batch</text>';
       s += '<line x1="' + sx(z).toFixed(1) + '" y1="' + PAD.t + '" x2="' + sx(z).toFixed(1) +
-           '" y2="' + (PAD.t+ih) + '" stroke="var(--s2)" stroke-width="1.2" stroke-dasharray="3 3"/>';
+           '" y2="' + (PAD.t+ih) + '" stroke="var(--batch)" stroke-width="1.2" stroke-dasharray="3 3"/>';
     }
   }
   /* phase bands sit behind everything */
@@ -1910,8 +2170,9 @@ function drawChart(host, cfg){
     if(h.y < y0 || h.y > y1) return;
     s += '<line x1="' + PAD.l + '" y1="' + sy(h.y).toFixed(1) + '" x2="' + (W-PAD.r) + '" y2="' + sy(h.y).toFixed(1) +
          '" stroke="' + (h.color||"var(--limit)") + '" stroke-width="1.2" stroke-dasharray="5 3"/>';
-    s += '<text x="' + (W-PAD.r-3) + '" y="' + (sy(h.y)-4).toFixed(1) + '" text-anchor="end" font-size="9" fill="' +
-         (h.color||"var(--limit)") + '">' + esc(h.label) + '</text>';
+    /* the label takes the darker text step of the line's colour, so it stays readable at 10px */
+    s += '<text x="' + (W-PAD.r-3) + '" y="' + (sy(h.y)-4).toFixed(1) + '" text-anchor="end" font-size="10" font-weight="500" fill="' +
+         (h.color === "var(--warn)" ? "var(--warn-ink)" : "var(--limit-ink)") + '">' + esc(h.label) + '</text>';
   });
   (cfg.vlines||[]).forEach(v=>{
     if(v.x < x0 || v.x > x1) return;
@@ -2006,12 +2267,22 @@ const STARTS = [["continue","Continue"],["factor","Continue × factor"],["absolu
 const EXITS  = [["elapsed","Elapsed in phase"],["sinceFeed","Since feed start"],["V","Volume"],
                 ["OUR","OUR"],["DCW","DCW"],["cum","Substrate fed (g)"],["fedV","Feed pumped (mL)"],["clock","Clock time"]];
 const BIO_EXIT = {OUR:1, DCW:1};
+const OPSYM = {">=":"≥", "<=":"≤"};
+const ICON = {
+  up:  '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg>',
+  down:'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3.5 8.5 8 13l4.5-4.5"/></svg>',
+  dup: '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></svg>',
+  del: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M6.5 4.5v-2h3v2M4 4.5l.6 8.1a1 1 0 0 0 1 .9h4.8a1 1 0 0 0 1-.9l.6-8.1M6.7 7.2v3.6M9.3 7.2v3.6"/></svg>',
+  x:   '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>'
+};
 
+/* one line per phase: what the pump does, then (emphasised) what ends it. Returns HTML;
+   nothing user-typed goes into it, and every part is escaped anyway. */
 function phaseSummary(ph, i){
   const bits = [];
   if(ph.shape === "constant")         bits.push("hold");
   else if(ph.shape === "linear")      bits.push((ph.slope>=0?"+":"") + fmt(F_OF(ph.slope, rhoOf(S,ph)),2) + " " + SLOPE_UNIT());
-  else if(ph.shape === "exponential") bits.push("k " + fmt(ph.k,3) + " /h · doubling " + fmt(Math.LN2/ph.k,1) + " h");
+  else if(ph.shape === "exponential"){ bits.push("k " + fmt(ph.k,3) + " /h"); bits.push("doubling " + fmt(Math.LN2/ph.k,1) + " h"); }
   else                                bits.push("μ " + fmt(ph.muSet,3) + " /h");
   if(ph.shape !== "demand"){
     if(ph.start.mode === "absolute")    bits.push("from " + fmt(F_OF(ph.start.value, rhoOf(S,ph)),3) + " " + F_UNIT());
@@ -2031,10 +2302,11 @@ function phaseSummary(ph, i){
   const ex = ph.exits.map(e=>{
     if(e.on === "clock") return e.clockAt ? "a set time" : String(e.clockHour).padStart(2,"0") + ":00";
     const u = exitUnit(e.on);
-    return EXIT_LABEL[e.on] + " " + e.op + " " + (+exitShown(e).toFixed(3)) + (u ? " " + u : "");
+    return EXIT_LABEL[e.on] + " " + (OPSYM[e.op] || e.op) + " " + (+exitShown(e).toFixed(3)) + (u ? " " + u : "");
   });
-  bits.push(ex.length ? "until " + ex.join(" or ") : "no exit — runs to the end");
-  return bits.join(" · ");
+  const sep = '<span class="sep">·</span>';
+  return bits.map(esc).join(sep) + sep + '<span class="pex">' +
+    esc(ex.length ? "until " + ex.join(" or ") : "no end condition, so it runs to the end") + '</span>';
 }
 
 function exitRow(ph, ei, pi){
@@ -2042,9 +2314,9 @@ function exitRow(ph, ei, pi){
   const opts = EXITS.map(([v,l])=>'<option value="'+v+'"'+(e.on===v?" selected":"")+">"+l+"</option>").join("");
   let mid = "";
   if(e.on === "clock"){
-    mid = '<select data-p="'+pi+'" data-e="'+ei+'" data-k="clockKind">' +
-            '<option value="hour"'+(!e.clockAt?" selected":"")+'>Next</option>' +
-            '<option value="at"'+(e.clockAt?" selected":"")+'>At</option>' +
+    mid = '<select data-p="'+pi+'" data-e="'+ei+'" data-k="clockKind" aria-label="Kind of clock time">' +
+            '<option value="hour"'+(!e.clockAt?" selected":"")+'>the next</option>' +
+            '<option value="at"'+(e.clockAt?" selected":"")+'>exactly at</option>' +
           '</select>';
     mid += e.clockAt
       ? '<input type="datetime-local" data-p="'+pi+'" data-e="'+ei+'" data-k="clockAt" value="'+esc(e.clockAt)+'">'
@@ -2052,92 +2324,100 @@ function exitRow(ph, ei, pi){
   } else {
     const opSel = (e.on === "elapsed" || e.on === "sinceFeed")
       ? '<span class="eu">≥</span>'
-      : '<select data-p="'+pi+'" data-e="'+ei+'" data-k="op">' +
+      : '<select data-p="'+pi+'" data-e="'+ei+'" data-k="op" aria-label="At least or at most">' +
           '<option value="&gt;="'+(e.op===">="?" selected":"")+'>≥</option>' +
           '<option value="&lt;="'+(e.op==="<="?" selected":"")+'>≤</option>' +
         '</select>';
     const shown = e.on === "V" ? +V_DISP(e.value).toFixed(4) : e.value;
-    mid = opSel + '<input type="number" step="any" data-p="'+pi+'" data-e="'+ei+'" data-k="value" value="'+shown+'">' +
+    mid = opSel + '<input type="number" step="any" aria-label="Threshold" data-p="'+pi+'" data-e="'+ei+'" data-k="value" value="'+shown+'">' +
           '<span class="eu">'+exitUnit(e.on)+'</span>';
   }
   const warn = (BIO_EXIT[e.on] && S.level === "hydraulic")
-    ? '<div class="exitnote need">Needs the biology layer — switch to Standard for this to have a value.</div>' : "";
-  return '<div class="exitrow">' +
-    '<select data-p="'+pi+'" data-e="'+ei+'" data-k="on">'+opts+'</select>' + mid +
-    '<button class="iconbtn del" data-act="delexit" data-p="'+pi+'" data-e="'+ei+'" title="Remove condition" aria-label="Remove condition">✕</button>' +
+    ? '<div class="exitnote need" style="margin:-2px 0 8px">This condition depends on the biology, which Hydraulic hides. Switch to Standard to see what it is doing.</div>' : "";
+  /* with two or more conditions, say out loud that they are alternatives */
+  const or = ph.exits.length > 1 ? '<span class="or">'+(ei > 0 ? "or" : "")+'</span>' : "";
+  return '<div class="exitrow">' + or +
+    '<select data-p="'+pi+'" data-e="'+ei+'" data-k="on" aria-label="Condition">'+opts+'</select>' + mid +
+    '<button class="iconbtn del danger" data-act="delexit" data-p="'+pi+'" data-e="'+ei+'" title="Remove this condition" aria-label="Remove this condition">'+ICON.x+'</button>' +
     '</div>' + warn;
 }
 
 function phaseCard(ph, i, n){
   const open = OPEN.has(ph.id);
+  const info = (tip, about) => '&nbsp;<button class="info" data-tip="'+tip+'" aria-label="About '+about+'">i</button>';
   const shapeSeg = SHAPES.map(([v,l])=>
     '<button data-act="shape" data-p="'+i+'" data-v="'+v+'" aria-pressed="'+(ph.shape===v)+'">'+l+'</button>').join("");
   let params = "";
   if(ph.shape === "linear")
-    params = '<div><div class="eyebrow">Slope <button class="info" data-tip="slope" aria-label="About slope">i</button></div>' +
-      '<div class="f" style="margin-top:4px"><input class="mono" type="number" step="0.05" data-p="'+i+'" data-k="slope" value="'+(+F_OF(ph.slope, rhoOf(S,ph)).toFixed(4))+'"><span class="unit">'+SLOPE_UNIT()+'</span></div></div>';
+    params = '<div><div class="glabel">Slope'+info("slope","the slope")+'</div>' +
+      '<div class="f"><input class="mono" type="number" step="0.05" aria-label="Slope" data-p="'+i+'" data-k="slope" value="'+(+F_OF(ph.slope, rhoOf(S,ph)).toFixed(4))+'"><span class="unit">'+SLOPE_UNIT()+'</span></div></div>';
   else if(ph.shape === "exponential")
-    params = '<div><div class="eyebrow">Exponent k <button class="info" data-tip="k" aria-label="About k">i</button></div>' +
-      '<div class="f" style="margin-top:4px"><input class="mono" type="number" step="0.005" min="0" data-p="'+i+'" data-k="k" value="'+ph.k+'"><span class="unit">1/h</span></div>' +
-      '<div class="exitnote">doubling ' + fmt(Math.LN2/ph.k,2) + ' h · equals μ while demand-matched</div>' +
+    params = '<div><div class="glabel">Exponent k'+info("k","the exponent k")+'</div>' +
+      '<div class="f"><input class="mono" type="number" step="0.005" min="0" aria-label="Exponent k" data-p="'+i+'" data-k="k" value="'+ph.k+'"><span class="unit">1/h</span></div>' +
+      '<div class="exitnote" id="pkn-'+i+'">doubling time ' + fmt(Math.LN2/ph.k,2) + ' h</div>' +
       '<div class="exitnote" id="pmn-'+i+'"></div></div>';
   else if(ph.shape === "demand")
-    params = '<div><div class="eyebrow">μ setpoint <button class="info" data-tip="muset" aria-label="About the growth rate setpoint">i</button></div>' +
-      '<div class="f" style="margin-top:4px"><input class="mono" type="number" step="0.01" min="0.01" data-p="'+i+'" data-k="muSet" value="'+ph.muSet+'"><span class="unit">1/h</span></div>' +
-      '<div class="exitnote">flow recomputed each step from current biomass</div>' +
+    params = '<div><div class="glabel">μ setpoint'+info("muset","the growth rate setpoint")+'</div>' +
+      '<div class="f"><input class="mono" type="number" step="0.01" min="0.01" aria-label="μ setpoint" data-p="'+i+'" data-k="muSet" value="'+ph.muSet+'"><span class="unit">1/h</span></div>' +
+      '<div class="exitnote">the flow is recomputed at every step from the current biomass</div>' +
       '<div class="exitnote" id="pmn-'+i+'"></div></div>';
 
   let startBlk = "";
   if(ph.shape !== "demand"){
     const so = STARTS.map(([v,l])=>'<option value="'+v+'"'+(ph.start.mode===v?" selected":"")+'>'+
-      (v==="continue" && i===0 ? "Match demand at start" : l)+'</option>').join("");
+      (v==="continue" && i===0 ? "Match demand at feed start" : l)+'</option>').join("");
     let extra = "";
     if(ph.start.mode === "absolute")
-      extra = '<div class="f" style="margin-top:6px"><input class="mono" type="number" step="0.01" min="0" data-p="'+i+'" data-k="startValue" value="'+(+F_OF(ph.start.value, rhoOf(S,ph)).toFixed(4))+'"><span class="unit">'+F_UNIT()+'</span></div>';
+      extra = '<div class="f"><input class="mono" type="number" step="0.01" min="0" aria-label="Starting flow" data-p="'+i+'" data-k="startValue" value="'+(+F_OF(ph.start.value, rhoOf(S,ph)).toFixed(4))+'"><span class="unit">'+F_UNIT()+'</span></div>';
     else if(ph.start.mode === "factor")
-      extra = '<div class="f" style="margin-top:6px"><input class="mono" type="number" step="0.05" min="0" data-p="'+i+'" data-k="startFactor" value="'+ph.start.factor+'"><span class="unit">×</span></div>';
-    startBlk = '<div><div class="eyebrow">Starting flow <button class="info" data-tip="startmode" aria-label="About starting flow">i</button></div>' +
-      '<select style="width:100%;margin-top:4px" data-p="'+i+'" data-k="startMode">'+so+'</select>' + extra + '</div>';
+      extra = '<div class="f"><input class="mono" type="number" step="0.05" min="0" aria-label="Factor on the previous flow" data-p="'+i+'" data-k="startFactor" value="'+ph.start.factor+'"><span class="unit">× previous</span></div>';
+    startBlk = '<div><div class="glabel">Starting flow'+info("startmode","the starting flow")+'</div>' +
+      '<div class="f"><select aria-label="Starting flow" data-p="'+i+'" data-k="startMode">'+so+'</select></div>' + extra + '</div>';
   }
+
+  const bottleBlk = S.perPhaseFeed ? (function(){
+    const b = bottleOf(S, ph), mb = MASSB[b.basis];
+    /* the strength is entered as weighed; for a hydrate that differs from what is fed */
+    const hy = b.hyd < 1 ? " ·H₂O" : "";
+    const val = mb
+      ? '<div class="f"><input class="mono" type="number" step="'+mb.step+'" min="'+mb.min+'" max="'+mb.max+'" aria-label="Feed strength" data-p="'+i+'" data-k="cWW" value="'+(+(b.wwW*mb.k).toFixed(mb.dp))+'"><span class="unit">'+mb.u+hy+'</span></div>'
+      : '<div class="f"><input class="mono" type="number" step="10" min="1" aria-label="Feed strength" data-p="'+i+'" data-k="cFeed" value="'+(+b.glW.toFixed(1))+'"><span class="unit">g/L'+hy+'</span></div>';
+    const dens = '<div class="f"><input class="mono" type="number" step="0.005" min="0.5" max="2" aria-label="Feed density" data-p="'+i+'" data-k="rho" value="'+(+b.rho.toFixed(4))+'"><span class="unit">g/mL</span></div>';
+    return '<div><div class="glabel">Feed bottle <span class="aside">strength, density</span>'+info("perfeed","the feed bottle of this phase")+'</div>' +
+      val + dens + '<div class="exitnote" id="pcn-'+i+'"></div></div>';
+  })() : "";
 
   return '<div class="pcard'+(open?" open":"")+'" data-card="'+i+'">' +
     '<div class="pbar" data-act="toggle" data-p="'+i+'">' +
+      '<button class="pchev" data-act="toggle" data-p="'+i+'" aria-expanded="'+open+'" aria-label="'+
+        (open?"Close":"Edit")+' phase '+(i+1)+', '+esc(ph.name)+'"></button>' +
       '<span class="swat" style="background:'+phColour(i)+'"></span>' +
-      '<span class="pn">'+(i+1)+' · '+esc(ph.name)+'</span>' +
+      '<span class="pn"><span class="pidx">'+(i+1)+'</span><span id="pnm-'+i+'">'+esc(ph.name)+'</span></span>' +
       (S.perPhaseFeed ? '<span class="cbadge">'+fmt(cFeedOf(S,ph),0)+' g/L</span>' : "") +
-      '<span class="psum" id="psum-'+i+'">'+esc(phaseSummary(ph,i))+'</span>' +
+      '<span class="psum" id="psum-'+i+'">'+phaseSummary(ph,i)+'</span>' +
       '<span class="pacts">' +
-        '<button class="iconbtn" data-act="up" data-p="'+i+'"'+(i===0?" disabled":"")+' title="Move up" aria-label="Move up">↑</button>' +
-        '<button class="iconbtn" data-act="down" data-p="'+i+'"'+(i===n-1?" disabled":"")+' title="Move down" aria-label="Move down">↓</button>' +
-        '<button class="iconbtn" data-act="dup" data-p="'+i+'" title="Duplicate" aria-label="Duplicate">＋</button>' +
-        '<button class="iconbtn" data-act="del" data-p="'+i+'"'+(n===1?" disabled":"")+' title="Delete" aria-label="Delete">✕</button>' +
+        '<button class="iconbtn" data-act="up" data-p="'+i+'"'+(i===0?" disabled":"")+' title="Move earlier" aria-label="Move phase '+(i+1)+' earlier">'+ICON.up+'</button>' +
+        '<button class="iconbtn" data-act="down" data-p="'+i+'"'+(i===n-1?" disabled":"")+' title="Move later" aria-label="Move phase '+(i+1)+' later">'+ICON.down+'</button>' +
+        '<button class="iconbtn" data-act="dup" data-p="'+i+'" title="Duplicate this phase" aria-label="Duplicate phase '+(i+1)+'">'+ICON.dup+'</button>' +
+        '<button class="iconbtn danger" data-act="del" data-p="'+i+'"'+(n===1?" disabled":"")+' title="'+(n===1?"A profile needs at least one phase":"Delete this phase")+'" aria-label="Delete phase '+(i+1)+'">'+ICON.del+'</button>' +
       '</span>' +
     '</div>' +
     '<div class="pbody">' +
-      '<div class="eyebrow" style="margin-top:11px">Shape <button class="info" data-tip="shape" aria-label="About phase shape">i</button></div>' +
-      '<div class="seg" role="group" style="margin-top:4px">'+shapeSeg+'</div>' +
-      '<div class="pgrid">' + startBlk + params +
-        '<div><div class="eyebrow">Temperature <button class="info" data-tip="phaseT" aria-label="About phase temperature">i</button></div>' +
-        '<div class="f" style="margin-top:4px"><input class="mono" type="number" step="0.5" min="10" max="50" data-p="'+i+'" data-k="T" value="'+ph.T+'"><span class="unit">°C</span></div>' +
+      '<div class="glabel" style="margin-top:12px">Shape'+info("shape","the phase shape")+'</div>' +
+      '<div class="seg" role="group" aria-label="Phase shape">'+shapeSeg+'</div>' +
+      '<div class="pgrid">' + params + startBlk +
+        '<div><div class="glabel">Temperature'+info("phaseT","the phase temperature")+'</div>' +
+        '<div class="f"><input class="mono" type="number" step="0.5" min="10" max="50" aria-label="Phase temperature" data-p="'+i+'" data-k="T" value="'+ph.T+'"><span class="unit">°C</span></div>' +
         '<div class="exitnote" id="ptn-'+i+'"></div></div>' +
-        (S.perPhaseFeed ? (function(){
-            const b = bottleOf(S, ph), mb = MASSB[b.basis];
-            /* the strength is entered as weighed; for a hydrate that differs from what is fed */
-            const hy = b.hyd < 1 ? " ·H₂O" : "";
-            const val = mb
-              ? '<div class="f" style="margin-top:6px"><input class="mono" type="number" step="'+mb.step+'" min="'+mb.min+'" max="'+mb.max+'" data-p="'+i+'" data-k="cWW" value="'+(+(b.wwW*mb.k).toFixed(mb.dp))+'"><span class="unit">'+mb.u+hy+'</span></div>'
-              : '<div class="f" style="margin-top:6px"><input class="mono" type="number" step="10" min="1" data-p="'+i+'" data-k="cFeed" value="'+(+b.glW.toFixed(1))+'"><span class="unit">g/L'+hy+'</span></div>';
-            const dens = '<div class="f" style="margin-top:6px"><input class="mono" type="number" step="0.005" min="0.5" max="2" data-p="'+i+'" data-k="rho" value="'+(+b.rho.toFixed(4))+'"><span class="unit">g/mL</span></div>';
-            return '<div><div class="eyebrow">Feed bottle <button class="info" data-tip="perfeed" aria-label="About the feed bottle">i</button></div>' +
-              val + dens +
-              '<div class="exitnote" id="pcn-'+i+'"></div></div>';
-          })() : "") +
-        '<div><div class="eyebrow">Name</div>' +
-        '<input type="text" style="width:100%;margin-top:4px;font:inherit;font-size:12.5px;padding:5px 7px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px" data-p="'+i+'" data-k="name" value="'+esc(ph.name)+'"></div>' +
+        bottleBlk +
+        '<div><div class="glabel"><label for="pname-'+i+'">Name</label></div>' +
+        '<div class="f"><input type="text" id="pname-'+i+'" data-p="'+i+'" data-k="name" value="'+esc(ph.name)+'"></div></div>' +
       '</div>' +
       '<div class="exits">' +
-        '<div class="eyebrow">End this phase when <button class="info" data-tip="exit" aria-label="About exit conditions">i</button> <span style="text-transform:none;letter-spacing:0;font-weight:400">— whichever fires first</span></div>' +
+        '<div class="glabel">Ends when'+info("exit","the end conditions")+
+          (ph.exits.length > 1 ? ' <span class="aside">whichever is met first</span>' : "")+'</div>' +
         ph.exits.map((_,ei)=>exitRow(ph,ei,i)).join("") +
+        (ph.exits.length ? "" : '<div class="exitnote need" style="margin:0 0 8px">No end condition: this phase runs until the vessel is full or the run horizon is reached.</div>') +
         '<button class="btn sm" data-act="addexit" data-p="'+i+'" style="margin-top:4px">Add condition</button>' +
       '</div>' +
     '</div></div>';
@@ -2147,7 +2427,10 @@ function renderPhases(){
   $("#plist").innerHTML = S.phases.map((p,i)=>phaseCard(p,i,S.phases.length)).join("");
 }
 function refreshSummaries(){
-  S.phases.forEach((p,i)=>{ const el = document.getElementById("psum-"+i); if(el) el.textContent = phaseSummary(p,i); });
+  S.phases.forEach((p,i)=>{
+    const el = document.getElementById("psum-"+i); if(el) el.innerHTML = phaseSummary(p,i);
+    const nm = document.getElementById("pnm-"+i);  if(nm) nm.textContent = p.name;
+  });
 }
 
 $("#plist").addEventListener("click", e=>{
@@ -2158,7 +2441,11 @@ $("#plist").addEventListener("click", e=>{
     if(e.target.closest(".pacts")) return;
     const id = S.phases[i].id;
     if(OPEN.has(id)) OPEN.delete(id); else OPEN.add(id);
-    renderPhases(); return;
+    /* a keyboard press on the chevron (detail 0) must leave focus on the redrawn chevron */
+    const byKey = !!e.target.closest(".pchev") && e.detail === 0;
+    renderPhases();
+    if(byKey){ const nb = document.querySelector('.pcard[data-card="'+i+'"] .pchev'); if(nb) nb.focus(); }
+    return;
   }
   if(act === "shape"){
     const v = b.getAttribute("data-v"), ph = S.phases[i];
@@ -2244,26 +2531,29 @@ function refreshPhaseTempNotes(D){
         ? "= <b>" + fmt(b.gl,0) + " g/L" + anh + "</b>"
         : (b.hyd < 1 ? "= <b>" + fmt(b.gl,0) + " g/L" + anh + "</b> · " : "= ") +
           "<b>" + fmt(b.ww,1) + " % w/w</b> · <b>" + fmt(b.ww*10,0) + " g/kg</b>" + anh;
-      cn.innerHTML = pair + (b.est ? ' <span style="color:var(--warn)">(density estimated)</span>' : "") +
-        (over ? '<br><span style="color:var(--limit)">above solubility — ' + src.solubNote + '</span>'
+      cn.innerHTML = pair + (b.est ? ' <span class="t-warn">(density estimated)</span>' : "") +
+        (over ? '<br><span class="t-bad">above solubility — ' + src.solubNote + '</span>'
               : "<br>" + perGram(b.gl, b.rho) +
                 (S.level !== "hydraulic" ? " · DCW ceiling " + fmt(D.Y*b.gl,0) + " g/L" : ""));
     }
     /* the growth rate a phase asks for, against what the culture can do at that phase's
        temperature — shown while typing, not only as an alert after the fact */
+    const kn = document.getElementById("pkn-"+i);
+    if(kn && ph.shape === "exponential")
+      kn.textContent = ph.k > 0 ? "doubling time " + fmt(Math.LN2/ph.k,2) + " h" : "no growth in the flow";
     const mn = document.getElementById("pmn-"+i);
     if(mn && D && (ph.shape === "demand" || ph.shape === "exponential")){
       const want = ph.shape === "demand" ? ph.muSet : ph.k, sym = ph.shape === "demand" ? "μ" : "k";
       const mmx = D.muMaxAt(ph.T), mcr = D.muCritAt(ph.T), anaer = D.mode === "anaerobic";
-      const ref = "μ<sub>crit</sub> " + fmt(mcr,2) + " · μ<sub>max</sub> " + fmt(mmx,2) + " 1/h at " + fmt(ph.T,1) + " °C";
+      const ref = "at " + fmt(ph.T,1) + " °C: μ<sub>crit</sub> " + fmt(mcr,2) + " · μ<sub>max</sub> " + fmt(mmx,2) + " 1/h";
       if(want > mmx)
-        mn.innerHTML = '<span style="color:var(--limit)"><b>' + sym + ' ' + fmt(want,2) + ' is above μ<sub>max</sub></b> — ' +
+        mn.innerHTML = '<span class="t-bad"><b style="color:inherit">' + sym + ' ' + fmt(want,2) + ' is above μ<sub>max</sub></b> — ' +
           'the culture cannot follow it, so substrate builds up in the broth.</span><br>' + ref;
       else if(!anaer && want > mcr)
-        mn.innerHTML = '<span style="color:var(--warn)"><b>' + sym + ' ' + fmt(want,2) + ' is above μ<sub>crit</sub></b> — ' +
+        mn.innerHTML = '<span class="t-warn"><b style="color:inherit">' + sym + ' ' + fmt(want,2) + ' is above μ<sub>crit</sub></b> — ' +
           'part of the uptake overflows to ' + esc(D.prodLabel) + '.</span><br>' + ref;
       else
-        mn.innerHTML = ref + (ph.shape === "exponential" ? " · k only equals μ while the feed stays demand-matched" : "");
+        mn.innerHTML = ref + (ph.shape === "exponential" ? "<br>k equals μ only while the feed stays matched to demand" : "");
     }
     const el = document.getElementById("ptn-"+i);
     if(!el) return;
@@ -2327,11 +2617,11 @@ function phaseSpans(rows){
 
 function renderZoom(run){
   const spans = phaseSpans(run.rows);
-  let h = '<span class="zl">View</span>' +
+  let h = '<span class="zl">Zoom to</span>' +
     '<button class="zchip" data-z="-1" aria-pressed="'+(ZOOM===-1)+'">Whole run</button>';
   if(run.batch.length)
     h += '<button class="zchip" data-z="-2" aria-pressed="'+(ZOOM===-2)+'">' +
-         '<i class="sw" style="background:var(--s2)"></i>Batch</button>';
+         '<i class="sw" style="background:var(--batch)"></i>Batch</button>';
   spans.forEach(sp=>{
     const ph = run.phases[sp.i];
     if(!ph) return;
@@ -2339,9 +2629,9 @@ function renderZoom(run){
          '<i class="sw" style="background:'+phColour(sp.i)+'"></i>'+esc(ph.name)+'</button>';
   });
   h += '<span class="zspacer"></span>';
-  h += '<button class="zchip xhtog" id="xh-toggle" aria-pressed="'+XHAIR.on+'" '+
-       'title="Show one vertical line with exact values in every chart">Readout line</button>';
-  h += '<span class="zl" style="margin-left:6px">Size</span><span class="seg zsize" role="group">' +
+  h += '<button class="zchip xhtog" id="xh-toggle" aria-pressed="'+XHAIR.on+'">Readout line</button>' +
+       '<button class="info" data-tip="readout" aria-label="About the readout line">i</button>';
+  h += '<span class="zl" style="margin-left:10px">Chart size</span><span class="seg zsize" role="group" aria-label="Chart size">' +
     ["m","l","xl"].map(k=>'<button data-psz="'+k+'" aria-pressed="'+(S.plotSize===k)+'">'+
       PLOTSZ[k].label+'</button>').join("") + '</span>';
   $("#zoomrow").innerHTML = h;
@@ -2483,18 +2773,25 @@ function renderGrid(run, runB, band){
       ["μ<sub>max</sub> here",r=>fmt(r.muMax,3)+" 1/h"],
       ["Dilution D",r=>fmt(r.D,3)+" 1/h"],["μ − D",r=>fmt(r.mu-r.D,3)+" 1/h"],
       ["Temperature",r=>fmt(r.T,1)+" °C"]]),
-    false, '<div class="legend"><span><i class="swatch" style="background:var(--s1)"></i>μ</span>' +
-           '<span><i class="swatch" style="background:var(--ph2)"></i>dilution D</span>' +
-           '<span><i class="swatch" style="background:var(--ph3)"></i>μ − D (net)</span>' +
-           '<span><i class="swatch" style="background:var(--limit)"></i>μ<sub>max</sub> at the current temperature</span>' +
-           '<span><i class="swatch" style="background:repeating-linear-gradient(90deg,var(--s1) 0 3px,transparent 3px 6px)"></i>μ the feed asks for (if all respired)</span></div>');
+    false, (function(){
+      /* the text sits in its own element, so a subscript is never split off as a flex item */
+      const dash = (c, on, off) => "repeating-linear-gradient(90deg,"+c+" 0 "+on+"px,transparent "+on+"px "+(on+off)+"px)";
+      const key = (bg, html) => '<span><i class="swatch" style="background:'+bg+'"></i><span>'+html+'</span></span>';
+      return '<div class="legend">' +
+        key("var(--s1)", "μ, actual growth") +
+        key(dash("var(--ph2)",5,3), "D, dilution") +
+        key("var(--ph3)", "μ − D, net rise in concentration") +
+        key(dash("var(--limit)",6,4), "μ<sub>max</sub> at the vessel temperature") +
+        key(dash("var(--s1)",2,3), "μ the feed asks for, if all of it were respired") +
+        (rowsB ? key(dash("var(--s2)",4,3), "μ of profile B") : "") + '</div>';
+    })());
   }
 
   const g = $("#grid");
   g.innerHTML = panels.map(p=>{
     let head = '<h3><span class="tag">'+p.tag+'</span>'+esc(p.title)+'</h3><p class="desc">'+p.desc+'</p>';
     if(p.sel || p.selRow){
-      head += '<div class="selrow"><label class="lb" for="c-series" style="font-size:11px;color:var(--ink-3)">Series</label>' +
+      head += '<div class="selrow"><label for="c-series">Showing</label>' +
         '<select id="c-series">' + Object.keys(CSERIES).filter(k=>!CSERIES[k].bio || bio)
           .map(k=>'<option value="'+k+'"'+(CSERIES_K===k?" selected":"")+'>'+esc(CSERIES[k].name())+'</option>').join("") +
         '</select></div>';
@@ -2695,9 +2992,12 @@ function renderStrip(run){
   const bio = S.level !== "hydraulic";
   const t = (k,v,u,hero)=>'<div class="tile'+(hero?" hero":"")+'"><div class="k">'+k+'</div><div class="v">'+v+'<span class="u">'+u+'</span></div></div>';
   let h = "";
+  const rn = $("#res-note");
+  if(rn) rn.textContent = RUNB ? "A · " + run.name + "  vs  B · " + RUNB.name
+    : (run.name === "Working profile" ? "" : "showing the saved profile “" + run.name + "”");
   if(bio) h += t("Batch length", isFinite(D.tBatch)?fmt(D.tBatch,1):"–", D.batchFix?"h fixed":"h predicted");
-  h += t("F₀ setpoint", fmt(F_DISP(first),3), F_UNIT(), true);
-  h += t("F at end", fmt(F_DISP(end),3), F_UNIT());
+  h += t("Start flow F₀", fmt(F_DISP(first),3), F_UNIT(), true);
+  h += t("End flow", fmt(F_DISP(end),3), F_UNIT());
   h += t("Feed length", fmt(end.t,1), "h");
   h += t(MU() ? "Final mass" : "Final volume", fmt(V_DISP(end.V),2), V_UNIT());
   if(MU()){
@@ -2742,7 +3042,7 @@ function renderDiff(run, runB){
   const A = run.sim.rows[run.sim.endIdx], B = runB.sim.rows[runB.sim.endIdx];
   const rowsDef = [
     ["Batch length", D=>D.tBatch, run.D, runB.D, 1, "h", true],
-    ["F₀ setpoint", null, null, null, 3, F_UNIT()],
+    ["Start flow F₀", null, null, null, 3, F_UNIT()],
     ["Feed length", null, null, null, 1, "h"],
     [MU()?"Final mass":"Final volume", null, null, null, 2, V_UNIT()],
     ["Substrate fed", null, null, null, 0, "g"],
@@ -2754,7 +3054,7 @@ function renderDiff(run, runB){
     const s = run2.sim, e = s.rows[s.endIdx];
     switch(k){
       case "Batch length": return run2.D.tBatch;
-      case "F₀ setpoint":  return F_DISP(s.rows[0]);
+      case "Start flow F₀":  return F_DISP(s.rows[0]);
       case "Feed length":  return e.t;
       case "Final volume": case "Final mass": return V_DISP(e.V);
       case "Substrate fed":return e.cum;
@@ -2785,7 +3085,7 @@ function renderDiff(run, runB){
       "<td class='ca'>"+(a?fmt(a.t,1):"–")+"</td><td class='cb'>"+(b?fmt(b.t,1):"–")+"</td><td class='dl'>"+dl+"</td></tr>";
   }
   w.innerHTML =
-    '<div class="diffhead">Difference' +
+    '<div class="diffhead">What differs' +
       '<span class="nm"><i style="background:var(--s1)"></i>A · '+esc(run.name)+'</span>' +
       '<span class="nm"><i style="background:var(--s2)"></i>B · '+esc(runB.name)+'</span></div>' +
     '<div class="difftbl"><table><thead><tr><th>Measure</th><th>A</th><th>B</th><th>B − A</th></tr></thead>' +
@@ -2793,6 +3093,33 @@ function renderDiff(run, runB){
 }
 
 /* ================= alerts ================= */
+/* Each alert is [kind, mark, html]. Problems ("bad") and warnings ("warn" with "!") come first,
+   each in its own box. Everything else shares one quiet list, in the order it was raised:
+   a "warn" marked "·" is a reminder (amber dot), "ok" marked "✓" a passed check, "ok" marked
+   "·" a plain note. */
+function paintAlerts(A){
+  const kindOf = ([k, ic]) => k === "bad" ? "bad" : k === "warn" ? (ic === "!" ? "warn" : "mind") : (ic === "✓" ? "ok" : "note");
+  const row = a => {
+    const cls = kindOf(a);
+    const mark = cls === "bad" || cls === "warn" ? "!" : cls === "ok" ? "✓" : "";
+    const say = cls === "bad" ? "Problem: " : cls === "warn" ? "Warning: " : cls === "mind" ? "Reminder: " : "";
+    return '<div class="alert '+cls+'"><span class="ic" aria-hidden="true">'+mark+'</span><span>'+
+      (say ? '<span class="vh">'+say+'</span>' : "")+a[2]+'</span></div>';
+  };
+  const of = c => A.filter(a=>kindOf(a) === c);
+  const bad = of("bad"), warn = of("warn"), mind = of("mind"), rest = A.filter(a=>kindOf(a) === "ok" || kindOf(a) === "note");
+  $("#alerts").innerHTML = bad.map(row).join("") + warn.map(row).join("") +
+    (mind.length + rest.length ? '<div class="notelist">'+mind.concat(rest).map(row).join("")+'</div>' : "");
+  const n = (c, one, many) => c + " " + (c === 1 ? one : many);
+  const cnt = $("#alert-counts");
+  if(cnt) cnt.innerHTML =
+    (bad.length ? '<span class="count bad">'+n(bad.length,"problem","problems")+'</span>' : "") +
+    (warn.length ? '<span class="count warn">'+n(warn.length,"warning","warnings")+'</span>' : "") +
+    (!bad.length && !warn.length ? '<span class="count ok">nothing to fix</span>' : "") +
+    (mind.length ? '<span class="count">'+n(mind.length,"reminder","reminders")+'</span>' : "") +
+    (rest.length ? '<span class="count">'+n(rest.length,"note","notes")+'</span>' : "");
+}
+
 function renderAlerts(run){
   const D = run.D, sim = run.sim, st = run.st, phases = run.phases;
   const A = [];
@@ -2872,7 +3199,7 @@ function renderAlerts(run){
   if(bottles > 1)
     add("warn","·","<b>"+bottles+" bottles of feed</b> at "+
       fmt(MU()?D.bottle*(D.rho0||1):D.bottle,1)+" "+(MU()?"kg":"L")+" each — "+
-      fmt(MU()?end.fedM/1000:feedVol,2)+" "+(MU()?"kg":"L")+" total. Swaps fall due roughly every "+fmt(end.t/bottles,1)+" h; the schedule below shows where they land.");
+      fmt(MU()?end.fedM/1000:feedVol,2)+" "+(MU()?"kg":"L")+" total. Swaps fall due roughly every "+fmt(end.t/bottles,1)+" h; the run schedule shows where they land.");
 
   /* --- phase boundaries --- */
   sim.bounds.filter(b=>b.to >= 0).forEach(b=>{
@@ -2933,7 +3260,7 @@ function renderAlerts(run){
     }
   }
 
-  if(!bio){ $("#alerts").innerHTML = A.map(([k,ic,t])=>'<div class="alert '+k+'"><span class="ic">'+ic+'</span><span>'+t+'</span></div>').join(""); return; }
+  if(!bio){ paintAlerts(A); return; }
 
   /* --- growth --- */
   /* the culture's mu is capped by construction now, so judge the programme by what it asks for */
@@ -2969,7 +3296,7 @@ function renderAlerts(run){
       "μ<sub>max</sub> = "+fmt(D.muMax0,2)+" 1/h on excess substrate, so q<sub>S</sub> there is "+
       fmt(qsBatch,2)+" g/g/h against a threshold of "+fmt(D.qcrit,2)+
       ". Expect <b>"+esc(org.product)+"</b> during the batch whatever the feed does — it is consumed "+
-      "again once the substrate runs out. The check below looks at the <b>feed only</b>.");
+      "again once the substrate runs out. The overflow check looks at the <b>feed only</b>.");
 
   const overRows = D.mode === "anaerobic" ? [] : sim.rows.filter(r=>r.qs > D.qcrit);
   const qsPeak = Math.max.apply(null, sim.rows.map(r=>r.qs));
@@ -3099,7 +3426,7 @@ function renderAlerts(run){
     fmt(cMax,0)+" g/L bottle. With that feed, DCW can never exceed <b>"+fmt(D.Y*cMax,0)+
     " g/L</b> (= Y · c<sub>feed</sub>) however long you run.");
 
-  $("#alerts").innerHTML = A.map(([k,ic,t])=>'<div class="alert '+k+'"><span class="ic">'+ic+'</span><span>'+t+'</span></div>').join("");
+  paintAlerts(A);
 }
 
 /* ================= setpoint table ================= */
@@ -3122,9 +3449,19 @@ function renderTable(run){
   const seen = new Set();
   const uniq = out.filter(([i])=>{ if(seen.has(i)) return false; seen.add(i); return true; });
   const fu = F_UNIT(), vu = "V ("+V_UNIT()+")";
-  const cols = bio
-    ? ["t (h)","Phase","°C",fu,"g sub/h","g/min/L","OUR",vu,"DCW","Σ sub (g)","μ","D/μ","Resid. g/L",esc(run.D.prodLabel)+" g/L"]
-    : ["t (h)","Phase","°C",fu,"g sub/h","g/min/L",vu,"Σ sub (g)"];
+  /* [short heading, what it is]: the long form is the column's hover title */
+  const cols = (bio
+    ? [["t (h)","Hours from feed start"],["Phase","Phase running"],["°C","Vessel temperature"],
+       ["Pump ("+fu+")","Pump setpoint"],["g sub/h","Substrate fed per hour"],["g/min/L","Specific substrate feed"],
+       ["OUR","Oxygen uptake rate, mmol/L/h"],[vu,"Broth in the vessel"],["DCW (g/L)","Dry cell weight"],
+       ["Σ sub (g)","Substrate fed so far"],["μ (1/h)","Specific growth rate"],["D/μ","Share of growth spent on dilution"],
+       ["Resid. (g/L)","Residual substrate in the broth"],[run.D.prodLabel+" (g/L)","Overflow product"]]
+    : [["t (h)","Hours from feed start"],["Phase","Phase running"],["°C","Vessel temperature"],
+       ["Pump ("+fu+")","Pump setpoint"],["g sub/h","Substrate fed per hour"],["g/min/L","Specific substrate feed"],
+       [vu,"Broth in the vessel"],["Σ sub (g)","Substrate fed so far"]]
+    ).map(([c,ttl])=>'<span title="'+esc(ttl)+'">'+esc(c)+'</span>');
+  const th = $("#tbl-hint");
+  if(th) th.textContent = "one row every " + (step === 1 ? "hour" : step + " hours") + ", plus every phase switch";
   $("#tblwrap").innerHTML =
     "<table><thead><tr>" + cols.map(c=>"<th>"+c+"</th>").join("") + "</tr></thead><tbody>" +
     uniq.map(([i,r])=>{
@@ -3342,7 +3679,7 @@ function drawTimeline(host, cfg){
     const d = new Date(ms);
     s += '<line x1="'+sx(ms).toFixed(1)+'" y1="'+pt+'" x2="'+sx(ms).toFixed(1)+'" y2="'+(pt+ih+5)+'" stroke="var(--line-strong)" stroke-width="1"/>';
     if(ms < x1) s += '<text x="'+(sx(ms)+5).toFixed(1)+'" y="'+(pt+ih+16)+'" font-size="10" font-weight="600" fill="'+
-      (d.getDay()===0||d.getDay()===6 ? "var(--warn)" : "var(--ink-2)")+'">'+DNAMES[d.getDay()]+' '+pad2(d.getDate())+'.'+pad2(d.getMonth()+1)+'</text>';
+      (d.getDay()===0||d.getDay()===6 ? "var(--warn-ink)" : "var(--ink-2)")+'">'+DNAMES[d.getDay()]+' '+pad2(d.getDate())+'.'+pad2(d.getMonth()+1)+'</text>';
     const hstep = (x1-x0)/DAY > 5 ? 12 : 6;
     for(let k = hstep; k < 24; k += hstep){
       const t2 = ms + k*HR; if(t2 >= x1) break;
@@ -3354,7 +3691,7 @@ function drawTimeline(host, cfg){
   s += '<text x="4" y="11" font-size="10" fill="var(--ink-3)">'+esc(cfg.yLabel)+'</text>';
   s += '<g clip-path="url(#tlclip)">';
   if(cfg.batch) s += '<rect x="'+sx(cfg.batch[0]).toFixed(1)+'" y="'+pt+'" width="'+(sx(cfg.batch[1])-sx(cfg.batch[0])).toFixed(1)+
-    '" height="'+ih+'" fill="var(--s2)" opacity="0.13"/>';
+    '" height="'+ih+'" fill="var(--batch-b)"/>';
   (cfg.phaseBands||[]).forEach(b=>{
     const a = Math.max(b.ms0, x0), z = Math.min(b.ms1, x1);
     if(z <= a) return;
@@ -3370,7 +3707,7 @@ function drawTimeline(host, cfg){
   if(cfg.batch){
     const mid = (sx(cfg.batch[0])+sx(cfg.batch[1]))/2;
     if(sx(cfg.batch[1])-sx(cfg.batch[0]) > 46)
-      s += '<text x="'+mid.toFixed(1)+'" y="'+(pt+12)+'" text-anchor="middle" font-size="9.5" fill="var(--s2)" font-weight="600">batch</text>';
+      s += '<text x="'+mid.toFixed(1)+'" y="'+(pt+12)+'" text-anchor="middle" font-size="10" fill="var(--ink-3)" font-weight="600">batch</text>';
   }
   (cfg.marks||[]).forEach((m,i)=>{
     if(m.ms < x0 || m.ms > x1) return;
@@ -3381,7 +3718,7 @@ function drawTimeline(host, cfg){
   const now = Date.now();
   if(now > x0 && now < x1){
     s += '<line x1="'+sx(now).toFixed(1)+'" y1="'+pt+'" x2="'+sx(now).toFixed(1)+'" y2="'+(pt+ih)+'" stroke="var(--limit)" stroke-width="1.5"/>';
-    s += '<text x="'+(sx(now)+4).toFixed(1)+'" y="'+(pt+ih-4)+'" font-size="9" font-weight="600" fill="var(--limit)">now</text>';
+    s += '<text x="'+(sx(now)+4).toFixed(1)+'" y="'+(pt+ih-4)+'" font-size="10" font-weight="600" fill="var(--limit-ink)">now</text>';
   }
   s += '</svg>';
   host.innerHTML = s;
@@ -3397,7 +3734,7 @@ function drawTimeline(host, cfg){
 function milestones(run, feedMs, inocMs){
   const sim = run.sim, D = run.D, rows = sim.rows;
   const M = [
-    {ms:inocMs, label:"Inoculation", color:"var(--s2)",
+    {ms:inocMs, label:"Inoculation", color:"var(--batch)",
       note:"batch starts at "+fmt(D.Xinoc,2)+" g/L · feed "+fmt((feedMs-inocMs)/HR,1)+" h later"},
   ];
   if(isFinite(D.tBatch) && D.lag > 0.01)
@@ -3420,8 +3757,8 @@ function milestones(run, feedMs, inocMs){
   for(let k = 1; k < nb; k++){
     const target = D.V0 + k*D.bottle;
     const r = rows.find(x=>x.V >= target);
-    if(r) M.push({ms:feedMs + r.t*HR, label:"Feed bottle "+(k+1), color:"var(--ph5)",
-      note:"swap after "+fmt(MU()?k*D.bottle*(D.rho0||1):k*D.bottle,1)+" "+(MU()?"kg":"L")+" delivered"});
+    if(r) M.push({ms:feedMs + r.t*HR, label:"Swap to bottle "+(k+1), color:"var(--ph5)",
+      note:"bottle "+k+" is empty after "+fmt(MU()?k*D.bottle*(D.rho0||1):k*D.bottle,1)+" "+(MU()?"kg":"L")+" delivered"});
   }
   const endLabel = sim.stop === "volume" ? "Vessel full — run end"
     : sim.stop === "phases" ? "Last phase ended" : "Horizon end";
@@ -3449,22 +3786,30 @@ function renderSchedule(run){
   const samples = [];
   if(SC.samp > 0) for(let t = SC.samp; t <= endT + 1e-9; t += SC.samp) samples.push(feedMs + t*HR);
 
-  $("#sc-miles").innerHTML = M.map(m=>{
-    const d = new Date(m.ms), off = !isWork(d);
-    return '<span class="mchip'+(off?" off":"")+'"><i class="dotm" style="background:'+m.color+'"></i>'+
-      '<b>'+esc(m.label)+'</b><span class="tm">'+stampOf(d)+'</span>'+
-      (off?'<span class="tm">· outside working hours</span>':"")+'</span>';
-  }).join("") + (samples.length ? '<span class="mchip"><i class="dotm" style="background:var(--good)"></i>'+
-    '<b>'+samples.length+' samples</b><span class="tm">every '+fmt(SC.samp,1)+' h · '+
-    samples.filter(s=>!isWork(new Date(s))).length+' outside working hours</span></span>' : "");
+  /* the agenda: every milestone in time order, with the off-hours ones marked */
+  const offM = M.filter(m=>!isWork(new Date(m.ms))).length;
+  const offS = samples.filter(s=>!isWork(new Date(s))).length;
+  const relOf = ms => { const h = (ms - feedMs)/HR; return (h < -0.05 ? "−" : h > 0.05 ? "+" : "") + fmt(Math.abs(h),1) + " h"; };
+  $("#sc-sum").innerHTML =
+    (offM ? '<b class="off">'+offM+' of '+M.length+' events</b> fall outside working hours'
+          : '<b>All '+M.length+' events</b> fall inside working hours') +
+    (samples.length ? ' · ' + (offS ? '<b class="off">'+offS+' of '+samples.length+' samples</b> too'
+                                    : 'all <b>'+samples.length+' samples</b> inside') +
+      ' (every '+fmt(SC.samp,1)+' h)' : '');
+  $("#sc-miles").innerHTML =
+    '<div class="arow ahead" role="row"><span></span><span role="columnheader">When</span>'+
+      '<span role="columnheader" style="text-align:right" title="Hours from feed start">Run time</span>'+
+      '<span role="columnheader">Event</span><span></span></div>' +
+    M.map(m=>{
+      const d = new Date(m.ms), off = !isWork(d);
+      return '<div class="arow'+(off?" off":"")+'" role="row"><i class="dotm" style="background:'+m.color+'"></i>'+
+        '<span class="when" role="cell">'+stampOf(d)+'</span>'+
+        '<span class="rel" role="cell">'+relOf(m.ms)+'</span>'+
+        '<span class="ev" role="cell"><b>'+esc(m.label)+'</b>'+(m.note?'<span class="det">'+esc(m.note)+'</span>':"")+'</span>'+
+        '<span class="flag" role="cell">'+(off?"outside working hours":"")+'</span></div>';
+    }).join("");
 
-  /* phase legend */
   const spans = phaseSpans(rows);
-  $("#sc-phleg").innerHTML = spans.map(sp=>{
-    const ph = run.phases[sp.i]; if(!ph) return "";
-    return '<span><i style="background:'+phBand(sp.i)+';border:1px solid '+phColour(sp.i)+'"></i>'+
-      esc(ph.name)+' <span class="nb" style="color:var(--ink-3)">'+fmt(sp.t0,1)+'–'+fmt(sp.t1,1)+' h</span></span>';
-  }).join("");
 
   /* hour heat grid */
   const runVals = rows.map(r=>getv(r,SC.param)).filter(v=>isFinite(v));
@@ -3487,7 +3832,7 @@ function renderSchedule(run){
       const night = !isWork(new Date(cellMs));
       const isMile = mset.has(Math.floor((cellMs-x0)/HR));
       const stripe = v0 && run.phases[v0.pi] ? '<span class="pb" style="background:'+phColour(v0.pi)+'"></span>'
-        : (v0 && v0.pi === -2 ? '<span class="pb" style="background:var(--s2)"></span>' : "");
+        : (v0 && v0.pi === -2 ? '<span class="pb" style="background:var(--batch)"></span>' : "");
       if(v === null || !isFinite(v)){
         const mm = M.find(m=>Math.floor((m.ms-x0)/HR) === Math.floor((cellMs-x0)/HR));
         g += '<div class="cell'+(night?" night":"")+(isMile?" has":"")+'"'+
@@ -3506,11 +3851,22 @@ function renderSchedule(run){
     }
   }
   $("#sc-grid").innerHTML = g;
+  /* one legend for both the grid and the timeline: colour scale, then marks, then phases */
   $("#sc-ramp").innerHTML = '<span>'+esc(meta.n)+'</span><span class="nb">'+fmt(lo,meta.d)+'</span>'+
     '<span class="steps">'+Array.from({length:7},(_,i)=>'<i style="background:var(--ramp'+(i+1)+')"></i>').join("")+'</span>'+
     '<span class="nb">'+fmt(hi,meta.d)+' '+esc(metaU)+'</span>'+
-    '<span style="color:var(--ink-3)">· grey = outside working hours · ringed cell = milestone · stripe = active phase</span>' +
-    (needDays > span ? '<span style="color:var(--warn)">· run needs '+needDays+' days, showing '+span+'</span>' : "");
+    '<span class="keys">' +
+      '<span><i style="background:var(--surface-3)"></i>outside working hours</span>' +
+      '<span><i style="border:2px solid var(--ink)"></i>hour with an agenda event</span>' +
+      (samples.length ? '<span><i style="width:2px;height:10px;background:var(--good)"></i>sample (timeline)</span>' : "") + '</span>' +
+    (needDays > span ? '<span class="note">The run needs '+needDays+' days; '+span+' shown.</span>' : "") +
+    '<span class="brk"></span><span>Phase running</span><span class="keys" style="margin-left:4px">' +
+      '<span><i style="background:var(--batch-b);border-bottom:3px solid var(--batch)"></i>Batch</span>' +
+      spans.map(sp=>{
+        const ph = run.phases[sp.i]; if(!ph) return "";
+        return '<span><i style="background:'+phBand(sp.i)+';border-bottom:3px solid '+phColour(sp.i)+'"></i>'+
+          esc(ph.name)+' <span class="nb">'+fmt(sp.t0,1)+'–'+fmt(sp.t1,1)+' h</span></span>';
+      }).join("") + '</span>';
 
   const bandsTl = spans.map(sp=>({i:sp.i, ms0:feedMs+sp.t0*HR, ms1:feedMs+sp.t1*HR}));
   const pts = [];
@@ -3547,7 +3903,7 @@ const KNOBS = {
   muSet:{label:"μ / k of the first growth phase", lo:0.01, hi:()=>derive(S).muMax,
     get:()=>{ const p = growthPhase(); return p ? (p.shape==="demand"?p.muSet:p.k) : 0.2; },
     set:v=>{ const p = growthPhase(); if(p){ if(p.shape==="demand") p.muSet = v; else p.k = v; } },
-    u:"1/h", d:3, bound:()=>"μ_max is "+fmt(derive(S).muMax,2)+" 1/h"},
+    u:"1/h", d:3, bound:()=>"μmax is "+fmt(derive(S).muMax,2)+" 1/h"},
   /* shifting inoculation moves the whole run; feed start follows the batch unless it is pinned */
   feedStart:{label:"Inoculation time (shifts the run)", lo:-24, hi:()=>48,
     get:()=>0,
@@ -3750,9 +4106,12 @@ $("#presetrow").innerHTML = Object.keys(PRESETS).map(k=>
 
 function applyLevel(){
   const L = S.level, bio = L !== "hydraulic", exp = L === "expert";
-  $("#lv-hyd").setAttribute("aria-selected", L === "hydraulic");
-  $("#lv-std").setAttribute("aria-selected", L === "standard");
-  $("#lv-exp").setAttribute("aria-selected", L === "expert");
+  $("#lv-hyd").setAttribute("aria-pressed", L === "hydraulic");
+  $("#lv-std").setAttribute("aria-pressed", L === "standard");
+  $("#lv-exp").setAttribute("aria-pressed", L === "expert");
+  $("#lv-cap").textContent = L === "hydraulic" ? "Pump and volume only, no biology."
+    : exp ? "Every constant editable, plus uncertainty band and goal-seek."
+          : "Adds the estimated biology: batch, biomass, oxygen, overflow.";
   setVis($("#fs-bio"), bio);
   setVis($("#fs-kin"), exp);
   setVis($("#fs-batch"), bio);
@@ -3766,9 +4125,9 @@ function applyLevel(){
   setVis($("#p-x0man").closest(".chk"), bio);
   $("#p-Y").disabled  = !exp;
   $("#p-o2").disabled = !exp || !S.o2man;
-  $("#con-hint").textContent = bio
-    ? "organism, carbon source, batch, vessel, kinetics"
-    : "carbon source, vessel, pump — biology hidden at this level";
+  $("#con-hint").textContent = exp ? "organism, carbon source, feed bottle, batch, vessel, pump, limits, kinetics"
+    : bio ? "organism, carbon source, feed bottle, batch, vessel, pump, limits"
+          : "carbon source, feed bottle, vessel, pump, limits · biology hidden at this level";
   if(!bio && SPARAM[S.sched.param] && SPARAM[S.sched.param].bio) S.sched.param = "F";
   if(!bio && CSERIES[CSERIES_K] && CSERIES[CSERIES_K].bio) CSERIES_K = "V";
 }
@@ -3814,6 +4173,8 @@ function syncInputs(run){
   }
   $("#l-cww").textContent = hydrate ? "As weighed" : "Strength";
   setV("#p-rho", +gb.rho.toFixed(4));
+  /* nothing to do while the density already is the estimate */
+  $("#btn-rho-est").disabled = !!gb.est;
   $("#p-massunits").checked = S.massUnits;
   setV("#p-brothrho", S.brothRho);
   setVis($("#w-brothrho"), S.massUnits);
@@ -3825,11 +4186,11 @@ function syncInputs(run){
     : "<b>"+fmt(gb.glW,0)+" g "+what+"</b> made up to 1 L" +
       (hydrate ? " = "+fmt(gb.gl,0)+" g "+esc(kinLabel) : "");
   $("#n-bottle").innerHTML = recipe +
-    "<br>→ <b>"+fmt(gb.gl,0)+" g/L "+esc(kinLabel)+"</b> fed" +
+    "<br>feeds <b>"+fmt(gb.gl,0)+" g/L "+esc(kinLabel)+"</b>" +
     (gmb ? "" : " · "+fmt(gb.ww,1)+" % w/w · "+fmt(gb.ww*10,0)+" g/kg") +
-    (gb.est ? ' · <span style="color:var(--warn)">density '+fmt(gb.rho,3)+' g/mL estimated from strength</span>'
-            : " · density "+fmt(gb.rho,3)+" g/mL as measured") +
-    "<br>1 mL/min of this feed is "+fmt(gb.rho,3)+" g/min.";
+    "<br>" + (gb.est ? '<span class="t-warn">density '+fmt(gb.rho,3)+' g/mL, estimated from the strength</span>'
+                     : "density "+fmt(gb.rho,3)+" g/mL, as measured") +
+    " · 1 mL/min is "+fmt(gb.rho,3)+" g/min";
   const rhoF = D.rho0 || 1, rhoB = S.brothRho || 1;
   setV("#p-V0", +(MU() ? S.V0*rhoB : S.V0).toFixed(3));
   setV("#p-Vmax", +(MU() ? S.Vmax*rhoB : S.Vmax).toFixed(3));
@@ -3856,7 +4217,7 @@ function syncInputs(run){
   renderSchedParams();
   setV("#sc-param", S.sched.param);
   setV("#sc-span", S.sched.span);
-  $("#sc-feedman").checked = S.sched.feedManual;
+  $$("[data-feedmode]").forEach(b=>b.setAttribute("aria-pressed", (b.dataset.feedmode === "hand") === !!S.sched.feedManual));
   $("#sc-feed").disabled = !S.sched.feedManual;
   if(S.sched.feed) setV("#sc-feed", toLocalInput(S.sched.feed));
 
@@ -3868,7 +4229,7 @@ function syncInputs(run){
   } else {
     $("#n-bottle").innerHTML += "<br>" + perGram(gb.gl, gb.rho) +
       (S.level !== "hydraulic" ? " · DCW ceiling " + fmt(D.Y*gb.gl,0) + " g/L" : "") +
-      (gb.gl > src.solub ? ' · <span style="color:var(--limit)">above solubility — ' + esc(src.solubNote) + '</span>'
+      (gb.gl > src.solub ? ' · <span class="t-bad">above solubility — ' + esc(src.solubNote) + '</span>'
                          : " · " + esc(src.solubNote));
   }
   if(S.mode === "anaerobic")
@@ -3897,7 +4258,7 @@ function syncInputs(run){
     (S.mode === "anaerobic" ? "" : ". Above q<sub>S,crit</sub>: " + fmt(D.yof,2) + " g/g biomass, " + fmt(D.Ypof,2) +
       " g/g " + esc(D.prodLabel) + ", " + fmt(D.o2of,1) + " mmol O₂/g") +
     (muCritNote > 0 && muCritNote < 0.06
-      ? ' <span style="color:var(--warn)">— that is very low for an aerobe; a μ figure may have been typed into the g/g/h field</span>'
+      ? ' <span class="t-warn">— that is very low for an aerobe; a μ figure may have been typed into the g/g/h field</span>'
       : "") + ".";
   $("#n-batch").innerHTML = isFinite(D.tPred)
     ? "Predicted <b>" + fmt(D.tPred,1) + " h</b>: " + fmt(D.Xinoc,2) + " → " + fmt(D.Xend,1) +
@@ -3915,10 +4276,10 @@ function renderProfileBar(){
   /* the warning must show whenever storage is blocked, not only when the list is empty,
      or saves made in a blocked context vanish on reload with no warning given */
   const blocked = !LS_OK
-    ? '<span class="emptynote" style="color:var(--warn)">storage is blocked here, so these last only until you reload</span>'
+    ? '<span class="emptynote t-warn">Storage is blocked in this browser, so saves last only until you reload.</span>'
     : "";
   $("#savedrow").innerHTML = (rows ||
-    '<span class="emptynote">nothing saved yet — set up a run, name it, and press Save current</span>') + blocked;
+    '<span class="emptynote">Nothing saved yet. Set up a run, name it, and press Save current.</span>') + blocked;
   const opts = sel => '<option value="__cur__"'+(sel==="__cur__"?" selected":"")+'>Working profile</option>' +
     SAVED.map(p=>'<option value="'+p.id+'"'+(sel===p.id?" selected":"")+'>'+esc(p.name)+'</option>').join("");
   $("#cmp-a").innerHTML = opts(CMP.a);
@@ -4198,7 +4559,11 @@ $("#sc-inoc").addEventListener("input", e=>{
   build();
 });
 $("#sc-feed").addEventListener("input", e=>{ S.sched.feed = new Date(e.target.value); build(); });
-$("#sc-feedman").addEventListener("change", e=>{ S.sched.feedManual = e.target.checked; build(); });
+$$("[data-feedmode]").forEach(b=>b.addEventListener("click", ()=>{
+  S.sched.feedManual = b.dataset.feedmode === "hand";
+  build();
+  if(S.sched.feedManual) $("#sc-feed").focus();
+}));
 $("#sc-wh0").addEventListener("input",  e=>{ S.sched.wh0 = clamp(+e.target.value,0,23); build(); });
 $("#sc-wh1").addEventListener("input",  e=>{ S.sched.wh1 = clamp(+e.target.value,1,24); build(); });
 $("#sc-samp").addEventListener("input", e=>{ S.sched.samp = +e.target.value; build(); });
@@ -4250,21 +4615,7 @@ const COARSE = () => matchMedia("(hover:none), (pointer:coarse)").matches;
 function tipHTMLFor(el){
   if(el.hasAttribute("data-tipinfo"))
     return '<div class="txt">' + el.getAttribute("data-tipinfo") + '</div>';
-  const k = TIPS[el.getAttribute("data-tip")];
-  return k ? '<div class="th">' + k.t + '</div><div class="txt">' + k.d +
-    '<span class="rng">Typical &middot; ' + k.r + '</span>' +
-    '<span class="csq">' + k.c + '</span></div>' : null;
-}
-function showTipAtEl(html, el){
-  const tp = document.getElementById("tip");
-  tp.innerHTML = html;
-  tp.classList.add("on"); tp.setAttribute("aria-hidden","false");
-  const r = el.getBoundingClientRect(), t = tp.getBoundingClientRect();
-  let x = r.left + r.width/2 - t.width/2;
-  let y = r.bottom + 10;
-  if(y + t.height > innerHeight - 8) y = Math.max(8, r.top - t.height - 10);
-  tp.style.left = Math.min(Math.max(8, x), Math.max(8, innerWidth - t.width - 8)) + "px";
-  tp.style.top  = y + "px";
+  return tipHTML(el.getAttribute("data-tip"));
 }
 let TIP_EL = null;
 function closeTapTip(){

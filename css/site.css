@@ -1,11 +1,24 @@
 /* ============================================================
-   Jonas Thormann — portfolio
+   Jonas Thormann — portfolio, the 3D comic version
    One stylesheet. No build step, no framework.
-   Colours are sampled from the author's own technical drawings.
 
-   Page order: hero (attention) -> project index -> projects -> about.
-   Every project uses the same template, .proj:
-     label row · title · claim · stage · three facts · action · how it works
+   The idea: one fermenter, drawn in ink and flat colour, stays on screen for
+   the whole read. Scrolling walks the camera around it. Everything else is a
+   comic page laid over the top: panels with ink borders and hard shadows,
+   narration boxes, a few hand-written notes.
+
+   Layers, back to front:
+     .stage   the 3D fermenter, fixed, full screen
+     main     the panels, scrolling over it
+     .nav     fixed chips
+
+   If WebGL is not there, html gets .no3d and the same panels read as a
+   plain comic page on halftone paper.
+
+   Every number that shapes the look is a custom property in :root below.
+   js/tweak.js (the tweak bar, local only) changes them live by setting the
+   same properties on <html>; a value that is not overridden there is the
+   one written here, so this file is always the default.
    ============================================================ */
 
 /* ---------- fonts ---------- */
@@ -15,30 +28,105 @@
   src:url(../fonts/plexsans-600.woff2) format('woff2')}
 @font-face{font-family:'Plex Mono';font-style:normal;font-weight:400;font-display:swap;
   src:url(../fonts/plexmono-400.woff2) format('woff2')}
+@font-face{font-family:'Archivo';font-style:normal;font-weight:800;font-display:swap;
+  src:url(../fonts/archivo-800.woff2) format('woff2')}
+@font-face{font-family:'Caveat';font-style:normal;font-weight:400;font-display:swap;
+  src:url(../fonts/caveat-400.woff2) format('woff2')}
 
 /* ---------- tokens ---------- */
 :root{
+  /* colour */
   --paper:#faf8f4;
   --ink:#17140f;
   --ink-soft:#57514a;
   --rule:#c0c5c5;
-
-  --broth:#d2b978;      /* the liquid, matched to the drawings */
-  --glass:#f5f7f8;
-  --steel:#939b9b;
-  --ochre:#e3d184;
+  --ochre:#e3d184;      /* the tubing in the drawings; the narration boxes */
   --blue:#345ecc;
-  --blue-deep:#22409a;
+  --canvas-bg:#faf8f4;  /* read by js/tank.js for the 3D clear colour */
+  --feed:#345ecc;   --feed-ink:#2b4fb0;       /* project 01 */
+  --imp:#128a80;    --imp-ink:#0c6470;        /* project 02: the tool's own teal */
+  --rack:#d2602c;   --rack-ink:#a8451a;       /* project 03: the filament the racks are printed in */
+  --sensor:#b8891f; --sensor-ink:#7a5a10;     /* project 04 */
+  --shadow:var(--ink);  /* the hard shadows */
+  --snap-paper:#fff;
 
-  --sans:'Plex Sans',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
-  --mono:'Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  /* type: one family per voice.
+     display  headlines        body   running text
+     cap      narration boxes  label  chips, small labels, step buttons
+     note     hand notes       data   the model's readout, footnotes
+     btn      calls to action */
+  --f-display:'Archivo','Arial Black','Helvetica Neue',Impact,sans-serif;
+  --f-body:'Plex Sans',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+  --f-cap:'Caveat','Segoe Print','Bradley Hand',cursive;
+  --f-label:var(--f-body);
+  --f-note:'Caveat','Segoe Print','Bradley Hand',cursive;
+  --f-data:var(--f-body);
+  --f-btn:var(--f-display);
+  --type:1;                   /* scales every size at once */
 
-  --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:40px; --s6:64px; --section:80px;
-  --container:1180px;
-  --gutter:var(--s4);      /* the page's side gutter: .wrap and .fig--wide share it
-                              so a wide figure always lines up with the text above it */
-  --nav-h:57px;          /* measured: 16px padding + 24px line + 16px + 1.6px rule */
-  --stroke-hair:1px; --stroke-box:1.2px; --stroke-obj:1.6px; --stroke-rule:2px;
+  --body-size:17px; --body-lh:1.6; --body-w:400; --body-track:0em;
+
+  --display-w:800; --display-track:-.01em; --display-case:uppercase;
+  --display-skew:0deg;
+  --shout-k:1; --shout-lh:.98; --shout-fill:var(--ink);
+  --shout-stroke:0px; --shout-shadow:0px;
+  --title-k:1; --title-lh:.94; --title-shadow:3px; --title-shadow-c:var(--ochre);
+  --claim-k:1; --claim-lh:1.3; --claim-w:400;
+
+  /* narration boxes: lettered by hand, not typed */
+  --cap-size:23px; --cap-w:400; --cap-lh:1.05; --cap-track:0em; --cap-case:none;
+  --cap-bg:var(--ochre); --cap-ink:var(--ink);
+  --cap-pad-y:5px; --cap-pad-x:14px; --cap-line:2px; --cap-drop:0px; --cap-radius:0px;
+  --cap-x:-14px; --cap-y:14px; --cap-tilt:-2deg;   /* cap-y: how far it laps onto the panel */
+
+  --label-size:14px; --label-w:600; --label-track:0em; --label-case:none;
+  --note-size:26px; --note-w:400; --note-tilt:-2deg;
+  --data-size:12px;
+
+  --chip-size:14px; --chip-w:600; --chip-track:0em; --chip-case:none;
+  --chip-h:36px; --chip-pad:12px; --chip-line:2px; --chip-drop:3px; --chip-radius:0px;
+  --mark-size:14px; --mark-tilt:-1.5deg;
+
+  /* calls to action: bold words over a swipe of highlighter. The same
+     properties also make a box, a pill or a sticker (see the tweak bar). */
+  --btn-size:19px; --btn-w:800; --btn-track:.01em; --btn-case:uppercase;
+  --btn-h:48px; --btn-pad:2px; --btn-radius:0px; --btn-tilt:0deg;
+  --btn-ink:var(--ink); --btn-fill:transparent;
+  --btn-mark:var(--ochre); --btn-mark-h:42%; --btn-mark-y:80%;
+  --btn-line:0px; --btn-drop:0px;
+
+  /* space */
+  --space:1;                  /* scales the whole spacing scale */
+  --s1:calc(4px*var(--space)); --s2:calc(8px*var(--space)); --s3:calc(16px*var(--space));
+  --s4:calc(24px*var(--space)); --s5:calc(40px*var(--space)); --s6:calc(64px*var(--space));
+  --gutter-k:1;
+  --gutter:calc(clamp(16px,4vw,56px)*var(--gutter-k));
+  --nav-h:64px;
+
+  /* panels */
+  --line:3px;                 /* the ink line every panel is drawn with */
+  --drop:8px;                 /* the hard shadow's offset */
+  --drop-x:1; --drop-y:1;     /* and its direction */
+  --radius:0px;
+  --tilt-k:1;                 /* how crooked the panels hang */
+  --panel-w:560px; --panel-hero-w:640px; --panel-index-w:680px; --panel-demo-w:1120px;
+  --panel-pad-k:1;
+  --panel-alpha:100%; --panel-blur:0px;
+  --rule-line:2px; --rule-style:dashed;
+  --facts-pad:12px; --facts-line:2px; --facts-size:13.5px; --facts-head-k:1;
+  --snap-w:250px;
+  --demo-h:600px;
+
+  /* scroll: how much page each camera move gets */
+  --scene-k:1; --scene-top:8vh; --scene-bottom:12vh;
+
+  /* paper */
+  --ht-size:9px; --ht-dot:1px; --ht-alpha:.32; --ht-clear:74%;
+
+  /* motion */
+  --ui-t:.12s; --lift:1px;
+  --reveal-t:.5s; --reveal-d:40px;
+  --boil-a:.25deg; --boil-t:.45s;
 
   color-scheme:light;
 }
@@ -50,363 +138,461 @@ body{
   margin:0;
   background:var(--paper);
   color:var(--ink);
-  font:400 16px/1.65 var(--sans);
+  font:var(--body-w) calc(var(--body-size)*var(--type))/var(--body-lh) var(--f-body);
+  letter-spacing:var(--body-track);
   font-variant-numeric:tabular-nums;
   overflow-wrap:break-word;
+  overflow-x:hidden;          /* tilted panels may poke a pixel past the edge */
 }
 img,svg{display:block;max-width:100%}
 h1,h2,h3,p,figure,figcaption,ul,ol{margin:0}
 a{color:var(--ink)}
-a:hover{color:var(--blue)}
-[id]{scroll-margin-top:var(--nav-h)}   /* a jump lands below the sticky nav */
+[id]{scroll-margin-top:var(--nav-h)}
+
+/* the small-label voice, shared */
+.chip,.how>summary,.index__kind,.demo__step,.printing__kind,.skip{
+  font-family:var(--f-label);font-weight:var(--label-w);
+  letter-spacing:var(--label-track);text-transform:var(--label-case);
+}
 
 .skip{
-  position:absolute;left:-9999px;top:0;z-index:10;
+  position:absolute;left:-9999px;top:0;z-index:20;
   background:var(--ink);color:#fff;padding:var(--s2) var(--s3);
-  font:400 13px/1 var(--mono);
+  font-size:13px;line-height:1;
 }
 .skip:focus{left:0}
+:where(a,button,summary,[tabindex]):focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 
-:where(a,button,summary,[tabindex]):focus-visible{
-  outline:2px solid var(--blue);
-  outline-offset:2px;
+/* ---------- the stage ---------- */
+.stage{position:fixed;inset:0;z-index:0;background:var(--paper)}
+.stage canvas{display:block;width:100%;height:100%}
+/* halftone gathering in the corners, as on printed comic paper */
+.stage::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle at center,rgb(23 20 15/var(--ht-alpha)) var(--ht-dot),transparent calc(var(--ht-dot) + .5px));
+  background-size:var(--ht-size) var(--ht-size);
+  -webkit-mask-image:radial-gradient(ellipse 75% 70% at 50% 45%,transparent var(--ht-clear),#000 135%);
+          mask-image:radial-gradient(ellipse 75% 70% at 50% 45%,transparent var(--ht-clear),#000 135%);
+}
+.no3d .stage canvas{display:none}
+.no3d .stage::after{-webkit-mask-image:none;mask-image:none;opacity:.16}
+
+/* operating point of the model, like a plate number in the corner */
+.hud{
+  position:fixed;right:var(--gutter);bottom:var(--s3);z-index:1;
+  font:400 calc(var(--data-size)*var(--type))/1 var(--f-data);color:var(--ink-soft);
+  pointer-events:none;
+}
+.no3d .hud{display:none}
+
+/* ---------- nav: loose chips, not a bar ---------- */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:5;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s3);
+  padding:var(--s3) var(--gutter);
+  pointer-events:none;        /* only the chips catch the pointer */
+}
+.nav__links{display:flex;gap:var(--s2)}
+.chip{
+  pointer-events:auto;
+  display:inline-flex;align-items:center;min-height:var(--chip-h);padding:0 var(--chip-pad);
+  background:var(--paper);color:var(--ink);text-decoration:none;white-space:nowrap;
+  border:var(--chip-line) solid var(--ink);border-radius:var(--chip-radius);
+  box-shadow:calc(var(--chip-drop)*var(--drop-x)) calc(var(--chip-drop)*var(--drop-y)) 0 var(--shadow);
+  font-size:calc(var(--chip-size)*var(--type));line-height:1;font-weight:var(--chip-w);
+  letter-spacing:var(--chip-track);text-transform:var(--chip-case);
+  transition:transform var(--ui-t) ease,box-shadow var(--ui-t) ease,background var(--ui-t) ease;
+}
+.chip:hover{background:var(--ochre);transform:translate(calc(var(--lift)*-1),calc(var(--lift)*-1))}
+.chip:active{transform:translate(2px,2px)}
+.chip[aria-current="true"]{background:var(--ink);color:var(--paper)}
+.chip--mark{
+  font:var(--display-w) calc(var(--mark-size)*var(--type))/1 var(--f-display);
+  letter-spacing:.04em;text-transform:var(--display-case);transform:rotate(var(--mark-tilt));
+}
+.chip--mark:hover{transform:rotate(var(--mark-tilt)) translate(calc(var(--lift)*-1),calc(var(--lift)*-1))}
+.nav__short{display:none}
+
+/* ---------- scenes ----------
+   A scene is a stretch of scroll with one camera shot (data-shot) and one or
+   two panels. The shot is fully reached when the scene's middle is at the
+   middle of the screen; between scenes the camera travels. */
+main{position:relative;z-index:1}
+.scene{
+  min-height:calc(125vh*var(--scene-k));
+  display:flex;align-items:center;
+  padding:calc(var(--nav-h) + var(--scene-top)) var(--gutter) var(--scene-bottom);
+  --accent:var(--ink);--accent-ink:var(--ink);
+}
+.scene--left{justify-content:flex-start}
+.scene--right{justify-content:flex-end}
+.scene--mid,.scene--wide{justify-content:center}
+.scene--hero{min-height:100vh;min-height:100svh;align-items:flex-end;padding-bottom:9vh}
+.scene--mid{min-height:calc(110vh*var(--scene-k))}
+/* a tool's frame is the tallest thing on the page: centre it in the room
+   under the nav, not in the whole screen */
+.scene--wide{min-height:calc(110vh*var(--scene-k));padding-bottom:var(--scene-top)}
+#feed,.scene--feed{--accent:var(--feed);--accent-ink:var(--feed-ink)}
+#impeller,.scene--impeller{--accent:var(--imp);--accent-ink:var(--imp-ink)}
+#holder,.scene--holder{--accent:var(--rack);--accent-ink:var(--rack-ink)}
+#sensor{--accent:var(--sensor);--accent-ink:var(--sensor-ink)}
+/* the last scene: no taller than the screen, so its panel sits mid-screen
+   when the page runs out */
+#about{min-height:100vh}
+/* panels on the other side of the page (the tweak bar mirrors the camera to match) */
+html[data-side="right"] .scene--left{justify-content:flex-end}
+
+/* ---------- panels ---------- */
+.panel{
+  position:relative;
+  width:min(100%,var(--panel-w));
+  padding:calc(clamp(22px,2.6vw,38px)*var(--panel-pad-k));
+  background:color-mix(in srgb,var(--paper) var(--panel-alpha),transparent);
+  -webkit-backdrop-filter:blur(var(--panel-blur));backdrop-filter:blur(var(--panel-blur));
+  border:var(--line) solid var(--ink);border-radius:var(--radius);
+  box-shadow:calc(var(--drop)*var(--drop-x)) calc(var(--drop)*var(--drop-y)) 0 var(--shadow);
+  transform:var(--rv,translate(0)) rotate(calc(var(--tilt,0deg)*var(--tilt-k)));
+}
+.panel--hero{width:min(100%,var(--panel-hero-w))}
+.panel--index{width:min(100%,var(--panel-index-w))}
+.panel--demo{width:min(100%,var(--panel-demo-w));padding:calc(clamp(14px,1.6vw,22px)*var(--panel-pad-k))}
+
+/* narration box, pinned over the panel's top-left corner. Hung by its
+   bottom edge, so a caption that runs to two lines grows upward, off the
+   panel, instead of down over the headline. */
+.cap{
+  position:absolute;left:var(--cap-x);bottom:calc(100% - var(--cap-y));max-width:calc(100% - 8px);
+  padding:var(--cap-pad-y) var(--cap-pad-x);
+  background:var(--cap-bg);color:var(--cap-ink);
+  border:var(--cap-line) solid var(--ink);border-radius:var(--cap-radius);
+  box-shadow:calc(var(--cap-drop)*var(--drop-x)) calc(var(--cap-drop)*var(--drop-y)) 0 var(--shadow);
+  font:var(--cap-w) calc(var(--cap-size)*var(--type))/var(--cap-lh) var(--f-cap);
+  letter-spacing:var(--cap-track);text-transform:var(--cap-case);
+  transform:rotate(var(--cap-tilt));
+}
+/* the issue number in a caption: in the headline's voice, ruled off */
+.cap b{
+  font:var(--display-w) .72em/1 var(--f-display);
+  padding-right:.55em;margin-right:.4em;border-right:var(--cap-line) solid currentColor;
 }
 
-.wrap{max-width:var(--container);margin-inline:auto;padding-inline:var(--gutter)}
+/* hand-written notes */
+.scrawl{font:var(--note-w) calc(var(--note-size)*var(--type))/1.1 var(--f-note);color:var(--ink)}
+.scrawl svg{display:inline-block;width:30px;height:34px;vertical-align:-14px;margin-left:4px;
+  fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.scrawl--cue{margin-top:var(--s3);transform:rotate(var(--note-tilt));transform-origin:left}
+.scrawl--link{text-decoration:none;transform:rotate(var(--note-tilt))}
+.scrawl--link:hover{text-decoration:underline;text-decoration-thickness:2px}
 
 /* ---------- type ---------- */
-.display{
-  font-weight:600;
-  font-size:clamp(28px,5.2vw,36px);
-  line-height:1.06;
-  letter-spacing:-.02em;
-  text-wrap:balance;
+.shout,.title{
+  font-family:var(--f-display);font-weight:var(--display-w);text-transform:var(--display-case);
+  letter-spacing:var(--display-track);text-wrap:balance;hyphens:manual;
+  transform:skewX(var(--display-skew));transform-origin:left bottom;
 }
-.display br{display:none}   /* the forced two-line break is desktop only */
-.h2{font-weight:600;font-size:clamp(22px,3.4vw,26px);line-height:1.15;letter-spacing:-.01em}
-.prose{max-width:64ch}
+.shout{
+  font-size:calc(clamp(30px,4.6vw,62px)*var(--shout-k)*var(--type));line-height:var(--shout-lh);margin-top:var(--s2);
+  color:var(--shout-fill);
+  -webkit-text-stroke:var(--shout-stroke) var(--ink);
+  text-shadow:var(--shout-shadow) var(--shout-shadow) 0 var(--title-shadow-c);
+}
+.title{
+  margin-top:var(--s3);
+  font-size:calc(clamp(34px,4.4vw,60px)*var(--title-k)*var(--type));line-height:var(--title-lh);
+  color:var(--accent-ink);
+  text-shadow:var(--title-shadow) var(--title-shadow) 0 var(--title-shadow-c);
+}
+.title--small{font-size:calc(clamp(30px,3.4vw,44px)*var(--title-k)*var(--type));text-shadow:none}
+.nowrap{white-space:nowrap}
+.claim{margin-top:var(--s3);font-size:calc(clamp(19px,1.7vw,23px)*var(--claim-k)*var(--type));
+  line-height:var(--claim-lh);font-weight:var(--claim-w);letter-spacing:-.005em;text-wrap:balance}
 .prose p+p{margin-top:var(--s3)}
+.title--small+.prose{margin-top:var(--s3)}
 
-/* small mono caps: section labels, index numbers, tour counters */
-.label{
-  font:400 13px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;
-  color:var(--ink-soft);
+/* three facts, as a strip of small frames */
+.facts{
+  list-style:none;margin:var(--s4) 0 0;padding:0;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  border:var(--facts-line) solid var(--ink);border-radius:var(--radius);
 }
+.facts li{padding:var(--facts-pad);border-left:var(--facts-line) solid var(--ink)}
+.facts li:first-child{border-left:0}
+.facts strong{display:block;font:var(--display-w) calc(clamp(15px,1.2vw,18px)*var(--facts-head-k)*var(--type))/1.08 var(--f-display);
+  text-transform:var(--display-case);color:var(--accent-ink);overflow-wrap:normal}
+.facts span{display:block;margin-top:6px;font-size:calc(var(--facts-size)*var(--type));line-height:1.35;color:var(--ink-soft)}
 
-/* ---------- nav ---------- */
-.nav{
-  position:sticky;top:0;z-index:5;
-  background:var(--paper);
-  border-bottom:var(--stroke-obj) solid var(--ink);
-}
-.nav__in{
-  max-width:var(--container);margin-inline:auto;padding:var(--s3) var(--gutter);
-  display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);
-}
-.wordmark{
-  font-weight:600;font-size:15px;letter-spacing:.06em;
-  text-transform:uppercase;text-decoration:none;white-space:nowrap;
-}
-.nav__links{display:flex;gap:var(--s4);font:400 15px/1.6 var(--sans)}
-.nav__links a{color:var(--ink);text-decoration:none;white-space:nowrap}
-.nav__links a:hover{color:var(--blue)}
-.nav__links a[aria-current="true"]{box-shadow:0 2px 0 var(--ink)}
-.nav__short{display:none}   /* "Projects": stands in for the per-project links on phones */
+.actions{display:flex;flex-wrap:wrap;gap:var(--s3) var(--s4);align-items:center;margin-top:var(--s4)}
+.note{font:400 calc(14px*var(--type))/1.5 var(--f-data);color:var(--ink-soft)}
 
-/* ---------- hero ---------- */
-.hero__head{padding-block:var(--s4) var(--s3)}
-
-/* ---------- project index ----------
-   One row per project, straight under the hero: number, name, claim, kind.
-   It is the page's table of contents, and it grows by adding a row. */
-.index{padding-block:var(--s5) var(--s6)}
-.index__list{list-style:none;padding:0;border-top:var(--stroke-rule) solid var(--ink)}
-.index__row{
-  display:grid;grid-template-columns:auto minmax(0,1fr) auto;
-  column-gap:var(--s4);align-items:baseline;
-  padding-block:var(--s3);
-  border-bottom:var(--stroke-hair) solid var(--rule);
-  color:var(--ink);text-decoration:none;
+/* Which impeller is on the shaft in the fermenter right now. js/site.js
+   fills it in from js/tank.js; without the 3D it stays hidden. The one
+   being built is striped like its layers, the finished one is solid. */
+/* "Coming soon": a rubber stamp in the project's colour, for a project whose
+   tool is not published yet (02, the impeller designer). Not a button: it
+   has no hover and no shadow. */
+.soon-row{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4);align-items:center;margin-top:var(--s4)}
+.soon{
+  display:inline-block;padding:.38em .6em .32em;
+  font:var(--display-w) calc(clamp(18px,1.6vw,22px)*var(--type))/1 var(--f-display);
+  letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;
+  color:var(--accent-ink);border:var(--line) solid currentColor;
+  outline:1.5px solid currentColor;outline-offset:3px;
+  transform:rotate(-4deg);
 }
-.index__no{font:400 13px/1 var(--mono);letter-spacing:.12em;color:var(--ink-soft)}
-.index__name{font-weight:600;font-size:clamp(20px,2.4vw,28px);line-height:1.2;letter-spacing:-.01em}
-.index__claim{display:block;margin-top:var(--s1);font-size:15px;line-height:1.45;color:var(--ink-soft)}
-.index__kind{font:400 13px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
-.index__kind::after{content:" \2193"}
-.index__row:hover{color:var(--ink)}
-.index__row:hover .index__name{color:var(--row-accent,var(--blue))}
-.index__row:hover .index__kind{color:var(--ink)}
+.soon--small{font-size:calc(11px*var(--type));padding:.32em .45em .26em;border-width:2px;
+  outline-width:1px;outline-offset:2px;margin-left:.5em;vertical-align:.35em;color:var(--imp-ink)}
+.soon-row__note{transform:rotate(var(--note-tilt));transform-origin:left}
 
-/* ---------- projects ----------
-   The accents come from each project's imagery -- the designer's own blue, the
-   sensor's ochre tubing. The ochre is darkened for text: at its drawn value it
-   would not hold contrast on paper. */
-.proj{
-  --accent:var(--ink);--accent-ink:var(--ink);
-  border-top:var(--stroke-rule) solid var(--ink);
-  padding-bottom:var(--section);
+.printing{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s3);align-items:center;margin-top:var(--s4)}
+.printing[hidden]{display:none}
+.printing__say{min-width:7.2em;font:var(--note-w) calc(var(--note-size)*var(--type))/1 var(--f-note);
+  transform:rotate(var(--note-tilt));transform-origin:left}
+.printing__kinds{display:flex;flex-wrap:wrap;gap:6px}
+.printing__kind{
+  padding:8px 10px;border:2px solid var(--ink);border-radius:var(--chip-radius);
+  font-size:calc(var(--label-size)*var(--type));line-height:1;color:var(--ink-soft);
 }
-#feed,.index__row[href="#feed"]{--accent:#345ecc;--accent-ink:#2b4fb0;--row-accent:#2b4fb0}
-#sensor,.index__row[href="#sensor"]{--accent:#b8891f;--accent-ink:#7a5a10;--row-accent:#7a5a10}
+.printing__kind.is-next{border-style:dashed;color:var(--ink)}
+.printing__kind.is-on{background:var(--accent-ink);color:#fff}
+.printing__kind.is-on.is-building{
+  background:repeating-linear-gradient(0deg,var(--accent-ink) 0 4px,var(--accent) 4px 6px)}
 
-.proj__label{padding-top:var(--s3)}
-.proj__label b{font-weight:400;color:var(--accent-ink)}
-.proj__title{
-  margin-top:var(--s5);
-  font-weight:600;font-size:clamp(40px,7vw,88px);line-height:.98;letter-spacing:-.035em;
-  color:var(--accent-ink);text-wrap:balance;
-}
-.nowrap{white-space:nowrap}   /* keep "off-gas" whole: a balanced wrap breaks at its hyphen */
-.claim{
-  margin-top:var(--s4);max-width:34ch;
-  font-size:clamp(20px,2.3vw,28px);line-height:1.3;letter-spacing:-.01em;text-wrap:balance;
-}
-
-/* three facts: a big lead, a small line under it */
-.facts{list-style:none;margin:var(--s6) 0 0;padding:0;display:grid;gap:var(--s4)}
-.facts li{border-top:2px solid var(--accent);padding-top:var(--s3)}
-.facts strong{
-  display:block;font-weight:600;
-  font-size:clamp(26px,3vw,38px);line-height:1.08;letter-spacing:-.02em;
-}
-.facts span{display:block;margin-top:var(--s2);font-size:15px;line-height:1.45;color:var(--ink-soft)}
-@media (min-width:640px){ .facts{grid-template-columns:repeat(3,minmax(0,1fr))} }
-
-.actions{display:flex;flex-wrap:wrap;gap:var(--s3) var(--s4);align-items:center;margin-top:var(--s5)}
-.note{font:400 13px/1.5 var(--mono);color:var(--ink-soft)}
-
-/* "How it works": closed by default, so a project reads in a few seconds and
-   the detail is one click away. A plain <details>: works without JavaScript. */
-.how{margin-top:var(--s5);border-block:var(--stroke-hair) solid var(--rule)}
+/* "How it works": closed, so a panel reads in a few seconds. Plain <details>. */
+.how{margin-top:var(--s4);border-top:var(--rule-line) var(--rule-style) var(--ink)}
 .how>summary{
   display:flex;justify-content:space-between;align-items:center;gap:var(--s3);
-  min-height:56px;cursor:pointer;list-style:none;
-  font-weight:600;font-size:17px;
+  min-height:52px;cursor:pointer;list-style:none;
+  font-size:calc(var(--label-size)*var(--type));line-height:1;
 }
 .how>summary::-webkit-details-marker{display:none}
-.how>summary::after{content:"+";font:400 24px/1 var(--mono);color:var(--accent-ink)}
+.how>summary::after{content:"+";font:400 24px/1 var(--f-body);color:var(--accent-ink)}
 .how[open]>summary::after{content:"\2212"}
 .how>summary:hover{color:var(--accent-ink)}
-.how__body{padding-bottom:var(--s5)}
-.how__body.split{margin-top:0}
+.how__body{padding-bottom:var(--s2);font-size:calc(16px*var(--type))}
 
-/* ---------- buttons ---------- */
+/* ---------- calls to action ---------- */
 .btn{
-  display:inline-flex;align-items:center;justify-content:center;min-height:44px;
-  padding:0 var(--s4);
-  background:var(--blue);color:#fff;text-decoration:none;
-  border:var(--stroke-rule) solid var(--ink);
-  font:600 15px/1 var(--sans);cursor:pointer;
+  position:relative;
+  display:inline-flex;align-items:center;justify-content:center;min-height:var(--btn-h);
+  padding:0 var(--btn-pad);
+  color:var(--btn-ink);text-decoration:none;cursor:pointer;
+  background-color:var(--btn-fill);
+  background-image:linear-gradient(var(--btn-mark),var(--btn-mark));
+  background-repeat:no-repeat;background-position:0 var(--btn-mark-y);
+  background-size:100% var(--btn-mark-h);
+  border:var(--btn-line) solid var(--ink);border-radius:var(--btn-radius);
+  box-shadow:calc(var(--btn-drop)*var(--drop-x)) calc(var(--btn-drop)*var(--drop-y)) 0 var(--shadow);
+  font:var(--btn-w) calc(var(--btn-size)*var(--type))/1.1 var(--f-btn);
+  letter-spacing:var(--btn-track);text-transform:var(--btn-case);
+  transform:rotate(var(--btn-tilt));
+  transition:transform var(--ui-t) ease,box-shadow var(--ui-t) ease,background-size var(--ui-t) ease;
 }
-.btn:hover{background:var(--ink);color:#fff}
-.btn:active{transform:translateY(1px)}
-.btn--ghost{background:var(--paper);color:var(--ink)}
-.btn--ghost:hover{background:var(--ink);color:#fff}
-
-/* ---------- figures ---------- */
-.fig{margin-top:var(--s5)}
-.fig__scroll{
-  overflow-x:auto;
-  overscroll-behavior-x:contain;
-  border:var(--stroke-obj) solid var(--ink);
-  background:var(--paper);
+.btn:hover{
+  background-size:100% calc(var(--btn-mark-h)*2.2);
+  transform:rotate(var(--btn-tilt)) translate(calc(var(--lift)*-1),calc(var(--lift)*-1));
+  box-shadow:calc(var(--btn-drop)*var(--drop-x)*1.5) calc(var(--btn-drop)*var(--drop-y)*1.5) 0 var(--shadow);
 }
-.fig__scroll>svg,.fig__scroll>img,.fig__scroll>picture>img{width:100%;height:auto}
+.btn:active{transform:rotate(var(--btn-tilt)) translate(2px,2px);
+  box-shadow:calc(var(--btn-drop)*var(--drop-x)*.25) calc(var(--btn-drop)*var(--drop-y)*.25) 0 var(--shadow)}
+/* A second kind of button exists only if the tweak bar asks for one
+   (--btn2-*); by default every call to action looks the same. */
+.btn--ghost{background-color:var(--btn2-fill,var(--btn-fill));color:var(--btn2-ink,var(--btn-ink))}
 
-/* Detail-dense drawings break out of the text measure and stop at their own
-   native width, so they are shown at 1:1 and never upscaled. */
-.fig--wide{
-  --fig-w:min(calc(100vw - var(--gutter) * 2), 1568px);
-  width:var(--fig-w);
-  max-width:none;
-  margin-left:calc(50% - var(--fig-w) / 2);
+/* ---------- index ---------- */
+.index{list-style:none;padding:0;margin-top:var(--s2)}
+.index li+li{border-top:var(--rule-line) var(--rule-style) var(--ink)}
+.index__row{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:var(--s3);align-items:baseline;
+  padding-block:var(--s3);color:var(--ink);text-decoration:none;
 }
+.index__no{font:var(--display-w) calc(22px*var(--type))/1 var(--f-display);color:var(--ink-soft)}
+.index__name{font:var(--display-w) calc(clamp(20px,2.3vw,30px)*var(--type))/1.05 var(--f-display);text-transform:var(--display-case)}
+.index__claim{display:block;margin-top:6px;font-size:calc(15px*var(--type));line-height:1.4;color:var(--ink-soft)}
+.index__kind{font-size:calc(var(--label-size)*var(--type));line-height:1;white-space:nowrap}
+.index__kind::after{content:" \2193"}
+.index__row:hover .index__name{color:var(--feed-ink)}
+.index__row[href="#impeller"]:hover .index__name{color:var(--imp-ink)}
+.index__row[href="#holder"]:hover .index__name{color:var(--rack-ink)}
+.index__row[href="#sensor"]:hover .index__name{color:var(--sensor-ink)}
+.index__row:hover .index__no{color:var(--ink)}
 
-/* The chain drawing ships a second, portrait version of itself for phones,
-   marked .fig--twin. Two files rather than one responsive drawing, because a
-   viewBox cannot be changed by a media query. Exactly one of the pair is ever
-   displayed, so nothing is announced twice. */
-.fig__phone{display:none}
-
-/* ---------- the hero scene ----------
-   A daylight lab, edge to edge across the page, with the perfusion train in
-   the middle of it. No frame: the room is the frame. Capped at 1800px so a
-   very wide screen does not get a scene taller than itself. */
-.fig--scene{max-width:1800px;margin-inline:auto;margin-top:var(--s4)}
-.fig--scene>.fig__scroll{border:0;background:none;overflow:hidden}
-.fig--scene>.fig__scroll>svg{display:block;width:100%;height:auto;max-width:none}
+/* ---------- panel + snapshot ---------- */
+.stack{position:relative;width:min(100%,var(--panel-w))}
+.snap{
+  position:relative;z-index:1;
+  width:min(62%,280px);margin:-28px 0 0 auto;
+  padding:10px 10px 6px;
+  background:var(--snap-paper);border:var(--line) solid var(--ink);
+  box-shadow:calc(var(--drop)*var(--drop-x)*.75) calc(var(--drop)*var(--drop-y)*.75) 0 var(--shadow);
+  transform:var(--rv,translate(0)) rotate(calc(var(--tilt,0deg)*var(--tilt-k)));
+}
+.snap img{width:100%;height:auto;aspect-ratio:4/3.4;object-fit:cover;border:2px solid var(--ink)}
+.snap figcaption{padding-top:4px;text-align:center;font-size:calc(23px*var(--type))}
+.stack--about .snap{margin:0 0 -34px -6px;width:min(58%,260px)}
+/* With room to spare the snapshot hangs off the panel's outer corner, over
+   the fermenter, instead of adding to the panel's height. */
+@media (min-width:861px){
+  .snap{position:absolute;margin:0;width:var(--snap-w);left:calc(100% - 18px);bottom:-72px}
+  .stack--about .snap{margin:0;width:calc(var(--snap-w) - 20px);left:auto;top:auto;right:-34px;bottom:-170px}
+  html[data-side="right"] .stack--about .snap{right:auto;left:-34px}
+  html[data-side="right"] .snap{left:auto;right:calc(100% - 18px)}
+}
+.snap--bench img{aspect-ratio:3/3.6;object-position:70% 30%}
 
 /* ---------- the designer, live ----------
-   The stage for the feed designer is the tool itself in a frame. It opens as
-   a guided tour: js/site.js scrolls the embedded tool from panel to panel and
-   rings the one being described, so it plays like a tutorial but stays as
-   sharp as the real thing and never goes out of date. "Try it live" hands the
-   frame to the visitor. Without JavaScript the frame is a link to the tool. */
-.demo{margin-top:var(--s5)}
+   The real tool in a frame. js/site.js scrolls it from panel to panel and
+   rings the one being described; "Try it live" hands it to the visitor. */
+/* The frame is as tall as the screen allows with the whole panel in view:
+   the nav above it, the caption and the step buttons below it. */
 .demo__frame{
-  position:relative;height:min(640px,78vh);
-  border:var(--stroke-obj) solid var(--ink);
-  background:var(--glass);overflow:hidden;
+  position:relative;height:clamp(320px,calc(100vh - var(--nav-h) - 216px),var(--demo-h));
+  border:2px solid var(--ink);background:#f5f7f8;overflow:hidden;
 }
-.demo__fallback{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  padding:var(--s4);text-align:center;font-weight:600;
-}
-.demo__iframe{
-  position:absolute;inset:0;width:100%;height:100%;border:0;
-  opacity:0;transition:opacity .4s ease;
-  pointer-events:none;          /* the tour drives it; live mode hands it over */
-}
+.demo__fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:var(--s4);text-align:center;font-weight:600}
+.demo__iframe{position:absolute;inset:0;width:100%;height:100%;border:0;
+  opacity:0;transition:opacity .4s ease;pointer-events:none}
 .demo.is-ready .demo__iframe{opacity:1}
 .demo.is-live .demo__iframe{pointer-events:auto}
-.demo.is-live .demo__frame{outline:3px solid var(--accent);outline-offset:-3px}
-
-.demo__bar{
-  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3) var(--s4);align-items:center;
-  border:var(--stroke-obj) solid var(--ink);border-top:0;
-  padding:var(--s3);
-}
+.demo.is-live .demo__frame{outline:4px solid var(--accent);outline-offset:-4px}
+.demo__bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3) var(--s4);align-items:center;padding-top:var(--s3)}
 .demo__bar[hidden]{display:none}
+/* room for two lines, so the buttons below do not jump from step to step;
+   one line where the panel is wide enough for every caption */
 .demo__cap{grid-column:1 / -1;display:flex;gap:var(--s3);align-items:baseline;min-height:2.6em;
-  font-size:clamp(17px,1.7vw,20px);line-height:1.3;letter-spacing:-.005em}
-.demo__n{flex:none;font:400 13px/1 var(--mono);letter-spacing:.12em;color:var(--accent-ink)}
-.demo__steps{display:flex;flex-wrap:wrap;gap:var(--s1)}
+  font-size:calc(clamp(17px,1.6vw,20px)*var(--type));line-height:1.3}
+@media (min-width:1100px){.demo__cap{min-height:1.3em}}
+.demo__n{flex:none;font:var(--display-w) calc(15px*var(--type))/1 var(--f-display);color:var(--accent-ink)}
+.demo__steps{display:flex;flex-wrap:wrap;gap:6px}
 .demo__step{
-  min-height:44px;padding:0 var(--s3);
-  background:var(--paper);color:var(--ink);cursor:pointer;
-  border:var(--stroke-box) solid var(--ink);
-  font:400 14px/1 var(--sans);
+  position:relative;overflow:hidden;
+  min-height:44px;padding:0 14px;cursor:pointer;
+  background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-radius:var(--chip-radius);
+  font-size:calc(var(--label-size)*var(--type));line-height:1;
 }
-.demo__step:hover{background:var(--rule)}
+.demo__step:hover{background:var(--ochre)}
 .demo__step[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-/* the bar on the active step fills while the tour waits on it */
-.demo__step{position:relative;overflow:hidden}
-.demo__step::after{
-  content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;
-  background:var(--accent);transform:scaleX(0);transform-origin:left;
-}
+.demo__step::after{content:"";position:absolute;left:0;bottom:0;height:4px;width:100%;
+  background:var(--ochre);transform:scaleX(0);transform-origin:left}
 .demo.is-playing .demo__step[aria-pressed="true"]::after{animation:demo-wait var(--demo-hold,5s) linear forwards}
 @keyframes demo-wait{to{transform:scaleX(1)}}
 
-/* ---------- layout blocks ---------- */
-.split{display:grid;gap:var(--s5);align-items:start}
-@media (min-width:820px){
-  .split--detail{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}
-  .split--about{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
-}
-.split--about{margin-top:var(--s5)}
-.split--about .h2{margin-bottom:var(--s4)}
-
-/* Photographs sit in the same ink frame as the drawings. */
-.photo{display:block}
-.photo img{display:block;width:100%;height:auto;border:var(--stroke-obj) solid var(--ink)}
-
-/* ---------- drawings that draw themselves ----------
-   Classes set by js/draw.js; without it none of this applies and every drawing
-   is simply shown. Strokes trace in, fills and plain shapes follow. */
-.dw .fig--draw:not(.dw-ready) svg{opacity:0;animation:dw-safety 0s 2.5s forwards}
-/* If draw.js never arrives (blocked, failed, slow network), a hidden drawing
-   would stay hidden. This shows it anyway after 2.5s, in CSS, needing nothing. */
-@keyframes dw-safety{to{opacity:1}}
-.dw-armed .dw-s{stroke-dashoffset:var(--dw-len) !important;fill-opacity:0 !important}
-.dw-armed .dw-f{opacity:0 !important}
-/* Round or square line-ends paint a dot even where the dash is still fully
-   offset, so an unstarted drawing showed as scattered specks. Butt ends while
-   the trace runs; the drawing's own ends come back when the classes go. */
-.dw-armed .dw-s,.dw-go .dw-s{stroke-linecap:butt !important}
-.dw-go .dw-s{transition:stroke-dashoffset 1.7s cubic-bezier(.55,0,.2,1),fill-opacity .7s ease 1.2s}
-.dw-go .dw-f{transition:opacity .7s ease 1.2s}
-
-/* ---------- desktop ---------- */
-@media (min-width:1100px){
-  :root{--section:128px}
-  body{font-size:17px}
-
-  .display{font-size:56px;line-height:1.04;letter-spacing:-.025em}
-  .display br{display:inline}
-  .h2{font-size:40px}
-  .prose{max-width:62ch}
-  .fig{margin-top:56px}
-  .demo{margin-top:56px}
-}
+/* the impeller and holder designers' frames have no tour: they are simply
+   live, and tall enough for the tool's own 3D view and its side panel */
+.demo--plain .demo__frame{height:clamp(320px,calc(100vh - var(--nav-h) - 110px),calc(var(--demo-h) + 60px))}
 
 /* ---------- footer ---------- */
-.footer{background:var(--ink);color:#fff;padding-block:var(--s5)}
+.footer{
+  position:relative;z-index:1;
+  display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);justify-content:space-between;align-items:center;
+  padding:var(--s4) var(--gutter);
+  background:var(--ink);color:#fff;font-size:calc(15px*var(--type));
+}
 .footer a{color:#fff}
 .footer a:hover{color:var(--ochre)}
-.footer__in{
-  max-width:var(--container);margin-inline:auto;padding-inline:var(--gutter);
-  display:flex;flex-wrap:wrap;gap:var(--s3) var(--s5);justify-content:space-between;
-  font:400 15px/1.6 var(--sans);
+.footer__note{font:400 calc(13px*var(--type))/1.5 var(--f-data);color:#b9b3a8}
+
+/* ---------- optional motion, off unless the tweak bar turns it on ----------
+   data-reveal: panels arrive as they scroll into view (js/site.js marks the
+   ones in view with .is-in). data-boil: panels jitter a hair, like the line
+   boil of hand-drawn animation. */
+html[data-reveal] .panel,html[data-reveal] .snap{
+  transition:opacity var(--reveal-t) ease,transform var(--reveal-t) cubic-bezier(.2,.9,.3,1.25);
 }
+html[data-reveal] .panel:not(.is-in),html[data-reveal] .snap:not(.is-in){opacity:0}
+html[data-reveal="rise"]  :is(.panel,.snap):not(.is-in){--rv:translateY(var(--reveal-d))}
+html[data-reveal="slide"] :is(.panel,.snap):not(.is-in){--rv:translateX(calc(var(--reveal-d)*-1.5))}
+html[data-reveal="pop"]   :is(.panel,.snap):not(.is-in){--rv:scale(.86)}
+html[data-reveal="stamp"] :is(.panel,.snap):not(.is-in){--rv:scale(1.18) rotate(4deg)}
+html[data-boil] .panel,html[data-boil] .cap{animation:boil var(--boil-t) steps(1) infinite}
+html[data-boil] .cap{animation-delay:calc(var(--boil-t)*-.4)}
+@keyframes boil{
+  0%{rotate:calc(var(--boil-a)*-1)}
+  33%{rotate:var(--boil-a)}
+  66%{rotate:calc(var(--boil-a)*-.4)}
+}
+html[data-hide~="hud"] .hud,html[data-hide~="nav"] .nav,html[data-hide~="snaps"] .snap,
+html[data-hide~="caps"] .cap,html[data-hide~="notes"] .scrawl,html[data-hide~="paperdots"] .stage::after{display:none}
+/* the panels keep their place in the page, so the scroll and the camera still work */
+html[data-hide~="panels"] main{visibility:hidden}
 
 /* ============================================================
-   Narrow screens
+   Narrow and portrait screens
+   The fermenter takes the upper part of the screen; each panel arrives from
+   below after a stretch of clear view, so the camera move is seen before the
+   text covers it.
    ============================================================ */
-@media (max-width:900px){
-  :root{--section:56px;--s5:28px;--s6:40px;--gutter:var(--s3)}
-  /* Per-project links do not fit beside the wordmark, and will fit less with
-     every project added. "Projects" jumps to the index, which lists them. */
+@media (max-width:860px){
+  :root{--drop:5px;--nav-h:56px;--cap-size:21px;--chip-pad:9px;--btn-size:18px}
+  body{font-size:calc((var(--body-size) - 1px)*var(--type))}
   .nav__links a:not(.nav__short):not([href="#about"]){display:none}
-  .nav__short{display:inline}
-  .nav__links a{display:inline-flex;align-items:center;min-height:44px;margin-block:-10px}
-  /* A footer link was a 62x21px target. Touch wants 44px. */
-  .footer__in a{display:inline-flex;align-items:center;min-height:44px}
+  .nav__short{display:inline-flex}
+  .nav{padding-inline:12px;gap:var(--s2)}
 
-  .fig--scene>.fig__scroll>svg{width:100%}
-  .fig--scene .tr-lbl{display:none}
-
-  /* swap the chain drawing for its portrait version, which fits the column */
-  .fig--twin>.fig__scroll:not(.fig__phone){display:none}
-  .fig--twin>.fig__phone{display:block}
-  .fig--twin>.fig__phone>svg{width:100%;max-width:none}
-}
-
-/* ============================================================
-   Phones (up to 700px)
-   ============================================================ */
-@media (max-width:700px){
-  .display{font-size:31px;line-height:1.1}
-
-  /* Phones crop the panorama to the train and its nearest surroundings: the
-     scene is drawn 140% wide and centred, so the far ends of the room fall
-     outside the frame. */
-  .fig--scene>.fig__scroll>svg{width:140%;margin-left:-20%}
-
+  .scene{min-height:0;padding:62vh var(--gutter) 10vh;align-items:flex-end;justify-content:center}
+  .scene--hero{min-height:100vh;min-height:100svh;padding-top:0;padding-bottom:7vh}
+  .scene--wide{padding-top:10vh}
+  .panel,.stack{width:100%;max-width:var(--panel-w)}
+  .panel{transform:var(--rv,translate(0)) rotate(calc(var(--tilt,0deg)*var(--tilt-k)*.5))}
+  .cap{left:-8px}
+  .facts{grid-template-columns:1fr}
+  .facts li{border-left:0;border-top:var(--facts-line) solid var(--ink);display:grid;grid-template-columns:8.5em 1fr;gap:var(--s3);align-items:baseline}
+  .facts li:first-child{border-top:0}
+  .facts span{margin-top:0}
   .index__row{grid-template-columns:auto minmax(0,1fr)}
   .index__kind{grid-column:2;margin-top:var(--s2)}
 
-  .proj__title{margin-top:var(--s4)}
-
-  /* The portrait chain drawing is ~1280px tall, 1.6 screens. The three facts
-     come first, straight after the claim, so a reader who stops early still
-     gets them; the drawing follows. */
-  .proj--tall>.wrap{display:flex;flex-direction:column}
-  .proj--tall .proj__label{order:1}
-  .proj--tall .proj__title{order:2}
-  .proj--tall .claim{order:3}
-  .proj--tall .facts{order:4;margin-top:var(--s5)}
-  .proj--tall .fig{order:5}
-  .proj--tall .actions{order:6}
-  .proj--tall .how{order:7}
-
-  /* The frame is a phone-sized window onto the tool's own phone layout. Trying
-     it live inside a 340px frame inside a page is two scrollers fighting, so
-     on a phone the tour plays and the button opens the tool itself. */
-  .demo__frame{height:min(520px,70vh)}
+  /* trying the tool inside a 340px frame inside a page is two scrollers
+     fighting: on a phone the tour plays and the button opens the tool */
+  .demo__frame{height:min(calc(var(--demo-h) - 100px),64vh)}
   .demo__bar{grid-template-columns:minmax(0,1fr)}
   .demo__live{display:none}
-  .demo__step{padding:0 12px}
+  /* the impeller designer needs a wide window: on a phone its frame is
+     left out (js/site.js skips the hidden scene) and the panel's own link
+     opens the tool on its own page */
+  .scene--impeller,.scene--holder,.only-wide{display:none}
+  .hud{display:none}
+  .footer__note{order:3;flex-basis:100%}
+  /* the bench photo sits on the panel's top right corner; the narration box
+     keeps the top left and breaks its line before it reaches the photo */
+  .stack--about .snap{margin:0 -4px -34px auto;width:min(52%,240px)}
+  .stack--about .cap{max-width:46%}
 }
 
 /* ============================================================
+   Wide but short screens (a laptop with the browser's bars on)
+   A project panel has to fit under the nav in one piece: a smaller title,
+   less air between its parts, and the bench photo beside its panel.
+   ============================================================ */
+@media (min-width:861px) and (max-height:780px){
+  .panel{padding:calc(clamp(18px,2vw,28px)*var(--panel-pad-k))}
+  .panel--demo{padding:calc(clamp(12px,1.3vw,18px)*var(--panel-pad-k))}
+  .shout{font-size:calc(clamp(28px,4vw,52px)*var(--shout-k)*var(--type))}
+  .title{margin-top:var(--s2);font-size:calc(clamp(28px,3vw,40px)*var(--title-k)*var(--type))}
+  .title--small{font-size:calc(clamp(26px,2.6vw,34px)*var(--title-k)*var(--type))}
+  .claim{margin-top:calc(var(--s3)*.75);font-size:calc(clamp(18px,1.5vw,21px)*var(--claim-k)*var(--type))}
+  .facts,.printing,.actions,.how{margin-top:var(--s3)}
+  .how>summary{min-height:44px}
+  .index__row{padding-block:calc(var(--s3)*.7)}
+  .snap{bottom:-40px}
+  .stack--about .snap{width:calc(var(--snap-w) - 60px);right:auto;left:calc(100% - 18px);bottom:-30px}
+  html[data-side="right"] .stack--about .snap{left:auto;right:calc(100% - 18px)}
+}
+
+/* ============================================================
+   No 3D: the panels become an ordinary comic page
+   ============================================================ */
+.no3d .scene{min-height:0;padding-block:7vh}
+.no3d .scene--hero{min-height:70vh;align-items:center}
+
+/* ============================================================
    Motion
-   The hero scene's animations are declared inside its SVG and run on the
-   document clock. The chain drawing traces in once (js/draw.js). The designer
-   tour scrolls an embedded tool (js/site.js). Asked for less motion, all three
-   stand still: the tour stops auto-advancing and its steps jump, not glide.
+   Asked for less: the fermenter still turns with the scroll, because the
+   reader moves it, but its simulation is frozen, the idle sway is off
+   (js/tank.js), and the tour steps jump instead of gliding (js/site.js).
    ============================================================ */
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *,*::before,*::after{animation:none!important;transition:none!important}
+  html[data-reveal] :is(.panel,.snap):not(.is-in){opacity:1;--rv:translate(0)}
 }

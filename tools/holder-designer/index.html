@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Holder designer</title>
+  <meta name="description" content="Design a printable rack for lab tubes, vials and cuvettes: pick the vessel, set how many across and deep, and download a 3MF or STL.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c6470'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='10' cy='11' r='4'/%3E%3Ccircle cx='22' cy='11' r='4'/%3E%3Ccircle cx='10' cy='22' r='4'/%3E%3Ccircle cx='22' cy='22' r='4'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="stylesheet" href="src/styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/build/three.module.js",
+      "three/addons/": "./vendor/three/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header class="bar">
+    <h1>Holder designer</h1>
+    <select id="style" class="family" aria-label="Holder style"></select>
+    <span class="grow"></span>
+    <button id="reset" class="quiet" type="button">Reset</button>
+    <button id="share" class="quiet" type="button">Copy link</button>
+    <select id="format" aria-label="File format">
+      <option value="3mf">3MF</option>
+      <option value="stl">STL</option>
+    </select>
+    <button id="download" class="go" type="button">Download</button>
+  </header>
+
+  <main>
+    <aside id="side" class="panel">
+      <form id="controls" autocomplete="off" aria-label="Holder settings"></form>
+    </aside>
+
+    <section class="stage" aria-label="3D preview">
+      <div class="viewwrap">
+        <div id="view"></div>
+        <div id="status" role="status"></div>
+        <div id="issues"></div>
+        <div class="stagefoot">
+          <span id="meshinfo"></span>
+          <span class="viewopts">
+            <label><input type="checkbox" id="vessels"> Show vessels</label>
+            <button id="fit" class="quiet" type="button">Fit view</button>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <aside id="readouts" class="panel" aria-label="Sizes and print figures">
+      <div id="values"></div>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <span>Vessel sizes are typical figures and vary between makers. Print one position as a test before a full rack.</span>
+  </footer>
+  <noscript><p class="noscript">The holder designer needs JavaScript to build and show the models.</p></noscript>
+
+  <div id="toast" role="status" hidden></div>
+  <div id="drop" hidden>Drop a 3MF from this tool to restore its design</div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
