@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Holder designer tour</title>
+  <meta name="description" content="A guided tour of the holder designer: every kind of holder it makes, with its features pointed out on the model.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c6470'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='10' cy='11' r='4'/%3E%3Ccircle cx='22' cy='11' r='4'/%3E%3Ccircle cx='10' cy='22' r='4'/%3E%3Ccircle cx='22' cy='22' r='4'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="stylesheet" href="src/tour.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/build/three.module.js",
+      "three/addons/": "./vendor/three/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <main id="stage" class="swap" aria-label="Guided tour of the holder designer">
+    <div id="view"></div>
+    <svg id="leaders" aria-hidden="true"></svg>
+    <div id="notes"></div>
+    <p id="busy">Building the models…</p>
+  </main>
+
+  <nav id="bar" aria-label="Tour steps" hidden>
+    <p id="caption" aria-live="polite"></p>
+    <div id="chips"></div>
+    <a class="open" href="./">Open the designer</a>
+  </nav>
+
+  <noscript><p class="noview">The tour needs JavaScript to build and show the models.</p></noscript>
+  <script type="module" src="src/tour.js"></script>
+</body>
+</html>

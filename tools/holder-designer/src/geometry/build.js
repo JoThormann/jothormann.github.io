@@ -80,11 +80,35 @@ function bevelled(kernel, keep, sx, sy, h, rad, c, segments) {
  * gets a 45° roof on its +y side, cut off at 1.25 radii so the point does not
  * run far into the wall. Printed with +y up, the hole then needs no bridging.
  */
-function teardropTip(M, keep, rad, h) {
-  // A four-sided cylinder of circumradius rad * sqrt(2) is a diamond whose sides touch the round hole.
+function teardropTip(M, keep, rad, h, cut = 1.25 * rad) {
+  // A four-sided cylinder of circumradius rad * sqrt(2) is a diamond whose sides touch the round hole
+  // at 45°, at height rad / sqrt(2). Only the part above those two points is the roof: below them the
+  // diamond's sides run outside the circle and would leave a straight step on each side of the hole.
   const diamond = keep(M.cylinder(h, rad * Math.SQRT2, rad * Math.SQRT2, 4, false));
-  const upper = keep(keep(M.cube([2 * rad, 1.25 * rad, h + 2], false)).translate([-rad, 0, -1]));
+  const touch = rad / Math.SQRT2 - 0.01;
+  const upper = keep(keep(M.cube([2 * rad, cut - touch, h + 2], false)).translate([-rad, touch, -1]));
   return keep(diamond.intersect(upper));
+}
+
+/**
+ * The funnel at the mouth of a teardrop opening: the teardrop widened by 45°,
+ * from the plain outline at z = 0 to one grown by c at z = c. Growing the round
+ * part, the roof and the cut-off all by c keeps the funnel the same shape as
+ * the hole, so the point gets its own sloped lead-in instead of notching a round one.
+ */
+function teardropFunnel(M, keep, rad, c, segments) {
+  // Two thin slices: the plain outline just below z = 0, the grown one just above z = c. Both
+  // outlines are convex, so their hull slopes at exactly 45° between z = 0 and z = c; the slivers
+  // outside that range lie inside the hole below or in the air above.
+  const t = 0.01;
+  const ring = (grow, z) => {
+    const r = rad + grow;
+    return [
+      keep(keep(M.cylinder(t, r, r, segments, false)).translate([0, 0, z])),
+      keep(teardropTip(M, keep, r, t, 1.25 * rad + grow).translate([0, 0, z])),
+    ];
+  };
+  return keep(M.hull([...ring(0, -t), ...ring(c, c)]));
 }
 
 /**
@@ -100,9 +124,11 @@ function opening(M, keep, r, bottom, top, segments) {
       : keep(M.cylinder(h, sLow / 2, sHigh / 2, segments, false));
   const parts = [keep(prism(top + 1 - bottom, r.hole, r.hole).translate([0, 0, bottom]))];
   if (r.tearOpenings) parts.push(keep(teardropTip(M, keep, r.hole / 2, top + 1 - bottom).translate([0, 0, bottom])));
-  if (r.chamfer > 0.05) {
-    const c = Math.min(r.chamfer, (top - bottom) * 0.8);
-    parts.push(keep(prism(c + 0.01, r.hole, r.hole + 2 * c + 0.02).translate([0, 0, top - c])));
+  const c = r.chamferC;
+  if (c > 0.05) {
+    parts.push(r.tearOpenings
+      ? keep(teardropFunnel(M, keep, r.hole / 2, c, segments).translate([0, 0, top - c]))
+      : keep(prism(c + 0.01, r.hole, r.hole + 2 * c + 0.02).translate([0, 0, top - c])));
   }
   return keep(M.union(parts));
 }
@@ -115,7 +141,7 @@ function openings(M, keep, r, bottom, top, segments) {
 
 /**
  * A solid from a convex outline in the x-z plane, pushed through from y0 to y1.
- * Used for the grip lips, whose sloped underside prints without support.
+ * Used for the peaked roof of the windows.
  */
 function prism(kernel, keep, outline, y0, y1) {
   const n = outline.length;
@@ -145,7 +171,7 @@ function prism(kernel, keep, outline, y0, y1) {
   return keep(new kernel.Manifold(new kernel.Mesh({ numProp: 3, vertProperties: verts, triVerts: new Uint32Array(tris) })));
 }
 
-/** Handles, windows, feet and pockets, added to or cut from the finished body. */
+/** Windows, feet and pockets, added to or cut from the finished body. */
 function extras(kernel, keep, r, body, segments) {
   const M = kernel.Manifold;
   const H = r.height;
@@ -156,34 +182,16 @@ function extras(kernel, keep, r, body, segments) {
     // Printed upright, a flat window top would bridge; a 45° peak carries itself.
     const peak = r.peakWindows ? Math.min(r.windowW / 2, r.windowHi - r.windowLo - 1) : 0;
     const straight = r.windowHi - peak - r.windowLo;
-    let slot = keep(keep(M.cube([r.windowW, r.sizeY + 2, straight], true)).translate([0, 0, r.windowLo + straight / 2]));
+    // Front only: the slot runs from the front face to the middle of the back row, so the back wall stays closed.
+    const y0 = -r.sizeY / 2 - 1;
+    const y1 = r.slotFrontOnly ? r.spanY / 2 : r.sizeY / 2 + 1;
+    let slot = keep(keep(M.cube([r.windowW, y1 - y0, straight], false)).translate([-r.windowW / 2, y0, r.windowLo]));
     if (peak > 0) {
       const z = r.windowHi - peak;
-      const roof = prism(kernel, keep, [[-r.windowW / 2, z - 0.01], [r.windowW / 2, z - 0.01], [0, z + (peak * r.windowW) / (2 * peak) * (2 * peak / r.windowW)]], -r.sizeY / 2 - 1, r.sizeY / 2 + 1);
+      const roof = prism(kernel, keep, [[-r.windowW / 2, z - 0.01], [r.windowW / 2, z - 0.01], [0, z + peak]], y0, y1);
       slot = keep(M.union([slot, roof]));
     }
     for (let i = 0; i < r.cols; i++) cut.push(keep(slot.translate([i * r.pitchX - r.spanX / 2, 0, 0])));
-  }
-
-  const flatY = r.sizeY / 2 - r.cornerR; // the straight part of each end
-  if (r.handles === 'lip' && flatY > 1) {
-    // A flat grip at the top with a 45° underside.
-    const t = 3;
-    const x0 = r.sizeX / 2 - 0.5;
-    const x1 = r.sizeX / 2 + r.handleLen;
-    const lip = prism(kernel, keep, [[x0, H], [x1, H], [x1, H - t], [x0, Math.max(0, H - t - (x1 - x0))]], -flatY, flatY);
-    add.push(lip, keep(lip.mirror([1, 0, 0])));
-  }
-  if (r.handles === 'loop' && flatY > 1) {
-    // A ring lying along the depth of the holder, sunk 2 mm into each end.
-    const len = 2 * flatY;
-    const holeR = r.loopR - 3.2;
-    let hole = keep(M.cylinder(len + 2, holeR, holeR, segments, true));
-    // Printed upright the loop's hole lies on its side: give it a teardrop point (it ends up facing +z after the turn below).
-    if (r.tearLoops) hole = keep(M.union([hole, keep(teardropTip(M, keep, holeR, len + 2).translate([0, 0, -(len + 2) / 2]))]));
-    const ring = keep(keep(M.cylinder(len, r.loopR, r.loopR, segments, true)).subtract(hole));
-    const placed = keep(keep(ring.rotate([90, 0, 0])).translate([r.sizeX / 2 + r.loopR - 2, 0, Math.max(H - r.loopR, r.loopR)]));
-    add.push(placed, keep(placed.mirror([1, 0, 0])));
   }
 
   const corners = (inset) => [[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([sx, sy]) => [sx * (r.sizeX / 2 - inset), sy * (r.sizeY / 2 - inset)]);
@@ -207,6 +215,106 @@ function extras(kernel, keep, r, body, segments) {
   return out.translate([0, 0, r.footH]);
 }
 
+/** A concave fillet of radius f along y, sitting in the corner at x = 0, z = 0, opening toward +x and +z. */
+function filletPiece(M, keep, f, len) {
+  const e = 0.02;
+  const bar = keep(keep(M.cube([f + e, len, f + e], false)).translate([-e, -len / 2, -e]));
+  const round = keep(keep(keep(M.cylinder(len + 2, f, f, 48, true)).rotate([90, 0, 0])).translate([f, 0, f]));
+  return keep(bar.subtract(round));
+}
+
+// Stroke font for position numbers: centre lines on a 2 x 4 grid, read from the front.
+const DIGITS = {
+  0: [[[0, 0], [2, 0], [2, 4], [0, 4], [0, 0]]],
+  1: [[[0.4, 3.2], [1.2, 4], [1.2, 0]]],
+  2: [[[0, 4], [2, 4], [2, 2], [0, 2], [0, 0], [2, 0]]],
+  3: [[[0, 4], [2, 4], [2, 0], [0, 0]], [[0.6, 2], [2, 2]]],
+  4: [[[0, 4], [0, 2], [2, 2]], [[2, 4], [2, 0]]],
+  5: [[[2, 4], [0, 4], [0, 2], [2, 2], [2, 0], [0, 0]]],
+  6: [[[2, 4], [0, 4], [0, 0], [2, 0], [2, 2], [0, 2]]],
+  7: [[[0, 4], [2, 4], [0.8, 0]]],
+  8: [[[0, 0], [2, 0], [2, 4], [0, 4], [0, 0]], [[0, 2], [2, 2]]],
+  9: [[[2, 2], [0, 2], [0, 4], [2, 4], [2, 0], [0, 0]]],
+};
+
+/**
+ * A number as a cutting tool in the front face (y = yFace, cutting toward +y by `depth`),
+ * centred on x = cx, z = cz, `h` tall, strokes `w` wide.
+ */
+function numberCut(M, keep, text, cx, cz, h, w, yFace, depth) {
+  const u = h / 4;
+  const width = text.length * 2 * u + (text.length - 1) * 0.9 * u;
+  const strokes = [];
+  [...text].forEach((ch, i) => {
+    const x0 = cx - width / 2 + i * 2.9 * u;
+    const z0 = cz - h / 2;
+    for (const line of DIGITS[ch]) {
+      for (let k = 0; k < line.length - 1; k++) {
+        const [ax, az] = [x0 + line[k][0] * u, z0 + line[k][1] * u];
+        const [bx, bz] = [x0 + line[k + 1][0] * u, z0 + line[k + 1][1] * u];
+        const len = Math.hypot(bx - ax, bz - az);
+        const deg = (Math.atan2(bz - az, bx - ax) * 180) / Math.PI;
+        // Square ends, w longer than the stroke, so neighbouring strokes meet without a gap.
+        const bar = keep(keep(keep(M.cube([len + w, depth + 0.5, w], true)).rotate([0, -deg, 0]))
+          .translate([(ax + bx) / 2, yFace + (depth - 0.5) / 2, (az + bz) / 2]));
+        strokes.push(bar);
+      }
+    }
+  });
+  return keep(M.union(strokes));
+}
+
+/**
+ * The single stand: a sleeve on a spoked ring or a disc, a 45° collar at the joint, slots that
+ * turn the sleeve into springy fingers, ribs inside that catch a conical tube, and a push-out hole.
+ */
+function singleStand(kernel, keep, r, segments) {
+  const M = kernel.Manifold;
+  const H = r.height;
+  const bT = r.baseT;
+  const Rs = r.sleeveR;
+  const Rb = r.baseD / 2;
+  const seg = Math.max(segments, 48);
+  const cyl = (h, r1, r2 = r1, z = 0) => keep(keep(M.cylinder(h, r1, r2, seg, false)).translate([0, 0, z]));
+
+  const parts = [];
+  if (r.baseRing) {
+    parts.push(keep(cyl(bT, Rb).subtract(cyl(bT + 2, Rb - r.ringW, Rb - r.ringW, -1))), cyl(bT, r.hubR));
+    const spoke = keep(keep(M.cube([Rb - r.ringW / 2, r.spokeW, bT], false)).translate([0, -r.spokeW / 2, 0]));
+    for (let k = 0; k < 4; k++) parts.push(keep(spoke.rotate([0, 0, 45 + 90 * k])));
+  } else {
+    parts.push(cyl(bT, Rb));
+  }
+  if (r.collar > 0.3) parts.push(cyl(r.collar, Rs + r.collar, Rs, bT - 0.01));
+  parts.push(cyl(H, Rs));
+  let body = keep(M.union(parts));
+  body = keep(body.subtract(opening(M, keep, r, bT, H, segments)));
+
+  if (r.slots) {
+    const slot = keep(keep(M.cube([Rs + 2, r.slotW, H - r.slotLo + 1], false)).translate([0, -r.slotW / 2, r.slotLo]));
+    const cuts = [];
+    for (let k = 0; k < r.slots; k++) cuts.push(keep(slot.rotate([0, 0, (k * 360) / r.slots])));
+    body = keep(body.subtract(keep(M.union(cuts))));
+  }
+
+  if (r.coneTabs) {
+    // Ribs from the wall in to tabR, flat on top at seatZ, a 45° underside that prints without support.
+    // They sit in the middle of the fingers (every other finger with six), clear of the slots.
+    const rin = r.hole / 2 + 0.4;
+    const z1 = r.seatZ;
+    const low = Math.max(0.1, z1 - 0.8 - (rin - r.tabR));
+    const tw = Math.max(1.6, 4 * r.nozzle);
+    const rib = prism(kernel, keep, [[r.tabR, z1], [rin, z1], [rin, low], [r.tabR, z1 - 0.8]], -tw / 2, tw / 2);
+    const n = r.slots || 4;
+    const step = n > 4 ? 2 : 1;
+    const ribs = [];
+    for (let k = 0; k < n; k += step) ribs.push(keep(rib.rotate([0, 0, (k * 360) / n + 180 / n])));
+    body = keep(M.union([body, ...ribs]));
+  }
+  if (r.pushD > 0) body = keep(body.subtract(cyl(bT + 2, r.pushD / 2, r.pushD / 2, -1)));
+  return body;
+}
+
 /**
  * @param kernel loaded Manifold module
  * @param r resolved, validated design (params.js resolve)
@@ -222,6 +330,7 @@ export function buildHolder(kernel, r, segments = 64) {
   };
   try {
     const H = r.height;
+    if (r.style === 'single') return singleStand(kernel, keep, r, segments).translate([0, 0, 0]);
     const outline = r.edgeC > 0.05
       ? bevelled(kernel, keep, r.sizeX, r.sizeY, H, r.cornerR, r.edgeC, segments)
       : slab(M, keep, r.sizeX, r.sizeY, H, r.cornerR, segments);
@@ -240,23 +349,63 @@ export function buildHolder(kernel, r, segments = 64) {
     if (r.standFloor) parts.push(plate(0));
     const guideZ = Math.round((H - r.plateT) / 2);
     if (r.guide) parts.push(plate(guideZ));
-    if (r.filletR > 0.2) {
-      // A concave fillet along each joint of a plate with an end wall: a square bar with a round bar cut out of it.
-      const f = r.filletR;
-      const e = 0.02;
-      const bar = keep(keep(M.cube([f + e, r.sizeY, f + e], false)).translate([-e, -r.sizeY / 2, -e]));
-      const round = keep(keep(keep(M.cylinder(r.sizeY + 2, f, f, 48, true)).rotate([90, 0, 0])).translate([f, 0, f]));
-      const piece = keep(bar.subtract(round)); // sits in the corner at x = 0, z = 0, opening toward +x and +z
-      const xw = r.sizeX / 2 - r.wallT;
-      const joints = [[H - r.plateT, -1]];
-      if (r.standFloor) joints.push([r.plateT, 1]);
-      if (r.guide) joints.push([guideZ, -1], [guideZ + r.plateT, 1]);
-      for (const [z, dir] of joints) {
-        const up = dir > 0 ? piece : keep(piece.mirror([0, 0, 1]));
-        parts.push(keep(up.translate([-xw, 0, z])), keep(keep(up.mirror([1, 0, 0])).translate([xw, 0, z])));
+    // Dividers: inner walls in the middle of the gap after every n-th column.
+    for (const x of r.divXs) parts.push(keep(keep(M.cube([r.wallT, r.sizeY, H], true)).translate([x, 0, H / 2])));
+
+    // Concave fillets along each joint of a plate with a wall. The top joint at the end walls follows
+    // the rounded frame corner when there is one, so the bend keeps its thickness.
+    const joints = [[H - r.plateT, -1]];
+    if (r.standFloor) joints.push([r.plateT, 1]);
+    if (r.guide) joints.push([guideZ, -1], [guideZ + r.plateT, 1]);
+    const pieces = new Map();
+    const piece = (f, dir) => {
+      const key = f + '/' + dir;
+      if (!pieces.has(key)) {
+        const up = filletPiece(M, keep, f, r.sizeY);
+        pieces.set(key, dir > 0 ? up : keep(up.mirror([0, 0, 1])));
+      }
+      return pieces.get(key);
+    };
+    const xw = r.sizeX / 2 - r.wallT;
+    for (const [z, dir] of joints) {
+      const f = z === H - r.plateT && dir < 0 ? r.topFilletR : r.filletR;
+      if (f > 0.2) {
+        const pc = piece(f, dir);
+        parts.push(keep(pc.translate([-xw, 0, z])), keep(keep(pc.mirror([1, 0, 0])).translate([xw, 0, z])));
+      }
+      if (r.divFilletR > 0.2) {
+        const pc = piece(r.divFilletR, dir);
+        for (const x of r.divXs) {
+          parts.push(keep(pc.translate([x + r.wallT / 2, 0, z])), keep(keep(pc.mirror([1, 0, 0])).translate([x - r.wallT / 2, 0, z])));
+        }
       }
     }
-    const frame = keep(keep(M.union(parts)).intersect(outline));
+
+    // Number pads: discs standing on the front edge of the bottom plate, flush with the front face.
+    const at = positions(r).slice(0, r.cols).map(([x]) => x);
+    if (r.labelsOn && r.labelT >= 1.2) {
+      const disc = keep(keep(keep(M.cylinder(r.labelT, r.labelD / 2, r.labelD / 2, 48, false)).rotate([90, 0, 0]))
+        .translate([0, -r.sizeY / 2 + r.labelT, r.labelD / 2]));
+      for (const x of at) parts.push(keep(disc.translate([x, 0, 0])));
+    }
+    let frame = keep(keep(M.union(parts)).intersect(outline));
+    if (r.frameRC > 0.2) {
+      // Round the two top corners seen from the front: keep only what lies inside a rounded profile.
+      const R = r.frameRC;
+      const X = r.sizeX / 2 - R;
+      const len = r.sizeY + 2;
+      const profile = keep(M.union([
+        keep(keep(M.cube([r.sizeX + 2, len, H - R + 1], false)).translate([-r.sizeX / 2 - 1, -len / 2, -1])),
+        keep(keep(M.cube([2 * X, len, H + 1], false)).translate([-X, -len / 2, -1])),
+        ...[-1, 1].map((sx) => keep(keep(keep(M.cylinder(len, R, R, Math.max(segments, 64), true)).rotate([90, 0, 0])).translate([sx * X, 0, H - R]))),
+      ]));
+      frame = keep(frame.intersect(profile));
+    }
+    if (r.labelsOn && r.labelT >= 1.2 && r.labels === 'digits' && r.digitH >= 2) {
+      const depth = Math.min(0.6, r.labelT - 0.6);
+      const cuts = at.map((x, i) => numberCut(M, keep, String(i + 1), x, r.labelD / 2, r.digitH, r.digitW, -r.sizeY / 2, depth));
+      frame = keep(frame.subtract(keep(M.union(cuts))));
+    }
     return extras(kernel, keep, r, keep(frame.subtract(openings(M, keep, r, r.standFloor ? r.plateT + 0.01 : -1, H, segments))), segments);
   } finally {
     for (const m of bin) m.delete();

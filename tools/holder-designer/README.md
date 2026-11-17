@@ -5,11 +5,13 @@ the vessel, set how many across and deep, and download a 3MF or STL.
 
 - Vessels: 0.2, 0.5, 1.5, 2, 5, 15 and 50 ml tubes, cryovials, glass vials,
   cuvettes, and custom round or square sizes (`src/vessels.js`).
-- Three styles: solid block with blind openings, open stand (plates on end
-  walls), and tray with wall-to-wall pockets.
+- Four kinds: solid block with blind openings, open stand (plates on end
+  walls, optional dividers, position numbers and rounded frame corners), tray
+  with wall-to-wall pockets, and single stand (one sleeve on a spoked ring or
+  disc, optional springy fingers, ribs that seat conical tubes on their cone).
 - Live 3D view with the vessels in place, size and filament figures, checks for
   thin walls, colliding caps, tipping and bed size.
-- Extras: grip lips or finger loops, side windows, stacking feet or recesses
+- Extras: viewing slots (front and back, or front only), stacking feet or recesses
   for stick-on feet, and filling a box of a given size.
 - Shaped for FDM printing: the tool picks the way up (stands lie on a long
   side), turns sideways holes into teardrops, gives windows a 45° peak, bevels
@@ -40,6 +42,7 @@ reads PASSED or FAILED.
 | `src/params.js` | Every control, default, range and validation rule; sizes are worked out in `resolve()` |
 | `src/geometry/build.js` | The solid builder for the three styles |
 | `src/view.js`, `src/main.js` | 3D view and page wiring |
+| `tour.html`, `src/tour*.js`, `src/tour.css` | Guided tour: finished holders one at a time, features pinned on the model. The holders it shows are `SHOWCASE` in `src/tour-build.js`; they are built in a worker (`tour-worker.js`). `?embed` hides its own step bar so a page around it can drive it (`window.holderTour`) |
 | `src/export/` | STL, 3MF and the small ZIP reader/writer |
 | `vendor/` | three.js 0.180.0 (MIT) and manifold-3d 3.2.1 (Apache-2.0), with their licence files |
 

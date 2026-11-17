@@ -1,5 +1,5 @@
 // Browser test page: open tests.html. The title reads PASSED or FAILED.
-import { PARAMS, defaults, sanitize, resolve, validate, toQuery, fromQuery, shapeKey, STYLES } from '../src/params.js';
+import { PARAMS, defaults, sanitize, resolve, validate, toQuery, fromQuery, shapeKey, STYLES, shownFor } from '../src/params.js';
 import { VESSELS } from '../src/vessels.js';
 import { loadKernel } from '../src/geometry/kernel.js';
 import { buildHolder, positions, toMesh, solidVolume } from '../src/geometry/build.js';
@@ -7,6 +7,7 @@ import { analyse } from '../src/print.js';
 import { stlBuffer } from '../src/export/stl.js';
 import { threeMf, readDesign } from '../src/export/threemf.js';
 import { zipRead } from '../src/export/zip.js';
+import { SHOWCASE, ADAPT, makeMesh } from '../src/tour-build.js';
 
 const lines = [];
 let failed = 0;
@@ -162,10 +163,6 @@ try {
     check('fill a box: as many positions as fit, outer size fills the box',
       box.cols === 6 && box.rows === 6 && box.sizeX === 128 && box.sizeY === 128 && near(box.marginX, (128 - 100 - 11.5) / 2, 1e-9),
       `${box.cols} x ${box.rows}, margins ${box.marginX}`);
-    check('fill a box: handles are counted inside the box', (() => {
-      const h = design({ fitBox: true, boxX: 130, boxY: 130, boxGap: 1, handles: 'lip', handleLen: 15 });
-      return h.outerX === 128 && h.cols === 4 && h.sizeX === 98;
-    })());
     check('a box too small for one position is an error', errors(design({ fitBox: true, boxX: 20, boxY: 20, vessel: 'f50' })).some((i) => /Not even one/.test(i.text)));
     const boxB = build(box);
     check('the box-filling holder builds to exactly that size', boxB.m.watertight && near(boxB.m.size[0], 128, 1e-6) && near(boxB.m.size[1], 128, 1e-6));
@@ -182,23 +179,15 @@ try {
     check('windows remove a slot per column, less what the openings already took', near(plain.v - w.v, expectW, 0.01) && w.m.watertight,
       `${(plain.v - w.v).toFixed(0)} vs ${expectW.toFixed(0)} mm3`);
     check('windows do not change the outer size', near(w.m.size[0], wR.sizeX, 1e-6) && near(w.m.size[2], wR.height, 1e-6));
+    // Front only: the slot stops in the middle of the back row, so the back wall stays whole.
+    const fR = design({ ...flat, windows: true, windowSides: 'front' });
+    const front = build(fR, 256);
+    check('front-only slots remove less than slots through both sides, and keep the back wall',
+      front.v > w.v && plain.v - front.v > 0.3 * (plain.v - w.v) && front.m.watertight && near(front.m.size[1], fR.sizeY, 1e-6),
+      `${(plain.v - front.v).toFixed(0)} vs ${(plain.v - w.v).toFixed(0)} mm3`);
+    check('front-only slots with a single row and peaked tops build', build(design({ windows: true, windowSides: 'front', rows: 1 })).m.watertight);
     check('too shallow for windows: none cut, and said so',
       !design({ style: 'tray', vessel: 'pcr', windows: true }).hasWindows && validate(design({ style: 'tray', vessel: 'pcr', windows: true })).some((i) => /too shallow/.test(i.text)));
-
-    // Grip lips: a 3 mm flat with a 45° underside at each end.
-    const lR = design({ ...flat, handles: 'lip', handleLen: 12 });
-    const lip = build(lR, 256);
-    const lipV = 2 * lR.sizeY * (12 * 3 + 0.5 * 12 * 12);
-    check('grip lips add two wedges and widen the holder by twice the reach', near(lip.v - plain.v, lipV, 0.01) && near(lip.m.size[0], lR.sizeX + 24, 1e-6) && lip.m.watertight,
-      `${(lip.v - plain.v).toFixed(0)} vs ${lipV.toFixed(0)} mm3`);
-    check('outer width in the readout includes the handles', lR.outerX === lR.sizeX + 24);
-
-    // Finger loops.
-    const oR = design({ ...flat, style: 'stand', vessel: 'f50', cols: 4, rows: 1, handles: 'loop', handleLen: 26 });
-    const loop = build(oR, 128);
-    check('finger loops: 20 mm hole at 26 mm reach, as on your stands', oR.loopHole === 21.6 || Math.abs(oR.loopHole - 20) < 2, `${oR.loopHole} mm`);
-    check('finger loops build as part of one closed solid and widen it by twice the reach', loop.m.watertight && near(loop.m.size[0], oR.sizeX + 52, 1e-3));
-    check('small loops are flagged', validate(design({ handles: 'loop', handleLen: 10 })).some((i) => /tight for a finger/.test(i.text)));
 
     // Stacking feet.
     const sR = design({ ...flat, feet: 'stack', margin: 9 });
@@ -219,9 +208,9 @@ try {
     check('recesses for stick-on feet: four shallow pockets underneath', near(plain.v - pad.v, 4 * Math.PI * 5.25 ** 2 * 1.2, 0.03) && pad.m.watertight && near(pad.m.size[2], pR.height, 1e-6),
       `${(plain.v - pad.v).toFixed(0)} mm3`);
 
-    const all = build(design({ vessel: 'cuvette', cols: 4, rows: 1, windows: true, handles: 'lip', feet: 'stack', margin: 9 }));
-    check('cuvette holder with windows, lips and stacking feet builds', all.m.watertight && all.v > 0);
-    const linked = sanitize({ ...defaults(), fitBox: true, boxX: 150, handles: 'loop', handleLen: 24, windows: true, feet: 'pads', padD: 12 });
+    const all = build(design({ vessel: 'cuvette', cols: 4, rows: 1, windows: true, feet: 'stack', margin: 9 }));
+    check('cuvette holder with windows and stacking feet builds', all.m.watertight && all.v > 0);
+    const linked = sanitize({ ...defaults(), fitBox: true, boxX: 150, windows: true, windowSides: 'front', feet: 'pads', padD: 12 });
     check('extras survive a share link', JSON.stringify(fromQuery(toQuery(linked))) === JSON.stringify(linked));
   }
 
@@ -249,19 +238,11 @@ try {
     check('teardrop openings are on by default for a stand', design(base).tearOpenings && !design({ ...base, printShape: false }).tearOpenings);
     check('teardrops cut the hanging surface of a stand on its side by more than half', hang(tear, 1) < 0.5 * hang(roundHoles, 1),
       `${(hang(tear, 1) / 100).toFixed(1)} vs ${(hang(roundHoles, 1) / 100).toFixed(1)} cm2`);
-    // Each teardrop adds the area between the 45° roof and the round hole, up to 1.25 radii: through one 4 mm plate.
+    // Each teardrop adds the area between its two 45° roof lines (tangent to the hole) and the round hole,
+    // up to 1.25 radii: teardrop R² + 3 pi R² / 4 - (sqrt2 R - 1.25 R)², less the circle. Through one 4 mm plate.
     const R = 9;
-    const tipArea = (() => { // integrate the gap between roof line and circle numerically
-      let a = 0; const n = 4000;
-      for (let i = 0; i < n; i++) {
-        const x = -R + (2 * R * (i + 0.5)) / n;
-        const roof = Math.min(R * Math.SQRT2 - Math.abs(x), 1.25 * R);
-        const circle = Math.sqrt(R * R - x * x);
-        if (roof > circle) a += (roof - circle) * (2 * R / n);
-      }
-      return a;
-    })();
-    check('each teardrop removes exactly its pointed part from the plate', near(roundHoles.v - tear.v, 8 * tipArea * 4, 0.02), `${(roundHoles.v - tear.v).toFixed(0)} vs ${(8 * tipArea * 4).toFixed(0)} mm3`);
+    const tipArea = R * R - (Math.PI / 4) * R * R - (Math.SQRT2 * R - 1.25 * R) ** 2;
+    check('each teardrop removes exactly its pointed part from the plate', near(roundHoles.v - tear.v, 8 * tipArea * 4, 0.01), `${(roundHoles.v - tear.v).toFixed(0)} vs ${(8 * tipArea * 4).toFixed(0)} mm3`);
     check('a stand hangs far less on its side than upright', hang(tear, 1) < 0.2 * hang(tear, 2), `${(hang(tear, 1) / 100).toFixed(1)} vs ${(hang(tear, 2) / 100).toFixed(1)} cm2`);
     check('square openings get no teardrop', !design({ style: 'stand', vessel: 'cuvette' }).tearOpenings);
     check('tight rows are warned about the teardrop points',
@@ -276,11 +257,70 @@ try {
       `${(hang(peak, 2) / 100).toFixed(1)} vs ${(hang(flatTop, 2) / 100).toFixed(1)} cm2`);
     check('a peaked window removes less material than a flat-topped one of the same height', peak.v > flatTop.v && peak.m.watertight);
 
-    // Finger loops with teardrop holes.
-    const lp = { corner: 0, chamfer: 0, edge: 0, handles: 'loop', handleLen: 26, autoHeight: false, height: 40, depth: 20 };
-    const tl = build(design(lp), 128);
-    const rl = build(design({ ...lp, printShape: false }), 128);
-    check('finger loops get teardrop holes when printed upright', design(lp).tearLoops && tl.v < rl.v && tl.m.watertight && hang(tl, 2) < hang(rl, 2));
+    // ---- funnel at the mouth ----
+    // Removed material per opening, from the outline's area A(g) grown by g, integrated over the funnel's depth c.
+    // Round: pi (R + g)². Square: (s + 2g)². Teardrop: circle plus the pointed part between its 45° roof and the
+    // circle, cut off at 1.25 R + g: 3 pi rho² / 4 + rho² - (sqrt2 rho - k)², with rho = R + g, k = 1.25 R + g.
+    const funnelV = (r) => {
+      const c = r.chamferC, R = r.hole / 2;
+      const A = (g) => {
+        if (r.v.shape === 'square') return (r.hole + 2 * g) ** 2;
+        if (!r.tearOpenings) return Math.PI * (R + g) ** 2;
+        const rho = R + g, k = 1.25 * R + g;
+        return (3 * Math.PI / 4) * rho * rho + rho * rho - Math.max(0, Math.SQRT2 * rho - k) ** 2;
+      };
+      let v = 0; const n = 400;
+      for (let i = 0; i < n; i++) v += (A(((i + 0.5) / n) * c) - A(0)) * (c / n);
+      return v * r.count;
+    };
+    const tf = { style: 'stand', vessel: 'f15', cols: 3, rows: 2, corner: 0, edge: 0, fillet: 0, chamfer: 1.5 };
+    const tfR = design(tf);
+    const withF = build(tfR, 256);
+    const without = build(design({ ...tf, chamfer: 0 }), 256);
+    check('the teardrop is round right up to where its roof lines touch, with no step at the sides',
+      (() => { const m = withF.mesh, p = m.positions; let worst = 0;
+        // Every vertex of an opening, below the touching points, lies on the circle (within facet error).
+        const at = positions(tfR); const R0 = tfR.hole / 2;
+        for (let i = 0; i < p.length; i += 3) {
+          const z = p[i + 2]; if (z < tfR.height - tfR.plateT + 0.1 || z > tfR.height - tfR.chamferC - 0.1) continue;
+          for (const [x, y] of at) {
+            const dx = p[i] - x, dy = p[i + 1] - y, d = Math.hypot(dx, dy);
+            if (d < R0 + 1.5 && dy < R0 / Math.SQRT2 - 0.05) worst = Math.max(worst, d - R0);
+          }
+        }
+        return worst < 0.02; })());
+    check('teardrop openings get a teardrop funnel: the point has its own lead-in, not a notch in a round one',
+      tfR.tearOpenings && near(without.v - withF.v, funnelV(tfR), 0.015) && withF.m.watertight,
+      `${(without.v - withF.v).toFixed(1)} vs ${funnelV(tfR).toFixed(1)} mm3`);
+
+    // Any configuration: every funnel is whole, has the opening's shape and stays clear of its neighbours, the
+    // edge and the underside of the plate. Then the removed material is exactly the funnels' sum.
+    let bad = [];
+    let tried = 0;
+    for (const style of Object.keys(STYLES)) {
+      for (const vessel of ['t15', 'f15', 'f50', 'pcr', 'scint', 'cuvette']) {
+        for (const printDir of ['auto', 'side']) {
+          for (const rows of [1, 3]) {
+            const o = { style, vessel, printDir, cols: 3, rows, chamfer: 3, edge: 1, corner: 4 };
+            const r = design(o);
+            if (errors(r).length || r.chamferC < 0.05) continue;
+            tried++;
+            const a = build(r, 128);
+            const b = build(design({ ...o, chamfer: 0 }), 128);
+            const plate = style === 'stand' ? r.plateT : r.depth;
+            // 3 %, or 0.06 mm3 per opening for funnels a fraction of a millimetre deep (facets).
+            const ok = a.m.watertight && Math.abs(b.v - a.v - funnelV(r)) <= Math.max(0.03 * funnelV(r), 0.06 * r.count) && r.chamferC <= plate * 0.8 + 1e-9;
+            if (!ok) bad.push(`${style}/${vessel}/${printDir}/${rows} rows: ${(b.v - a.v).toFixed(1)} vs ${funnelV(r).toFixed(1)}`);
+          }
+        }
+      }
+    }
+    check(`funnels in ${tried} configurations (each kind, six vessels, both ways up, one and three rows) are whole and clear of each other`,
+      tried > 40 && !bad.length, bad.slice(0, 3).join('; '));
+    check('the funnel is held back on a thin stand plate and between tight teardrops',
+      design({ style: 'stand', vessel: 'f15', plateT: 1.2, chamfer: 3 }).chamferC <= 0.6 + 1e-9 &&
+      design({ style: 'stand', vessel: 'f15', rows: 2, autoSpacing: false, pitchX: 25, pitchY: 21.5, chamfer: 3 }).chamferC <= (21.5 - 18 - 18 / 8 - 0.6) / 2 + 1e-9);
+    check('a funnel held back a lot is said so', validate(design({ style: 'stand', vessel: 'f15', plateT: 1.2, chamfer: 3 })).some((i) => /room for a/.test(i.text)));
 
     // Bevelled edges.
     const bR = design({ chamfer: 0, corner: 0, edge: 1 });
@@ -303,8 +343,116 @@ try {
     check('a guide plate gets fillets on both sides', near(build(design({ ...base, fillet: 3, guide: true }), 128).v - build(design({ ...base, guide: true }), 128).v, 8 * perJoint, 0.03));
     check('the fillet is held back so it does not run into the openings', design({ ...base, fillet: 10, margin: 2 }).filletR <= 1.4 + 1e-9);
     check('all print features together build as one closed solid',
-      build(design({ style: 'stand', vessel: 'f50', cols: 4, rows: 1, handles: 'loop', handleLen: 26, guide: true, edge: 1, fillet: 4, feet: 'stack', margin: 9 })).m.watertight &&
-      build(design({ vessel: 'cuvette', cols: 4, rows: 1, windows: true, handles: 'lip', feet: 'pads', edge: 1, margin: 6 })).m.watertight);
+      build(design({ style: 'stand', vessel: 'f50', cols: 4, rows: 1, guide: true, edge: 1, fillet: 4, feet: 'stack', margin: 9 })).m.watertight &&
+      build(design({ vessel: 'cuvette', cols: 4, rows: 1, windows: true, windowSides: 'front', feet: 'pads', edge: 1, margin: 6 })).m.watertight);
+  }
+
+  // ---- single stand ----
+  {
+    const one = { style: 'single', chamfer: 0 };
+    const f50 = design({ ...one, vessel: 'f50' });
+    check('single stand: one place, base about 0.9 of the loaded height, never narrower than the sleeve plus 12 mm all round',
+      f50.count === 1 && f50.baseD === Math.round(0.9 * (f50.rest + 115)) && design({ ...one, vessel: 'pcr' }).baseD >= 2 * design({ ...one, vessel: 'pcr' }).sleeveR + 24);
+    check('single stand: rows, spacing and feet are not offered', !shownFor(PARAMS.find((d) => d.id === 'cols'), f50) && !shownFor(PARAMS.find((d) => d.id === 'feet'), f50) &&
+      shownFor(PARAMS.find((d) => d.id === 'grip'), f50) && !shownFor(PARAMS.find((d) => d.id === 'grip'), design({})));
+    check('single stand prints upright, with no teardrops', f50.printUp === 'z' && !f50.tearOpenings);
+
+    // Where the cone touches the ribs: the drawn tube narrows from its body radius to a quarter of it over the cone.
+    const coneR = (r, h) => (r.v.body / 2) * (0.25 + 0.75 * Math.min(1, h / r.v.cone));
+    check('cone ribs: the tube touches them with its cone and its tip stays 2 mm above the floor',
+      f50.coneTabs && near(coneR(f50, f50.seatZ - f50.rest), f50.tabR, 0.01) && f50.rest === f50.baseT + 2 && f50.seatZ < f50.rest + 15);
+    check('flat-bottomed vials stand on the floor, no ribs', !design({ ...one, vessel: 'cryo' }).coneTabs && design({ ...one, vessel: 'cryo' }).rest === 3);
+    check('cone ribs can be switched off', !design({ ...one, vessel: 'f50', coneSeat: false }).coneTabs);
+
+    // Base: a spoked ring has four openings, the push-out hole one more; a closed disc without a hole none.
+    const disc = build(design({ ...one, vessel: 'cryo', base: 'disc', pushHole: false }), 64);
+    const ring = build(design({ ...one, vessel: 'f50' }), 64);
+    const ringNoHole = build(design({ ...one, vessel: 'f50', pushHole: false }), 64);
+    check('solid disc base, closed bottom: one closed solid with no through-holes', disc.m.watertight && disc.genus === 0, `genus ${disc.genus}`);
+    check('spoked ring: four openings between the spokes, and the push-out hole goes through', ring.m.watertight && ringNoHole.genus === 4 && ring.genus === 5,
+      `genus ${ringNoHole.genus} / ${ring.genus}`);
+    check('the stand is the stated size', near(ring.m.size[0], f50.baseD, 1e-3) && near(ring.m.size[2], f50.height, 1e-6) && Math.abs(ring.m.zMin) < 1e-6);
+
+    // Ribs: each adds its profile between the bore and tabR, (x)·0.8 + x²/2 with x = hole/2 - tabR, times its width.
+    const rb = design({ ...one, vessel: 'f15', grip: '4', pushHole: false, autoHeight: false, height: 60, autoBase: false, baseD: 100 });
+    const withRibs = build(rb, 128);
+    const noRibs = build(design({ ...one, vessel: 'f15', grip: '4', pushHole: false, coneSeat: false, autoHeight: false, height: 60, autoBase: false, baseD: 100 }), 128);
+    const x = rb.hole / 2 - rb.tabR;
+    const ribV = 4 * Math.max(1.6, 4 * rb.nozzle) * (0.8 * x + x * x / 2);
+    check('four cone ribs inside a four-finger sleeve', near(withRibs.v - noRibs.v, ribV, 0.06) && withRibs.m.watertight, `${(withRibs.v - noRibs.v).toFixed(0)} vs ${ribV.toFixed(0)} mm3`);
+
+    // Fingers: each slot takes slot width x wall x its height out of the sleeve.
+    const closed = build(design({ ...one, vessel: 'f15', coneSeat: false, pushHole: false }), 128);
+    const four = design({ ...one, vessel: 'f15', grip: '4', coneSeat: false, pushHole: false });
+    const fingers = build(four, 128);
+    const slotV = 4 * four.slotW * four.sleeveT * (four.height - four.slotLo);
+    check('four slots cut the sleeve into four fingers', near(closed.v - fingers.v, slotV, 0.05) && fingers.m.watertight && fingers.genus === closed.genus,
+      `${(closed.v - fingers.v).toFixed(0)} vs ${slotV.toFixed(0)} mm3`);
+    check('3 and 6 fingers, square cuvettes and custom sizes build as closed solids',
+      build(design({ ...one, vessel: 'f50', grip: '3' })).m.watertight && build(design({ ...one, vessel: 'f50', grip: '6' })).m.watertight &&
+      build(design({ ...one, vessel: 'cuvette', grip: '4' })).m.watertight && build(design({ ...one, vessel: 'customRound', customSize: 40, customLength: 150, base: 'disc' })).m.watertight);
+    check('a base too small for a ring becomes a disc, and says so',
+      !design({ ...one, vessel: 'pcr' }).baseRing && validate(design({ ...one, vessel: 'pcr' })).some((i) => /solid disc/.test(i.text)));
+    check('a narrow hand-set base is warned about', validate(design({ ...one, vessel: 'f50', autoBase: false, baseD: 50 })).some((i) => /tips easily/.test(i.text)));
+    check('a single stand survives a share link', (() => {
+      const q = sanitize({ ...defaults(), style: 'single', vessel: 'f50', grip: '4', base: 'disc', autoBase: false, baseD: 90, pushHole: false });
+      return JSON.stringify(fromQuery(toQuery(q))) === JSON.stringify(q);
+    })());
+  }
+
+  // ---- open stand: dividers, rounded frame corners, position numbers ----
+  {
+    const bare = { style: 'stand', vessel: 'f15', cols: 9, rows: 1, corner: 0, chamfer: 0, edge: 0, fillet: 0, printShape: false, margin: 10 };
+    const b0 = design(bare);
+    const plain = build(b0, 128);
+    const dR = design({ ...bare, dividers: 'three' });
+    const div = build(dR, 128);
+    const between = dR.height - 2 * dR.plateT;
+    check('dividers after every third position: two walls between the plates', dR.divXs.length === 2 && near(div.v - plain.v, 2 * dR.wallT * dR.sizeY * between, 0.002) && div.m.watertight,
+      `${(div.v - plain.v).toFixed(0)} vs ${(2 * dR.wallT * dR.sizeY * between).toFixed(0)} mm3`);
+    check('dividers sit in the middle of the gaps', dR.divXs.every((x) => Math.abs(((x + dR.spanX / 2) / dR.pitchX) % 1 - 0.5) < 1e-9));
+    check('no room between positions for a divider is an error',
+      errors(design({ style: 'stand', vessel: 'f15', autoSpacing: false, pitchX: 21, pitchY: 25, dividers: 'two' })).some((i) => /not enough room/.test(i.text)));
+    check('dividers with fillets build', build(design({ style: 'stand', vessel: 'f15', cols: 8, rows: 2, dividers: 'two', fillet: 3 })).m.watertight);
+
+    // Rounded frame corners: the outside loses (1 - pi/4) R² per corner, the inside fillet of R - t gives (1 - pi/4)(R - t)² back.
+    const R = 10;
+    const fr = design({ ...bare, frameR: R });
+    const frame = build(fr, 256);
+    const expectF = 2 * fr.sizeY * (1 - Math.PI / 4) * (R * R - (R - 4) ** 2);
+    check('rounded frame corners: the bend keeps the wall thickness', fr.frameRC === R && fr.topFilletR === R - 4 && near(plain.v - frame.v, expectF, 0.02) && frame.m.watertight,
+      `${(plain.v - frame.v).toFixed(0)} vs ${expectF.toFixed(0)} mm3`);
+    check('the rounding is held back so it ends before the outermost openings', design({ ...bare, margin: 4, frameR: 40 }).frameRC <= 4 - 0.6 + 4 + 1e-9 &&
+      validate(design({ ...bare, margin: 4, frameR: 40 })).some((i) => /round the frame corners by/.test(i.text)));
+    check('stacking feet keep the frame corners square', design({ ...bare, frameR: 10, feet: 'stack' }).frameRC < 1);
+
+    // Position numbers: a pad per column, rising above the bottom plate; printed numbers are cut into it.
+    const padR = design({ ...bare, labels: 'pads', labelD: 12 });
+    const pads = build(padR, 256);
+    const rr = padR.labelD / 2, d = rr - padR.plateT; // pad centre above the plate top... area of the disc above the plate:
+    const above = rr * rr * Math.acos(-d / rr) + d * Math.sqrt(rr * rr - d * d);
+    check('sticker pads: one per position, standing on the bottom plate', near(pads.v - plain.v, 9 * padR.labelT * above, 0.02) && pads.m.watertight,
+      `${(pads.v - plain.v).toFixed(0)} vs ${(9 * padR.labelT * above).toFixed(0)} mm3`);
+    const dig = build(design({ ...bare, labels: 'digits', labelD: 12 }), 256);
+    check('printed numbers are cut into the pads', dig.v < pads.v && pads.v - dig.v < 9 * 25 && dig.m.watertight, `${(pads.v - dig.v).toFixed(1)} mm3 cut`);
+    check('numbers 1 to 24 build', build(design({ style: 'stand', vessel: 't15', cols: 24, rows: 1, labels: 'digits', margin: 6 })).m.watertight);
+    check('numbers need the bottom plate', !design({ ...bare, labels: 'pads', standFloor: false }).labelsOn &&
+      validate(design({ ...bare, labels: 'pads', standFloor: false })).some((i) => /bottom plate/.test(i.text)));
+    check('everything together builds: dividers, numbers, rounded corners, fillets, teardrops, bevel',
+      build(design({ style: 'stand', vessel: 'f15', cols: 9, rows: 1, dividers: 'three', labels: 'digits', frameR: 14, margin: 10, fillet: 3, edge: 1, chamfer: 1 })).m.watertight);
+  }
+
+  // ---- the guided tour ----
+  {
+    const shown = [...Object.entries(SHOWCASE), ...ADAPT.map((p, i) => ['settings ' + (i + 1), p])].map(([k, p]) => [k, resolve(sanitize(p))]);
+    const flagged = shown.flatMap(([k, r]) => validate(r).map((i) => `${k}: ${i.text}`));
+    check('the tour only shows holders the tool accepts without a warning', flagged.length === 0, flagged.join(' | '));
+    check('the tour\'s holders build as closed solids', [...Object.values(SHOWCASE), ...ADAPT].every((p) => measure(makeMesh(k, p, null, 48)).watertight));
+    const whole = makeMesh(k, SHOWCASE.single, null, 64);
+    const open = makeMesh(k, SHOWCASE.single, -45, 64);
+    const half = measure(open);
+    check('the cut-open stand is one closed solid, its front half gone', half.watertight && near(half.size[2], measure(whole).size[2], 1e-6) &&
+      open.indices.length !== whole.indices.length);
   }
 
   // ---- files ----

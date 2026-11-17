@@ -4,8 +4,9 @@
 
    0. Scroll: tell the fermenter (js/tank.js) where to look.
    1. Nav: mark the link of the section on screen.
-   2. The designer tour: load the real tool into its frame and walk it from
-      panel to panel, like a tutorial video that cannot go out of date.
+   2. The designer tours: load the real tool into its frame and walk it from
+      panel to panel, like a tutorial video that cannot go out of date; for
+      the holder designer, its own showcase of finished holders.
 
    The tour reaches into the frame's document, which only works because the
    tool is served from this same site. Nothing in the tool is changed and
@@ -19,7 +20,8 @@
      only) changes them; nothing else needs to. */
   var SITE = window.SITE = {
     rest: 0.18,      // share of the way between two scenes the camera rests at each end
-    hold: 5200       // ms a tour step is held before the tour moves on
+    hold: 5200,      // ms a tour step is held before the tour moves on
+    rackHold: 9000   // the same for the holder designer's showcase, which has more to read
   };
 
   /* Every word this file writes into the page: the status lines under the
@@ -44,7 +46,8 @@
     'tour.week.text': 'The whole run laid over the week, hour by hour, before anything is inoculated.',
     'tour.try': 'Try it live', 'tour.back': 'Back to the tour',
     'tour.live.mark': 'LIVE',
-    'tour.live.text': 'Live: change any value and the schedule updates with it.'
+    'tour.live.text': 'Live: change any value and the schedule updates with it.',
+    'rtour.live.text': 'Live, on the holder that was on show: change the tube, the count or any setting; drag to turn it.'
   };
   SITE.wordDefaults = Object.assign({}, WORDS);
   var redraws = [];                 // each block that shows words adds how to show them again
@@ -227,7 +230,7 @@
 
   /* ---------------- 1d. frames that are simply live ----------------
      A .demo--plain figure holds a tool that needs no tour (the impeller
-     designer, the holder designer): its frame is fetched a screen before it
+     designer, once it is back): its frame is fetched a screen before it
      is needed, shown, and handed straight to the visitor. On a narrow screen the stylesheet
      hides the frame and leaves the link, so nothing is fetched there. */
   (function () {
@@ -247,177 +250,257 @@
     });
   })();
 
-  /* ---------------- 2. the designer tour ---------------- */
-  var fig = document.getElementById('demo');
-  if (!fig) return;
-  var frame = fig.querySelector('.demo__iframe');
-  var bar = fig.querySelector('.demo__bar');
-  var capN = fig.querySelector('.demo__n');
-  var capTxt = fig.querySelector('.demo__txt');
-  var stepsEl = fig.querySelector('.demo__steps');
-  var liveBtn = fig.querySelector('.demo__live');
+  /* ---------------- 2. the designer tours ----------------
+     A .demo figure that is not .demo--plain plays a tour: its frame is
+     fetched a screen before it is needed, then stepped through, one step
+     every few seconds while it is on screen, with a caption and a button per
+     step below it. Clicking a step holds it; "Try it live" hands the tool
+     to the visitor. What a step shows is up to a driver:
 
-  /* What the tour shows, in order. The words are in WORDS at the top, under
-     'tour.<id>.label' and 'tour.<id>.text'. `sel` is an element inside the
-     tool; if the tool is ever restructured and one goes missing, that step
-     is skipped. */
-  var STEPS = [
-    { id: 'phases',   sel: '.phasewrap' },
-    { id: 'readouts', sel: '#strip' },
-    { id: 'setpoint', sel: '#grid .card' },
-    { id: 'clock',    sel: '#sc-miles' },
-    { id: 'week',     sel: '.sched .gridwrap' }
-  ];
+       connect()     once the frame has loaded: the steps, [{ label(), text() }],
+                     or null if the tool cannot be driven (then it is simply live)
+       show(i)       show step i; may return a promise that resolves once shown
+       live(on, i)   hand the tool over (on) or take it back
+       awake(on)     optional: whether anyone is watching, so it can rest
+       hold()        ms a step is held
+       liveKey       WORDS key of the caption while live */
+  function tour(fig, drv) {
+    var frame = fig.querySelector('.demo__iframe');
+    var bar = fig.querySelector('.demo__bar');
+    var capN = fig.querySelector('.demo__n');
+    var capTxt = fig.querySelector('.demo__txt');
+    var stepsEl = fig.querySelector('.demo__steps');
+    var liveBtn = fig.querySelector('.demo__live');
+    var steps = [], cur = -1, timer = null, seq = 0;
+    var live = false, inView = false, hover = false, manual = false, ready = false;
 
-  var win, doc, cur = -1, timer = null;
-  var live = false, inView = false, hover = false, manual = false, ready = false;
+    function setHold() { fig.style.setProperty('--demo-hold', drv.hold() + 'ms'); }
+    setHold();
 
-  fig.style.setProperty('--demo-hold', SITE.hold + 'ms');
-  SITE.setHold = function (ms) {
-    SITE.hold = ms;
-    fig.style.setProperty('--demo-hold', ms + 'ms');
-    schedule();
-  };
-
-  function playing() {
-    return ready && !live && !manual && !hover && inView && !reduce && !document.hidden;
-  }
-
-  function schedule() {
-    clearTimeout(timer);
-    var on = playing();
-    fig.classList.toggle('is-playing', on);
-    if (on) timer = setTimeout(function () { go((cur + 1) % STEPS.length); }, SITE.hold);
-  }
-
-  function ring(el) {
-    doc.querySelectorAll('.tour-ring').forEach(function (r) { r.classList.remove('tour-ring'); });
-    if (el) el.classList.add('tour-ring');
-  }
-
-  function go(i) {
-    var step = STEPS[i], el = doc.querySelector(step.sel);
-    cur = i;
-    capN.textContent = (i + 1) + '/' + STEPS.length;
-    capTxt.textContent = WORDS['tour.' + step.id + '.text'];
-    stepsEl.querySelectorAll('button').forEach(function (b, k) {
-      b.setAttribute('aria-pressed', k === i ? 'true' : 'false');
-    });
-    if (el) {
-      var r = el.getBoundingClientRect();
-      var room = win.innerHeight - r.height;
-      // centre a panel that fits; otherwise show its top with a little air
-      var y = r.top + win.scrollY - Math.max(20, Math.min(room / 2, 190));
-      win.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
-      ring(el);
+    function playing() {
+      return ready && !live && !manual && !hover && inView && !reduce && !document.hidden;
     }
-    // restart the progress bar on the active button
-    fig.classList.remove('is-playing');
-    void fig.offsetWidth;
-    schedule();
-  }
 
-  function setLive(on) {
-    live = on;
-    fig.classList.toggle('is-live', on);
-    doc.documentElement.classList.toggle('tour', !on);
-    liveBtn.textContent = WORDS[on ? 'tour.back' : 'tour.try'];
-    liveBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    frame.setAttribute('title', on ? 'Feed Profile Designer, live' : 'Feed Profile Designer, guided tour');
-    if (on) {
-      frame.removeAttribute('tabindex');
-      ring(null);
+    function schedule() {
+      clearTimeout(timer);
+      var on = playing();
+      fig.classList.toggle('is-playing', on);
+      if (on) timer = setTimeout(function () { go((cur + 1) % steps.length); }, drv.hold());
+      if (ready && drv.awake) drv.awake(inView && !live && !document.hidden);
+    }
+
+    function go(i) {
+      var my = ++seq;
+      cur = i;
+      capN.textContent = (i + 1) + '/' + steps.length;
+      capTxt.textContent = steps[i].text();
+      stepsEl.querySelectorAll('button').forEach(function (b, k) {
+        b.setAttribute('aria-pressed', k === i ? 'true' : 'false');
+      });
       clearTimeout(timer);
       fig.classList.remove('is-playing');
-      capN.textContent = WORDS['tour.live.mark'];
-      capTxt.textContent = WORDS['tour.live.text'];
-      stepsEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
-    } else {
-      frame.setAttribute('tabindex', '-1');
-      manual = false;
+      Promise.resolve(drv.show(i)).then(function () {
+        if (my !== seq || live) return;
+        // restart the progress bar on the active button
+        void fig.offsetWidth;
+        schedule();
+      });
+    }
+
+    function setLive(on) {
+      live = on;
+      fig.classList.toggle('is-live', on);
+      drv.live(on, Math.max(0, cur));
+      liveBtn.textContent = WORDS[on ? 'tour.back' : 'tour.try'];
+      liveBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (on) {
+        clearTimeout(timer);
+        fig.classList.remove('is-playing');
+        capN.textContent = WORDS['tour.live.mark'];
+        capTxt.textContent = WORDS[drv.liveKey];
+        stepsEl.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        if (drv.awake) drv.awake(false);
+      } else {
+        manual = false;
+        go(Math.max(0, cur));
+      }
+    }
+
+    function init() {
+      steps = drv.connect();
+      if (!steps || !steps.length) {
+        // Cannot drive it (opened from disk, or the tool changed): show it as a
+        // plain live embed instead. Still better than a picture of it.
+        fig.classList.add('is-ready', 'is-live');
+        frame.removeAttribute('tabindex');
+        return;
+      }
+      steps.forEach(function (s, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'demo__step';
+        b.textContent = s.label();
+        b.setAttribute('aria-pressed', 'false');
+        b.addEventListener('click', function () {
+          if (live) setLive(false);
+          manual = true;            // a chosen step stays put
+          go(i);
+        });
+        stepsEl.appendChild(b);
+      });
+
+      liveBtn.addEventListener('click', function () { setLive(!live); });
+      // the words were rewritten (js/tweak.js): show them, without moving the tour
+      redraws.push(function () {
+        stepsEl.querySelectorAll('button').forEach(function (b, k) { b.textContent = steps[k].label(); });
+        liveBtn.textContent = WORDS[live ? 'tour.back' : 'tour.try'];
+        if (live) { capN.textContent = WORDS['tour.live.mark']; capTxt.textContent = WORDS[drv.liveKey]; }
+        else if (cur >= 0) capTxt.textContent = steps[cur].text();
+      });
+      fig.addEventListener('mouseenter', function () { hover = true; schedule(); });
+      fig.addEventListener('mouseleave', function () { hover = false; schedule(); });
+      document.addEventListener('visibilitychange', schedule);
+
+      bar.hidden = false;
+      ready = true;
+      fig.classList.add('is-ready');
       go(0);
     }
-  }
 
-  function init() {
-    try {
-      win = frame.contentWindow;
-      doc = frame.contentDocument;
-      if (!doc || !doc.querySelector(STEPS[0].sel)) throw new Error('tool not reachable');
-    } catch (e) {
-      // Cannot drive it (opened from disk, or the tool changed): show it as a
-      // plain live embed instead. Still better than a picture of it.
-      fig.classList.add('is-ready', 'is-live');
-      frame.removeAttribute('tabindex');
-      return;
+    function load() {
+      if (frame.getAttribute('src')) return;
+      frame.addEventListener('load', function () {
+        // the tool lays itself out on load; give it a beat before measuring
+        setTimeout(init, 250);
+      }, { once: true });
+      frame.setAttribute('src', frame.getAttribute('data-src'));
     }
 
-    STEPS = STEPS.filter(function (s) { return doc.querySelector(s.sel); });
+    if ('IntersectionObserver' in window) {
+      // fetch the tool a screen before it is needed, not with the page
+      var near = new IntersectionObserver(function (en) {
+        if (en[0].isIntersecting) { load(); near.disconnect(); }
+      }, { rootMargin: '900px 0px' });
+      near.observe(fig);
 
-    var css = doc.createElement('style');
-    css.textContent =
-      'html.tour{scrollbar-width:none}html.tour::-webkit-scrollbar{display:none}' +
-      '.tour-ring{outline:3px solid #345ecc!important;outline-offset:5px;border-radius:10px}';
-    doc.head.appendChild(css);
-    doc.documentElement.classList.add('tour');
+      // only play while the frame is actually being looked at
+      new IntersectionObserver(function (en) {
+        inView = en[0].isIntersecting;
+        schedule();
+      }, { threshold: 0.35 }).observe(fig);
+    } else {
+      inView = true;
+      load();
+    }
+    return { setHold: function () { setHold(); schedule(); } };
+  }
 
-    STEPS.forEach(function (s, i) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'demo__step';
-      b.textContent = WORDS['tour.' + s.id + '.label'];
-      b.setAttribute('aria-pressed', 'false');
-      b.addEventListener('click', function () {
-        if (live) setLive(false);
-        manual = true;            // a chosen step stays put
-        go(i);
-      });
-      stepsEl.appendChild(b);
+  /* ---- 2a. the Feed Profile Designer: scrolled from panel to panel ----
+     The tour reaches into the frame's document, which only works because the
+     tool is served from this same site. Nothing in the tool is changed and
+     nothing is saved: the tool keeps a working profile in memory and only
+     writes to storage when someone presses its own Save button. `sel` is an
+     element inside the tool; if the tool is ever restructured and one goes
+     missing, that step is skipped. The words are in WORDS at the top, under
+     'tour.<id>.label' and 'tour.<id>.text'. */
+  (function () {
+    var fig = document.getElementById('demo');
+    if (!fig) return;
+    var frame = fig.querySelector('.demo__iframe');
+    var STEPS = [
+      { id: 'phases',   sel: '.phasewrap' },
+      { id: 'readouts', sel: '#strip' },
+      { id: 'setpoint', sel: '#grid .card' },
+      { id: 'clock',    sel: '#sc-miles' },
+      { id: 'week',     sel: '.sched .gridwrap' }
+    ];
+    var win, doc;
+
+    function ring(el) {
+      doc.querySelectorAll('.tour-ring').forEach(function (r) { r.classList.remove('tour-ring'); });
+      if (el) el.classList.add('tour-ring');
+    }
+
+    var t = tour(fig, {
+      liveKey: 'tour.live.text',
+      hold: function () { return SITE.hold; },
+      connect: function () {
+        try {
+          win = frame.contentWindow;
+          doc = frame.contentDocument;
+          if (!doc || !doc.querySelector(STEPS[0].sel)) return null;
+        } catch (e) { return null; }
+        STEPS = STEPS.filter(function (s) { return doc.querySelector(s.sel); });
+        var css = doc.createElement('style');
+        css.textContent =
+          'html.tour{scrollbar-width:none}html.tour::-webkit-scrollbar{display:none}' +
+          '.tour-ring{outline:3px solid #345ecc!important;outline-offset:5px;border-radius:10px}';
+        doc.head.appendChild(css);
+        doc.documentElement.classList.add('tour');
+        return STEPS.map(function (s) {
+          return {
+            label: function () { return WORDS['tour.' + s.id + '.label']; },
+            text: function () { return WORDS['tour.' + s.id + '.text']; }
+          };
+        });
+      },
+      show: function (i) {
+        var el = doc.querySelector(STEPS[i].sel);
+        if (!el) return;
+        var r = el.getBoundingClientRect();
+        var room = win.innerHeight - r.height;
+        // centre a panel that fits; otherwise show its top with a little air
+        var y = r.top + win.scrollY - Math.max(20, Math.min(room / 2, 190));
+        win.scrollTo({ top: Math.max(0, y), behavior: reduce ? 'auto' : 'smooth' });
+        ring(el);
+      },
+      live: function (on) {
+        doc.documentElement.classList.toggle('tour', !on);
+        frame.setAttribute('title', on ? 'Feed Profile Designer, live' : 'Feed Profile Designer, guided tour');
+        if (on) { frame.removeAttribute('tabindex'); ring(null); }
+        else frame.setAttribute('tabindex', '-1');
+      }
     });
+    SITE.setHold = function (ms) { SITE.hold = ms; t.setHold(); };
+  })();
 
-    liveBtn.addEventListener('click', function () { setLive(!live); });
-    // the words were rewritten (js/tweak.js): show them, without moving the tour
-    redraws.push(function () {
-      stepsEl.querySelectorAll('button').forEach(function (b, k) {
-        b.textContent = WORDS['tour.' + STEPS[k].id + '.label'];
-      });
-      liveBtn.textContent = WORDS[live ? 'tour.back' : 'tour.try'];
-      if (live) { capN.textContent = WORDS['tour.live.mark']; capTxt.textContent = WORDS['tour.live.text']; }
-      else if (cur >= 0) capTxt.textContent = WORDS['tour.' + STEPS[cur].id + '.text'];
+  /* ---- 2b. the Holder Designer: a showcase of finished holders ----
+     The frame holds the tool's own tour page (tools/holder-designer/tour.html):
+     one holder at a time, turning slowly, its features pinned on the model.
+     That page names its steps and writes their words itself
+     (window.holderTour). "Try it live" opens the real tool in a second
+     frame, on the holder that was on show. */
+  (function () {
+    var fig = document.getElementById('holder-demo');
+    if (!fig) return;
+    var frame = fig.querySelector('.demo__iframe--tour');
+    var liveFrame = fig.querySelector('.demo__iframe--live');
+    var api = null;
+    var t = tour(fig, {
+      liveKey: 'rtour.live.text',
+      hold: function () { return SITE.rackHold; },
+      connect: function () {
+        try { api = frame.contentWindow.holderTour; } catch (e) { api = null; }
+        if (!api || !liveFrame) return null;
+        return api.steps.map(function (s) {
+          return { label: function () { return s.label; }, text: function () { return s.text; } };
+        });
+      },
+      show: function (i) { return api.go(i); },
+      awake: function (on) { api.pause(!on); },
+      live: function (on, i) {
+        if (on) {
+          var link = api.link(i);
+          if (!liveFrame.getAttribute('src')) liveFrame.setAttribute('src', liveFrame.getAttribute('data-src') + '#' + link);
+          else {
+            try { liveFrame.contentWindow.location.hash = link; } catch (e) { /* not reachable: keep what it shows */ }
+          }
+          liveFrame.hidden = false;
+        } else {
+          liveFrame.hidden = true;
+        }
+      }
     });
-    fig.addEventListener('mouseenter', function () { hover = true; schedule(); });
-    fig.addEventListener('mouseleave', function () { hover = false; schedule(); });
-    document.addEventListener('visibilitychange', schedule);
-
-    bar.hidden = false;
-    ready = true;
-    fig.classList.add('is-ready');
-    go(0);
-  }
-
-  function load() {
-    if (frame.getAttribute('src')) return;
-    frame.addEventListener('load', function () {
-      // the tool lays itself out on load; give it a beat before measuring
-      setTimeout(init, 250);
-    }, { once: true });
-    frame.setAttribute('src', frame.getAttribute('data-src'));
-  }
-
-  if ('IntersectionObserver' in window) {
-    // fetch the tool a screen before it is needed, not with the page
-    var near = new IntersectionObserver(function (en) {
-      if (en[0].isIntersecting) { load(); near.disconnect(); }
-    }, { rootMargin: '900px 0px' });
-    near.observe(fig);
-
-    // only play while the frame is actually being looked at
-    new IntersectionObserver(function (en) {
-      inView = en[0].isIntersecting;
-      schedule();
-    }, { threshold: 0.35 }).observe(fig);
-  } else {
-    inView = true;
-    load();
-  }
+    SITE.setRackHold = function (ms) { SITE.rackHold = ms; t.setHold(); };
+  })();
 })();

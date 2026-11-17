@@ -18,20 +18,31 @@
 </head>
 <body>
   <header class="bar">
-    <h1>Holder designer</h1>
-    <select id="style" class="family" aria-label="Holder style"></select>
+    <div class="brand">
+      <h1>Holder designer</h1>
+      <span class="tagline">A 3D-printable rack for your lab tubes</span>
+    </div>
     <span class="grow"></span>
-    <button id="reset" class="quiet" type="button">Reset</button>
-    <button id="share" class="quiet" type="button">Copy link</button>
-    <select id="format" aria-label="File format">
-      <option value="3mf">3MF</option>
-      <option value="stl">STL</option>
-    </select>
-    <button id="download" class="go" type="button">Download</button>
+    <button id="reset" class="quiet" type="button" title="Back to the default holder">Start over</button>
+    <button id="share" class="quiet" type="button" title="Copy a link that opens this design">Copy link</button>
+    <span class="get">
+      <select id="format" aria-label="File format" title="3MF keeps the design inside the file; STL works with every slicer">
+        <option value="3mf">3MF</option>
+        <option value="stl">STL</option>
+      </select>
+      <button id="download" class="go" type="button">Download</button>
+    </span>
   </header>
 
   <main>
     <aside id="side" class="panel">
+      <section class="kind" aria-labelledby="kind-h">
+        <h2 id="kind-h" class="kindtitle">Kind of holder</h2>
+        <div id="styles" class="cards" role="radiogroup" aria-labelledby="kind-h"></div>
+        <p id="blurb" class="blurb"></p>
+        <p id="suggest" class="suggest" hidden><span></span> <button type="button">Use it</button></p>
+      </section>
+      <div id="tabs" class="tabs" role="tablist" aria-label="Settings"></div>
       <form id="controls" autocomplete="off" aria-label="Holder settings"></form>
     </aside>
 
@@ -40,13 +51,20 @@
         <div id="view"></div>
         <div id="status" role="status"></div>
         <div id="issues"></div>
-        <div class="stagefoot">
-          <span id="meshinfo"></span>
-          <span class="viewopts">
-            <label><input type="checkbox" id="vessels"> Show vessels</label>
-            <button id="fit" class="quiet" type="button">Fit view</button>
-          </span>
+        <div class="viewbar" role="toolbar" aria-label="View">
+          <label class="showtubes" title="Show or hide the tubes standing in the holder">
+            <input type="checkbox" id="vessels" role="switch">
+            <svg class="tubeicon" viewBox="0 0 16 24" aria-hidden="true"><path d="M3 1.5h10M4.5 1.5v3h7v-3M5 4.5v11.5a3 3 0 0 0 6 0V4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M5.8 11h4.4v5a2.2 2.2 0 0 1-4.4 0z" fill="currentColor" opacity=".55"/></svg>
+            <span>Show tubes</span>
+          </label>
+          <span class="sep" aria-hidden="true"></span>
+          <button id="fit" type="button" title="Turn and zoom so the whole holder is in view">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 7V2h5M13 2h5v5M18 13v5h-5M7 18H2v-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+            <span>Fit view</span>
+          </button>
         </div>
+        <p class="viewhelp">Drag to turn · scroll to zoom · right-drag to move</p>
+        <span id="meshinfo"></span>
       </div>
     </section>
 

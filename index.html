@@ -231,7 +231,7 @@
         <span class="printing__kinds"></span></p>
 
       <p class="actions"><a class="btn" href="tools/holder-designer/">Open the designer →</a>
-        <a class="scrawl scrawl--link only-wide" href="#holder-demo">or try it here ↓</a></p>
+        <a class="scrawl scrawl--link only-wide" href="#holder-demo">or take the tour ↓</a></p>
 
       <details class="how">
         <summary>How it works</summary>
@@ -248,15 +248,25 @@
     </div>
   </section>
 
-  <!-- The tool itself, live in a frame, as for the impeller designer: loaded
-       when it nears the screen, left out on a narrow screen. -->
+  <!-- A showcase of finished holders: the tool's own tour page
+       (tools/holder-designer/tour.html) shows one at a time, its features
+       pinned on the model, and js/site.js steps it like the feed designer's
+       tour. "Try it live" swaps in the real tool, on the holder that was on
+       show. Loaded when it nears the screen, left out on a narrow screen. -->
   <section class="scene scene--wide scene--holder proj" data-shot="rack">
-    <figure class="panel panel--demo demo demo--plain" id="holder-demo" style="--tilt:.5deg">
-      <p class="cap">The real tool, live: pick a tube, size the rack</p>
+    <figure class="panel panel--demo demo demo--two" id="holder-demo" style="--tilt:.5deg">
+      <p class="cap">Every kind of holder, feature by feature</p>
       <div class="demo__frame">
         <p class="demo__fallback"><a href="tools/holder-designer/">Open the Holder Designer →</a></p>
-        <iframe class="demo__iframe" title="Holder Designer, live"
-                data-src="tools/holder-designer/?embed&amp;vessels=1"></iframe>
+        <iframe class="demo__iframe demo__iframe--tour" title="Holder Designer, guided tour"
+                data-src="tools/holder-designer/tour.html?embed" tabindex="-1"></iframe>
+        <iframe class="demo__iframe demo__iframe--live" title="Holder Designer, live"
+                data-src="tools/holder-designer/?embed&amp;vessels=1" hidden></iframe>
+      </div>
+      <div class="demo__bar" hidden>
+        <p class="demo__cap" aria-live="polite"><span class="demo__n"></span><span class="demo__txt"></span></p>
+        <div class="demo__steps" role="group" aria-label="Tour steps"></div>
+        <button class="btn btn--ghost demo__live" type="button">Try it live</button>
       </div>
     </figure>
   </section>

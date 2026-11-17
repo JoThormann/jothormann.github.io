@@ -477,8 +477,12 @@ html[data-side="right"] .scene--left{justify-content:flex-end}
 .demo.is-playing .demo__step[aria-pressed="true"]::after{animation:demo-wait var(--demo-hold,5s) linear forwards}
 @keyframes demo-wait{to{transform:scaleX(1)}}
 
-/* the impeller and holder designers' frames have no tour: they are simply
-   live, and tall enough for the tool's own 3D view and its side panel */
+/* the holder designer's tour has the real tool in a second frame, swapped
+   in by "Try it live" */
+.demo--two.is-live .demo__iframe--tour{visibility:hidden}
+
+/* the impeller designer's frame has no tour: it is simply live, and tall
+   enough for the tool's own 3D view and its side panel */
 .demo--plain .demo__frame{height:clamp(320px,calc(100vh - var(--nav-h) - 110px),calc(var(--demo-h) + 60px))}
 
 /* ---------- footer ---------- */
