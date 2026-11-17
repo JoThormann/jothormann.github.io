@@ -556,7 +556,7 @@ html[data-hide~="panels"] main{visibility:hidden}
   /* the impeller designer needs a wide window: on a phone its frame is
      left out (js/site.js skips the hidden scene) and the panel's own link
      opens the tool on its own page */
-  .scene--impeller,.scene--holder,.only-wide{display:none}
+  .scene--impeller,.only-wide{display:none}
   .hud{display:none}
   .footer__note{order:3;flex-basis:100%}
   /* the bench photo sits on the panel's top right corner; the narration box

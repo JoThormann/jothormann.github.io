@@ -385,10 +385,14 @@ function frameFor(step) {
     center = sphere.center;
     radius = sphere.radius;
   }
-  // The model keeps to the middle of the frame, so the labels have room left and right.
+  // The model keeps to the middle of the frame, so the labels have room left and right;
+  // on a narrow stage, room above and below instead.
   const half = rad(camera.fov / 2);
-  const halfWide = Math.atan(Math.tan(half) * camera.aspect * 0.56);
-  const dist = radius / Math.sin(Math.min(half * 0.94, halfWide)) / (v.zoom || 1);
+  const halfWide = Math.atan(Math.tan(half) * camera.aspect * (narrow ? 0.92 : 0.56));
+  const halfHigh = narrow ? Math.atan(Math.tan(half) * (v.shift ? 0.56 : 0.62)) : half * 0.94;
+  // Narrow, the close-ups are held back so the labels above and below stay off the model.
+  const zoom = narrow && !v.focus ? Math.min(v.zoom || 1, 1.05) : v.zoom || 1;
+  const dist = radius / Math.sin(Math.min(halfHigh, halfWide)) / zoom;
   return { az: v.az, el: v.el, dist, target: center };
 }
 
@@ -397,7 +401,8 @@ function shiftView(step) {
   const w = stage.clientWidth;
   const h = stage.clientHeight;
   const s = step && step.view.shift;
-  if (s && w && h) camera.setViewOffset(w, h, -s * w, 0, w, h);
+  // Beside the panel on a wide stage; above it (it sits at the bottom) on a narrow one.
+  if (s && w && h) camera.setViewOffset(w, h, narrow ? 0 : -s * w, narrow ? 0.16 * h : 0, w, h);
   else camera.clearViewOffset();
 }
 
@@ -517,6 +522,7 @@ function layout(now, check) {
     p.sx = ((tmp.x + 1) / 2) * W;
     p.sy = ((1 - tmp.y) / 2) * H;
     p.place = p.side || (p.sx < mid ? 'left' : 'right');
+
     if (check) {
       // Hidden behind the holder: the dot goes hollow, the label stays.
       const d = camera.position.distanceTo(p.world);
@@ -525,6 +531,23 @@ function layout(now, check) {
       const hit = ray.intersectObjects(solids, false)[0];
       p.hidden = Boolean(hit && hit.distance < d - 1.2);
     }
+  }
+  // Narrow: a label beside the model goes in a band above or below it instead. Chosen once
+  // per step, from where the dots first are, so labels do not hop as the model turns; the
+  // two bands are evened out, moving the dots nearest the middle across.
+  const banded = pins.filter((p) => p.place === 'left' || p.place === 'right');
+  if (narrow && banded.length) {
+    if (banded.some((p) => !p.band)) {
+      for (const p of banded) p.band = p.sy < H / 2 ? 'top' : 'bottom';
+      for (;;) {
+        const top = banded.filter((p) => p.band === 'top');
+        const bottom = banded.filter((p) => p.band === 'bottom');
+        if (Math.abs(top.length - bottom.length) <= 1) break;
+        const [from, to] = top.length > bottom.length ? [top, 'bottom'] : [bottom, 'top'];
+        from.sort((a, b) => Math.abs(a.sy - H / 2) - Math.abs(b.sy - H / 2))[0].band = to;
+      }
+    }
+    for (const p of banded) p.place = p.band;
   }
   const gap = Math.max(28, W * 0.035);
   const stack = (list) => {
@@ -541,6 +564,40 @@ function layout(now, check) {
       floor = p.ly - 10;
     }
   };
+  // A band: labels in rows, each as near above (below) its dot as the ones before it allow.
+  // A row that runs out of room on the right first slides left as far as it can; only then
+  // does a label start a new row (whose line would cross the row before it).
+  const band = (list, down) => {
+    list.sort((a, b) => a.sx - b.sx);
+    let row = 0;
+    let line = [];
+    const rowH = Math.max(0, ...list.map((p) => p.h)) + 6;
+    for (const p of list) {
+      const prev = line[line.length - 1];
+      let x = Math.min(W - p.w - 8, Math.max(8, p.sx - p.w / 2));
+      if (prev && x < prev.lx + prev.w + 6) x = prev.lx + prev.w + 6;
+      const over = x + p.w - (W - 8);
+      if (over > 0) {
+        if (line.length && line[0].lx - 8 >= over) {
+          for (const q of line) q.lx -= over;
+          x -= over;
+        } else {
+          row++;
+          line = [];
+          x = Math.min(W - p.w - 8, Math.max(8, p.sx - p.w / 2));
+        }
+      }
+      p.lx = x;
+      p.ly = down ? 8 + row * rowH : H - 8 - p.h - row * rowH;
+      line.push(p);
+    }
+    for (const p of list) {
+      const ax = Math.min(p.lx + p.w - 10, Math.max(p.lx + 10, p.sx));
+      p.path = `M${p.sx},${p.sy} L${ax},${down ? p.ly + p.h : p.ly}`;
+    }
+  };
+  band(pins.filter((p) => p.place === 'top'), true);
+  band(pins.filter((p) => p.place === 'bottom'), false);
   const left = pins.filter((p) => p.place === 'left');
   const right = pins.filter((p) => p.place === 'right');
   stack(left);
@@ -578,11 +635,23 @@ let looping = false;
 let last = 0;
 let frameNo = 0;
 
+let narrow = false;
 function size() {
   if (!renderer) return;
   const w = stage.clientWidth;
   const h = stage.clientHeight;
   if (!w || !h) return;
+  // A phone, or any frame taller than wide: labels above and below, short titles only.
+  const was = narrow;
+  narrow = w < 560 || w < h * 0.95;
+  stage.classList.toggle('narrow', narrow);
+  if (narrow !== was) {
+    for (const p of pins) {
+      p.band = null;
+      p.w = p.note.offsetWidth;
+      p.h = p.note.offsetHeight;
+    }
+  }
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();

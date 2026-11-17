@@ -105,13 +105,19 @@ body {
 }
 .note span:empty { display: none; }
 
-/* Narrow: titles only. */
-@media (max-width: 640px) {
-  #tune { left: 8px; width: 46vw; padding: 8px 10px; }
-  #tune .row { font-size: 12px; }
-  .note { max-width: 34vw; }
-  .note span { display: none; }
-  .note b { font-size: 13px; line-height: 16px; }
+/* Narrow (a phone, or a frame taller than wide; set by tour.js): labels above and below
+   the model with their titles only, and the settings as a strip of chips along the bottom. */
+#stage.narrow .note { max-width: none; white-space: nowrap; padding: 3px 7px 4px; border-radius: 6px; }
+#stage.narrow .note span { display: none; }
+#stage.narrow .note b { font-size: 13px; line-height: 16px; }
+#stage.narrow #tune {
+  left: 8px; right: 8px; top: auto; bottom: 8px; translate: none; width: auto;
+  display: flex; flex-wrap: wrap; gap: 4px; padding: 6px;
+}
+#stage.narrow #tune .sec { display: none; }
+#stage.narrow #tune .row {
+  margin: 0; padding: 2px 7px; gap: 5px; font-size: 12px; line-height: 18px;
+  border: 1px solid var(--line); border-radius: 5px;
 }
 
 /* On its own page: the steps along the bottom. */
