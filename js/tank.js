@@ -414,7 +414,11 @@ const POST_VERT = `
   varying vec2 vUv;
   void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 const POST_FRAG = `
-  uniform sampler2D tColor, tDepth;
+  uniform sampler2D tColor;
+  // highp: in WebGL 2 a sampler is lowp unless it says otherwise, and three.js
+  // r128 only raises float and int. Desktop GPUs read full depth anyway; phone
+  // GPUs keep about 10 bits, and every slanted face fills with contour lines.
+  uniform highp sampler2D tDepth;
   uniform vec2 uPx;        // one device pixel, in uv
   uniform float uMm;       // model mm per device pixel
   uniform float uRange;    // camera far - near, mm
