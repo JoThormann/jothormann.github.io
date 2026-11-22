@@ -23,6 +23,7 @@
       <span class="tagline">A 3D-printable rack for your lab tubes</span>
     </div>
     <span class="grow"></span>
+    <button id="introbtn" class="quiet" type="button" title="A short introduction to the tool">Intro</button>
     <button id="reset" class="quiet" type="button" title="Back to the default holder">Start over</button>
     <button id="share" class="quiet" type="button" title="Copy a link that opens this design">Copy link</button>
     <span class="get">
@@ -68,7 +69,12 @@
       </div>
     </section>
 
-    <aside id="readouts" class="panel" aria-label="Sizes and print figures">
+    <aside id="readouts" class="panel" aria-label="Your printer, sizes and print tips">
+      <section id="printer" aria-label="Your printer">
+        <div id="printerctl"></div>
+        <div id="bedview" role="img" aria-label="The holder on the print bed, the way it will be printed"></div>
+        <p id="bedfit" class="bedfit" aria-live="polite"></p>
+      </section>
       <div id="values"></div>
     </aside>
   </main>

@@ -6,12 +6,11 @@ import { buildHolder, toMesh } from './geometry/build.js';
 /**
  * The holders the tour shows. Each must pass the tool's own checks (tests.js
  * makes sure), since "Try it live" opens the tool on it. A 256 mm bed, a
- * common size, takes the nine-place stand lying down.
+ * common size (Bambu Lab), takes the nine-place stand lying down.
  */
-const BED = { bedX: 256, bedY: 256, bedZ: 256 };
 export const SHOWCASE = {
   single: { style: 'single', vessel: 'f50', grip: '4', chamfer: 1.2 },
-  stand: { style: 'stand', vessel: 'f15', cols: 9, rows: 1, dividers: 'three', labels: 'digits', labelD: 12, frameR: 14, margin: 11, ...BED },
+  stand: { style: 'stand', vessel: 'f15', cols: 9, rows: 1, dividers: 'three', labels: 'digits', labelD: 12, frameR: 14, margin: 11, printer: 'bambu' },
   block: { style: 'block', vessel: 'cryo', cols: 4, rows: 3, feet: 'stack', edge: 1.2, corner: 6, chamfer: 1.5, margin: 8 },
   tray: { style: 'tray', vessel: 'cuvette', cols: 5, rows: 2, windows: true, feet: 'pads' },
   pcr: { style: 'block', vessel: 'pcr', cols: 8, rows: 4 },

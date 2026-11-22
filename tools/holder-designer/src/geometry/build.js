@@ -235,7 +235,38 @@ const DIGITS = {
   7: [[[0, 4], [2, 4], [0.8, 0]]],
   8: [[[0, 0], [2, 0], [2, 4], [0, 4], [0, 0]], [[0, 2], [2, 2]]],
   9: [[[2, 2], [0, 2], [0, 4], [2, 4], [2, 0], [0, 0]]],
+  // For fit values on the test strip: a dot is one unit wide, the rest two.
+  '+': [[[0, 2], [2, 2]], [[1, 1], [1, 3]]],
+  '-': [[[0, 2], [2, 2]]],
+  '.': [[[0.5, 0], [0.5, 0.02]]],
 };
+
+/**
+ * Text as a cutting tool in a top face (z = zTop, `depth` deep), read from the front: centred on
+ * cx, cy, `h` tall, strokes `w` wide. A dot takes half the room of the other glyphs.
+ */
+function textCutTop(M, keep, text, cx, cy, h, w, zTop, depth) {
+  const u = h / 4;
+  const adv = (ch) => (ch === '.' ? 1 : 2) * u;
+  const width = [...text].reduce((s, ch) => s + adv(ch), 0) + 0.9 * u * (text.length - 1);
+  let x0 = cx - width / 2;
+  const y0 = cy - h / 2;
+  const bars = [];
+  for (const ch of text) {
+    for (const line of DIGITS[ch]) {
+      for (let k = 0; k < line.length - 1; k++) {
+        const [ax, ay] = [x0 + line[k][0] * u, y0 + line[k][1] * u];
+        const [bx, by] = [x0 + line[k + 1][0] * u, y0 + line[k + 1][1] * u];
+        const len = Math.hypot(bx - ax, by - ay);
+        const deg = (Math.atan2(by - ay, bx - ax) * 180) / Math.PI;
+        bars.push(keep(keep(keep(M.cube([len + w, w, depth + 0.5], true)).rotate([0, 0, deg]))
+          .translate([(ax + bx) / 2, (ay + by) / 2, zTop - (depth - 0.5) / 2])));
+      }
+    }
+    x0 += adv(ch) + 0.9 * u;
+  }
+  return keep(M.union(bars));
+}
 
 /**
  * A number as a cutting tool in the front face (y = yFace, cutting toward +y by `depth`),
@@ -410,6 +441,79 @@ export function buildHolder(kernel, r, segments = 64) {
   } finally {
     for (const m of bin) m.delete();
   }
+}
+
+/**
+ * The separate base plate of a stand (r.basePlate): a flat plate reaching out in front and behind
+ * by plateReach and plateRim at the ends, with a pocket the stand's footprint drops into
+ * (plateFit all round, plate's floor under it). Flat on z = 0, centred; the caller deletes it.
+ */
+export function buildBasePlate(kernel, r, segments = 64) {
+  const M = kernel.Manifold;
+  const bin = [];
+  const keep = (m) => {
+    bin.push(m);
+    return m;
+  };
+  try {
+    const X = r.sizeX + 2 * r.plateRim;
+    const Y = r.sizeY + 2 * r.plateReach;
+    const T = r.basePlateT;
+    const rad = Math.min(r.cornerR + r.plateRim, X / 2 - 0.1, Y / 2 - 0.1);
+    const c = Math.min(r.edgeC, 1);
+    const plate = c > 0.05 ? bevelled(kernel, keep, X, Y, T, rad, c, segments) : slab(M, keep, X, Y, T, rad, segments);
+    const f = r.plateFit;
+    const pocket = keep(slab(M, keep, r.sizeX + 2 * f, r.sizeY + 2 * f, r.pocket + 1, Math.max(0.2, r.cornerR + f), segments).translate([0, 0, T - r.pocket]));
+    return plate.subtract(pocket);
+  } finally {
+    for (const m of bin) m.delete();
+  }
+}
+
+/**
+ * The hole fit test strip (params.js fitTest): a bar with five through-holes of the holder's own
+ * kind, its fit value cut into the top in front of each, the current one underlined.
+ * @param t fitTest(params); r the resolved design (for the vessel and the hole shape)
+ */
+export function buildFitTest(kernel, t, r, segments = 64) {
+  const M = kernel.Manifold;
+  const bin = [];
+  const keep = (m) => {
+    bin.push(m);
+    return m;
+  };
+  try {
+    const bar = bevelled(kernel, keep, t.sizeX, t.sizeY, t.H, 2, 0.6, segments);
+    const cuts = t.holes.map((hole, i) =>
+      keep(opening(M, keep, { ...r, hole, chamferC: t.chamferC, tearOpenings: t.tear }, -1, t.H, segments).translate([t.xs[i], t.holeY, 0])));
+    const depth = 0.6;
+    t.labels.forEach((text, i) => cuts.push(textCutTop(M, keep, text, t.xs[i], t.labelY[i], t.digitH, t.digitW, t.H, depth)));
+    // The current fit, underlined.
+    const line = Math.min(t.pitch - 2, t.digitH * 2.2);
+    cuts.push(keep(keep(M.cube([line, t.digitW, depth + 0.5], true)).translate([t.xs[2], t.labelY[2] - t.digitH / 2 - 0.9, t.H - (depth - 0.5) / 2])));
+    return bar.subtract(keep(M.union(cuts)));
+  } finally {
+    for (const m of bin) m.delete();
+  }
+}
+
+/** Two meshes as one (no boolean: they may touch); `shift` moves the second. */
+export function mergeMeshes(a, b, shift = [0, 0, 0]) {
+  const positions = new Float32Array(a.positions.length + b.positions.length);
+  positions.set(a.positions);
+  for (let i = 0; i < b.positions.length; i++) positions[a.positions.length + i] = b.positions[i] + shift[i % 3];
+  const indices = new Uint32Array(a.indices.length + b.indices.length);
+  indices.set(a.indices);
+  const n = a.positions.length / 3;
+  for (let i = 0; i < b.indices.length; i++) indices[a.indices.length + i] = b.indices[i] + n;
+  return { positions, indices };
+}
+
+/** A mesh moved by `shift`. */
+export function moveMesh(m, shift) {
+  const positions = new Float32Array(m.positions.length);
+  for (let i = 0; i < positions.length; i++) positions[i] = m.positions[i] + shift[i % 3];
+  return { positions, indices: m.indices };
 }
 
 export function toMesh(solid) {

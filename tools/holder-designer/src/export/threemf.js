@@ -8,23 +8,32 @@ const DESIGN_PART = 'Metadata/holder.json';
 const xml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const num = (v) => Number(v.toFixed(5));
 
-/** @returns Uint8Array of the .3mf package */
-export function threeMf({ positions, indices }, title, params) {
+/**
+ * @param parts a mesh, or [{ mesh, name }] for several parts: each its own object, so a slicer can
+ *              place and turn them one by one (a stand on its front, its base plate flat)
+ * @returns Uint8Array of the .3mf package
+ */
+export function threeMf(parts, title, params) {
+  const list = Array.isArray(parts) ? parts : [{ mesh: parts, name: title }];
   const out = [
     '<?xml version="1.0" encoding="UTF-8"?>\n',
     '<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">\n',
     ` <metadata name="Title">${xml(title)}</metadata>\n`,
     ' <metadata name="Application">Holder designer</metadata>\n',
-    ' <resources>\n  <object id="1" type="model">\n   <mesh>\n    <vertices>\n',
+    ' <resources>\n',
   ];
-  for (let i = 0; i < positions.length; i += 3) {
-    out.push(`     <vertex x="${num(positions[i])}" y="${num(positions[i + 1])}" z="${num(positions[i + 2])}"/>\n`);
-  }
-  out.push('    </vertices>\n    <triangles>\n');
-  for (let i = 0; i < indices.length; i += 3) {
-    out.push(`     <triangle v1="${indices[i]}" v2="${indices[i + 1]}" v3="${indices[i + 2]}"/>\n`);
-  }
-  out.push('    </triangles>\n   </mesh>\n  </object>\n </resources>\n <build>\n  <item objectid="1"/>\n </build>\n</model>\n');
+  list.forEach(({ mesh: { positions, indices }, name }, k) => {
+    out.push(`  <object id="${k + 1}" type="model" name="${xml(name)}">\n   <mesh>\n    <vertices>\n`);
+    for (let i = 0; i < positions.length; i += 3) {
+      out.push(`     <vertex x="${num(positions[i])}" y="${num(positions[i + 1])}" z="${num(positions[i + 2])}"/>\n`);
+    }
+    out.push('    </vertices>\n    <triangles>\n');
+    for (let i = 0; i < indices.length; i += 3) {
+      out.push(`     <triangle v1="${indices[i]}" v2="${indices[i + 1]}" v3="${indices[i + 2]}"/>\n`);
+    }
+    out.push('    </triangles>\n   </mesh>\n  </object>\n');
+  });
+  out.push(` </resources>\n <build>\n${list.map((_, k) => `  <item objectid="${k + 1}"/>\n`).join('')} </build>\n</model>\n`);
 
   return zipStore([
     {

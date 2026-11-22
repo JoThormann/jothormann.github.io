@@ -211,9 +211,34 @@ function makeSteps() {
       live: 'stand',
     });
   }
+  {
+    // Not in the tour itself (extra): the close-up the tool's introduction uses to explain teardrops.
+    // The stand lies on the bed as printed; seen from the front, two of its openings at the right end.
+    const r = R.stand;
+    const xs = cols(r);
+    const rad = r.hole / 2;
+    const [xa, xb] = [xs[r.cols - 2], xs[r.cols - 1]];
+    const place = new THREE.Matrix4().makeTranslation(0, r.height / 2, r.sizeY / 2).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2));
+    steps.push({
+      id: 'teardrop', label: 'Teardrops', extra: true,
+      text: 'Lying on its side, every opening is a short tunnel. A pointed top prints without support; the tube sits in the round part.',
+      models: [{ d: 'stand', matrix: place, tubes: false }],
+      bed: [r.bedX, r.bedY],
+      view: { az: -90, el: 9, focus: { center: [(xa + xb) / 2 + 4, -r.height / 2, r.sizeY / 2 - 2], radius: r.pitchX * 1.05 } },
+      pins: [
+        { at: [xb, rad + r.tearExtra * 0.7, r.height], title: 'Pointed top', sub: 'A round top would hang in mid-air and sag', side: 'right' },
+        { at: [xb - 0.354 * rad, 0.979 * rad, r.height], title: '45° sides', sub: 'Each layer rests on the one below it', side: 'left' },
+        { at: [xb, -rad, r.height], title: 'Round below', sub: 'Where the tube sits, so it fits the same', side: 'right' },
+        { m: -1, at: [xa - 8, -r.height / 2 - 4, 0], title: 'Printed lying on its side', sub: 'The openings face sideways', side: 'left' },
+      ],
+      live: 'stand',
+    });
+  }
   return steps;
 }
-const STEPS = makeSteps();
+// ?only=a,b picks steps by id (extra steps included); otherwise the tour is every step but the extras.
+const ONLY = QS.get('only') ? QS.get('only').split(',') : null;
+const STEPS = makeSteps().filter((s) => (ONLY ? ONLY.includes(s.id) : !s.extra));
 
 // ---------- models, built off the page ----------
 const meshes = new Map(); // key -> Promise<{ positions, indices }>
@@ -641,9 +666,9 @@ function size() {
   const w = stage.clientWidth;
   const h = stage.clientHeight;
   if (!w || !h) return;
-  // A phone, or any frame taller than wide: labels above and below, short titles only.
+  // A phone, or a frame not much wider than tall: labels above and below, short titles only.
   const was = narrow;
-  narrow = w < 560 || w < h * 0.95;
+  narrow = w < 560 || w < h * 1.3;
   stage.classList.toggle('narrow', narrow);
   if (narrow !== was) {
     for (const p of pins) {

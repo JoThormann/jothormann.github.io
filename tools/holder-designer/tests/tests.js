@@ -1,13 +1,14 @@
 // Browser test page: open tests.html. The title reads PASSED or FAILED.
-import { PARAMS, defaults, sanitize, resolve, validate, toQuery, fromQuery, shapeKey, STYLES, shownFor } from '../src/params.js';
+import { PARAMS, defaults, sanitize, resolve, validate, toQuery, fromQuery, shapeKey, STYLES, shownFor, fitTest, fitLabel } from '../src/params.js';
 import { VESSELS } from '../src/vessels.js';
 import { loadKernel } from '../src/geometry/kernel.js';
-import { buildHolder, positions, toMesh, solidVolume } from '../src/geometry/build.js';
+import { buildHolder, buildBasePlate, buildFitTest, mergeMeshes, positions, toMesh, solidVolume } from '../src/geometry/build.js';
 import { analyse } from '../src/print.js';
 import { stlBuffer } from '../src/export/stl.js';
 import { threeMf, readDesign } from '../src/export/threemf.js';
 import { zipRead } from '../src/export/zip.js';
 import { SHOWCASE, ADAPT, makeMesh } from '../src/tour-build.js';
+import { depthPicture, conePicture } from '../src/explain.js';
 
 const lines = [];
 let failed = 0;
@@ -88,6 +89,92 @@ try {
   check('caps that collide are flagged', validate(design({ autoSpacing: false, pitchX: 12.5, pitchY: 12.5 })).some((i) => /caps overlap/.test(i.text)));
   check('a tall single row is flagged as tippy', validate(design({ style: 'stand', vessel: 'f15', cols: 6, rows: 1 })).some((i) => /tips easily/.test(i.text)));
   check('thin material between openings is flagged', validate(design({ vessel: 'cryo', autoSpacing: false, pitchX: 13.6, pitchY: 13.6 })).some((i) => /nozzle widths/.test(i.text)));
+
+  // ---- usual height of a block ----
+  {
+    const b15 = design({ style: 'block', vessel: 't15' });
+    const b50 = design({ style: 'block', vessel: 'f50' });
+    const thick = design({ style: 'block', vessel: 't15', floor: 3 });
+    check('a block is two thirds as tall as the tube, on a 2 mm floor', b15.height === 27 && b15.depth === 25 && b15.seat === 2 &&
+      b50.height === 77 && b50.seat === 2 && thick.height === 27 && thick.seat === 3, `${b15.height}/${b15.depth}, ${b50.height}, ${thick.height}/${thick.seat}`);
+  }
+
+  // ---- guides from a problem to its fix ----
+  {
+    // Designs that set off as many different problems as possible, across the kinds of holder.
+    const troubled = [
+      { vessel: 'f50', autoSpacing: false, pitchX: 20 },
+      { style: 'stand', vessel: 'f15', autoSpacing: false, pitchX: 21, pitchY: 25, dividers: 'two' },
+      { style: 'stand', vessel: 'f15', cols: 2, dividers: 'six' },
+      { style: 'block', vessel: 'cryo', feet: 'stack' },
+      { style: 'stand', standFloor: false, feet: 'pads' },
+      { style: 'stand', standFloor: false, feet: 'stack' },
+      { style: 'stand', labels: 'pads', standFloor: false },
+      { style: 'stand', vessel: 'f15', margin: 4, frameR: 40 },
+      { style: 'stand', vessel: 'f15', standFloor: false, autoHeight: false, height: 60 },
+      { vessel: 't15', margin: 1, nozzle: 0.8 },
+      { fitBox: true, boxX: 20, boxY: 20 },
+      { chamfer: 3, margin: 1.5 },
+      { style: 'block', windows: true, autoHeight: false, height: 8, depth: 5 },
+      { style: 'block', vessel: 'f50', autoHeight: false, height: 6, depth: 2 },
+      { style: 'tray', vessel: 'cryo', trayWall: 0.8, nozzle: 0.6 },
+      { style: 'single', vessel: 'pcr' },
+      { style: 'single', vessel: 'f50', autoBase: false, baseD: 50 },
+      { style: 'single', vessel: 'f15', grip: '4', sleeveT: 4 },
+      { style: 'single', vessel: 'f15', sleeveT: 1.2, nozzle: 0.8 },
+    ];
+    const ids = new Set(PARAMS.map((d) => d.id));
+    const seen = new Set();
+    const bad = [];
+    for (const over of troubled) {
+      const r = design(over);
+      for (const i of validate(r)) {
+        seen.add(i.key);
+        const steps = i.fix || [];
+        if (!i.key) bad.push(`no key: ${i.text}`);
+        else if (!steps.length) bad.push(`${i.key}: no guide`);
+        else if (!steps.every((st) => ids.has(st.id) && st.say)) bad.push(`${i.key}: a step names no setting or says nothing`);
+        // The guide starts at the first step that can be seen; there must be one.
+        else if (!steps.some((st) => shownFor(PARAMS.find((d) => d.id === st.id), r))) bad.push(`${i.key}: no step can be seen`);
+      }
+    }
+    check('every problem has a guide to settings that exist and can be seen', bad.length === 0 && seen.size >= 20, `${seen.size} problems; ${bad.join(' | ')}`);
+
+    // A guide that needs a switch flipped first: overlap -> "usual spacing" off, then the spacing.
+    const ov = validate(design({ vessel: 'f50', autoSpacing: false, pitchX: 20 })).find((i) => i.key === 'overlap');
+    const ovOn = validate(design({ vessel: 'f50', autoSpacing: true, pitchX: 20, fit: 2 }));
+    check('the overlap guide starts at the spacing once the usual spacing is off', ov && ov.fix[0].id === 'autoSpacing' && ov.fix[0].done({ autoSpacing: false }) && ov.fix[1].id === 'pitchX', ovOn.map((i) => i.key).join());
+  }
+
+  // ---- printers ----
+  {
+    const bambu = design({ printer: 'bambu' });
+    const typed = design({ printer: 'other', bedX: 300, bedY: 200, bedZ: 150 });
+    check('a printer from the list brings its bed; Other uses the typed size',
+      bambu.bedX === 256 && bambu.bedY === 256 && bambu.bedZ === 256 && typed.bedX === 300 && typed.bedY === 200 && typed.bedZ === 150);
+    check('an old link with its own bed size keeps it', fromQuery('bedX=300&bedY=250').printer === 'other' && fromQuery('cols=3').printer === 'ender' &&
+      resolve(fromQuery('bedX=300&bedY=250')).bedX === 300);
+    check('the printer survives a share link', fromQuery(toQuery(sanitize({ ...defaults(), printer: 'mk4' }))).printer === 'mk4');
+  }
+
+  // ---- explainer pictures ----
+  {
+    const broken = [];
+    for (const vessel of Object.keys(VESSELS)) {
+      for (const style of ['block', 'tray']) {
+        const svg = depthPicture(design({ style, vessel, feet: style === 'block' ? 'stack' : 'none', margin: 9 }));
+        if (!svg.startsWith('<svg') || /NaN|undefined|Infinity/.test(svg)) broken.push(`${style} ${vessel}`);
+      }
+      const v = VESSELS[vessel];
+      if (!v.custom && v.shape === 'round' && v.cone > 0) {
+        for (const on of [true, false]) {
+          const svg = conePicture(design({ style: 'single', vessel, coneSeat: true }), on);
+          if (!svg.startsWith('<svg') || /NaN|undefined|Infinity/.test(svg)) broken.push(`single ${vessel} ${on}`);
+        }
+      }
+    }
+    check('the section pictures draw for every tube, with every number filled in', broken.length === 0, broken.join(', '));
+  }
 
   // ---- links and files ----
   check('share link of the defaults is empty', toQuery(defaults()) === '');
@@ -453,6 +540,59 @@ try {
     const half = measure(open);
     check('the cut-open stand is one closed solid, its front half gone', half.watertight && near(half.size[2], measure(whole).size[2], 1e-6) &&
       open.indices.length !== whole.indices.length);
+  }
+
+  // ---- base plate for an open stand ----
+  {
+    const slim = { style: 'stand', vessel: 'f15', cols: 6, rows: 1, edge: 0, corner: 0 };
+    const tips = (r) => validate(r).some((i) => i.key === 'tips');
+    const bare = design(slim);
+    const pl = design({ ...slim, basePlate: true, plateReach: 15 });
+    check('a slim stand tips; its guide starts at the base plate', tips(bare) && validate(bare).find((i) => i.key === 'tips').fix[0].id === 'basePlate');
+    check('with a base plate it no longer tips, and no other feet', !tips(pl) && pl.feet === 'none' && !shownFor(PARAMS.find((d) => d.id === 'feet'), pl));
+    const plate = buildBasePlate(k, pl, 64);
+    const pm = measure(toMesh(plate));
+    // A square-cornered plate: the slab less the pocket (plateFit all round, pocket deep).
+    const want = (pl.sizeX + 6) * (pl.sizeY + 30) * 4 - (pl.sizeX + 0.6) * (pl.sizeY + 0.6) * 1.6;
+    check('the base plate: closed, its size, the pocket cut out', pm.watertight && near(pm.size[0], pl.sizeX + 6, 1e-6) && near(pm.size[1], pl.sizeY + 30, 1e-6) &&
+      near(pm.size[2], 4, 1e-6) && near(solidVolume(plate), want, 0.002), `${solidVolume(plate).toFixed(0)} vs ${want.toFixed(0)} mm3`);
+    const stand = measure(toMesh(buildHolder(k, pl, 48)));
+    check('the stand stands on the floor of the pocket', near(stand.zMin, 4 - 1.6, 1e-6) && near(pl.benchY, pl.sizeY + 30, 1e-9) && pl.outerZ === pl.height);
+    plate.delete();
+    const two = threeMf([{ mesh: { positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), indices: new Uint32Array([0, 1, 2]) }, name: 'Stand' },
+      { mesh: { positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), indices: new Uint32Array([0, 1, 2]) }, name: 'Base plate' }], 'two', defaults());
+    const doc2 = new DOMParser().parseFromString(new TextDecoder().decode(await zipRead(two.buffer, '3D/3dmodel.model')), 'application/xml');
+    check('the 3MF keeps the stand and its base plate as two objects', doc2.querySelectorAll('object').length === 2 && doc2.querySelectorAll('build item').length === 2 &&
+      doc2.querySelector('object[name="Base plate"]') !== null);
+    check('merging two meshes keeps every triangle', mergeMeshes({ positions: new Float32Array(9), indices: new Uint32Array([0, 1, 2]) }, { positions: new Float32Array(9), indices: new Uint32Array([0, 1, 2]) }).indices[5] === 5);
+  }
+
+  // ---- hole fit test ----
+  {
+    const t0 = fitTest({ ...defaults(), vessel: 'f15' });
+    check('fit test: five holes, 0.15 mm apart, centred on the current fit, labelled with it',
+      JSON.stringify(t0.fits) === JSON.stringify([-0.3, -0.15, 0, 0.15, 0.3]) && t0.labels.join(' ') === '-0.3 -0.15 0 +0.15 +0.3' && t0.holes[2] === 18);
+    check('fit test: shifted with the fit, held inside its range', fitTest({ ...defaults(), fit: 0.1 }).labels.join(' ') === '-0.2 -0.05 +0.1 +0.25 +0.4' &&
+      fitTest({ ...defaults(), fit: -0.5 }).fits[0] === -0.5 && fitLabel(0) === '0');
+    const built0 = buildFitTest(k, t0, design({ vessel: 'f15' }), 48);
+    const m0 = measure(toMesh(built0));
+    // Five through-holes: genus 5 (the cut-in numbers do not go through).
+    check('fit test strip: closed, the stated size, five through-holes', m0.watertight && near(m0.size[0], t0.sizeX, 1e-6) && near(m0.size[1], t0.sizeY, 1e-6) &&
+      near(m0.size[2], 8, 1e-6) && built0.genus() === 5, `genus ${built0.genus()}`);
+    built0.delete();
+    const bad = [];
+    for (const vessel of Object.keys(VESSELS)) {
+      for (const style of ['block', 'stand', 'tray', 'single']) {
+        const p = { ...defaults(), vessel, style };
+        const t = fitTest(p);
+        const s = buildFitTest(k, t, resolve(p), 32);
+        if (!measure(toMesh(s)).watertight || s.genus() !== 5 || t.digitH < 2.4) bad.push(`${style} ${vessel} (${t.digitH} mm, ${t.rows} rows)`);
+        s.delete();
+      }
+    }
+    check('fit test builds for every vessel and kind, with readable numbers', bad.length === 0, bad.join(', '));
+    const st = fitTest({ ...defaults(), style: 'stand', vessel: 'f15' });
+    check('for a holder printed on its side the strip has its teardrops and way up', st.tear && st.printUp === 'y' && !fitTest({ ...defaults(), vessel: 'f15' }).tear);
   }
 
   // ---- files ----

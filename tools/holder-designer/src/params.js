@@ -26,17 +26,31 @@ export function suggestStyle(v, count = 2) {
   return v.length >= 70 ? 'stand' : 'block';
 }
 
+/** Common printers and their build volume (width × depth × height, mm), for the printer menu. */
+export const PRINTERS = {
+  a1mini: { label: 'Bambu Lab A1 mini', bed: [180, 180, 180] },
+  bambu: { label: 'Bambu Lab A1 / P1S / X1C', bed: [256, 256, 256] },
+  mk4: { label: 'Prusa MK4', bed: [250, 210, 220] },
+  mini: { label: 'Prusa MINI+', bed: [180, 180, 180] },
+  ender: { label: 'Creality Ender-3 V3 / K1', bed: [220, 220, 250] },
+  k1max: { label: 'Creality K1 Max', bed: [300, 300, 300] },
+  neptune: { label: 'Elegoo Neptune 4', bed: [225, 225, 265] },
+  kobra: { label: 'Anycubic Kobra 2', bed: [220, 220, 250] },
+  other: { label: 'Other: type the size' },
+};
+
 export const TABS = [
   { id: 'tubes', label: 'Tubes', intro: (f) => f.style === 'single' ? 'Pick the tube this stand is for. For most stands this is all you need.' : 'Pick what goes in the holder and how many. For most holders this is all you need.' },
   { id: 'shape', label: 'Shape', intro: 'The tool picks a height and shape that suit your tube. Change them here if you want.' },
   { id: 'extras', label: 'Extras', intro: (f) => f.style === 'single' ? 'Optional extras for the base.' : f.style === 'stand' ? 'Optional: dividers, numbers for each position, and feet underneath. Leave them off for a plain stand.' : 'Optional: slots to see into the tubes, and feet underneath. Leave them off for a plain holder.' },
-  { id: 'print', label: 'Print', intro: 'Tell the tool about your printer. It checks that the holder fits and picks the best way to print it.' },
+  { id: 'print', label: 'Print', intro: 'How it prints: the filament and the way up. Your printer is picked at the top of the right-hand panel.' },
 ];
 
 const custom = (f) => Boolean(VESSELS[f.vessel].custom);
 const is = (...styles) => (f) => styles.includes(f.style);
 const many = (f) => f.style !== 'single';
 const manual = (f) => !f.autoSpacing && many(f);
+const plated = (f) => f.style === 'stand' && f.basePlate;
 const coned = (f) => !VESSELS[f.vessel].custom && VESSELS[f.vessel].cone > 0 && VESSELS[f.vessel].shape === 'round';
 
 export const PARAMS = [
@@ -63,7 +77,7 @@ export const PARAMS = [
     hint: 'Left free all round, so the holder slides into the box easily' },
 
   { id: 'fit', group: 'tubes', adv: true, label: 'Hole fit', unit: 'mm', min: -0.5, max: 2, step: 0.05, def: 0, ends: ['Tighter', 'Looser'],
-    hint: 'Leave at 0 at first. If a test print holds the tubes too tight or too loose, nudge this.' },
+    hint: 'Leave at 0 at first. The fit test above shows what to set: type the value printed by the best hole here.' },
   { id: 'autoSpacing', group: 'tubes', adv: true, label: 'Usual spacing for this tube', type: 'toggle', def: true, when: many,
     hint: 'On: the distance racks normally use, so caps do not bump into each other. Off: set your own.' },
   { id: 'pitchX', group: 'tubes', adv: true, label: 'Spacing left to right', unit: 'mm', min: 4, max: 150, step: 0.5, def: 20, when: manual,
@@ -159,13 +173,18 @@ export const PARAMS = [
   { id: 'pushHole', group: 'extras', head: 'Base', label: 'Push-out hole', type: 'toggle', def: true, when: is('single'),
     hint: 'A hole under the tube: push a tight tube up from below with a finger or pen. Spills drain out too.' },
 
-  { id: 'feet', group: 'extras', head: 'Underside', label: 'Feet', type: 'select', def: 'none', cards: true, when: many,
+  { id: 'basePlate', group: 'extras', head: 'Base plate', label: 'Separate base plate', type: 'toggle', def: false, when: is('stand'),
+    hint: 'A flat plate that reaches out in front of and behind the stand, so a tall stand does not tip. The stand drops into a shallow pocket in it. It is printed flat, beside the stand, so the stand itself still prints lying on its front.' },
+  { id: 'plateReach', group: 'extras', label: 'Reaches out', unit: 'mm', min: 5, max: 60, step: 1, def: 15, ends: ['Less', 'More'], when: plated,
+    hint: 'How far the plate reaches out in front of and behind the stand. Further is steadier but takes more bench space.' },
+
+  { id: 'feet', group: 'extras', head: 'Underside', label: 'Feet', type: 'select', def: 'none', cards: true, when: (f) => many(f) && !plated(f),
     options: {
       none: { label: 'Flat', hint: 'Sits flat on the bench. Simplest to print.' },
       stack: { label: 'Stacking feet', hint: 'Four short feet underneath and matching pockets in the top: empty holders stack neatly on each other. Lifts the holder by 2.5 mm.' },
       pads: { label: 'Rubber feet', hint: 'Four shallow round recesses underneath for stick-on rubber feet (bumpons), so the holder does not slide or rattle.' },
     } },
-  { id: 'padD', group: 'extras', label: 'Rubber foot diameter', unit: 'mm', min: 6, max: 25, step: 0.5, def: 10, when: (f) => f.feet === 'pads',
+  { id: 'padD', group: 'extras', label: 'Rubber foot diameter', unit: 'mm', min: 6, max: 25, step: 0.5, def: 10, when: (f) => f.feet === 'pads' && many(f) && !plated(f),
     hint: 'As printed on the pack; 8, 10 and 12.7 mm are common. The recesses come out 0.5 mm wider so the feet press in easily.' },
 
   // ---- Printing ----
@@ -178,10 +197,13 @@ export const PARAMS = [
       upright: { label: 'Upright', hint: 'Standing as shown, openings facing up' },
       side: { label: 'On its side', hint: 'Lying on one long side, openings facing sideways' },
     } },
-  { id: 'bedX', group: 'print', head: 'Your printer', label: 'Bed width', unit: 'mm', min: 100, max: 500, step: 5, def: 220,
-    hint: 'Look it up in your printer’s specs; 220 × 220 × 250 mm is common' },
-  { id: 'bedY', group: 'print', label: 'Bed depth', unit: 'mm', min: 100, max: 500, step: 5, def: 220 },
-  { id: 'bedZ', group: 'print', label: 'Highest print', unit: 'mm', min: 100, max: 500, step: 5, def: 250 },
+  // The printer: in the printer box at the top of the right-hand panel (group 'printer' is not a tab).
+  { id: 'printer', group: 'printer', label: 'Your printer', type: 'select', def: 'ender', options: PRINTERS,
+    hint: 'Sets the size of the print bed. Not in the list? Choose Other and type it in.' },
+  { id: 'bedX', group: 'printer', label: 'Bed width', unit: 'mm', min: 100, max: 500, step: 5, def: 220, when: (f) => f.printer === 'other',
+    hint: 'From your printer’s specs' },
+  { id: 'bedY', group: 'printer', label: 'Bed depth', unit: 'mm', min: 100, max: 500, step: 5, def: 220, when: (f) => f.printer === 'other' },
+  { id: 'bedZ', group: 'printer', label: 'Highest print', unit: 'mm', min: 100, max: 500, step: 5, def: 250, when: (f) => f.printer === 'other' },
 
   { id: 'infill', group: 'print', adv: true, label: 'Infill', unit: '%', min: 5, max: 100, step: 5, def: 15, ends: ['Light', 'Solid'],
     hint: 'How solid the inside is printed. 15 % is plenty for a rack.' },
@@ -212,6 +234,8 @@ export function sanitize(obj) {
       if (v !== '' && isFinite(n)) p[d.id] = Math.min(d.max, Math.max(d.min, n));
     }
   }
+  // A link or file from before the printer menu that has its own bed size keeps it.
+  if (obj.printer === undefined && ['bedX', 'bedY', 'bedZ'].some((k) => obj[k] !== undefined && p[k] !== defaults()[k])) p.printer = 'other';
   return p;
 }
 
@@ -283,8 +307,9 @@ function resolveSingle(r, p) {
   r.pushD = p.pushHole ? round(Math.min(8, r.coneTabs ? 2 * r.tabR - 2 : r.hole * 0.5)) : 0;
   if (r.pushD < 3) r.pushD = 0;
 
-  r.sizeX = r.sizeY = r.outerX = r.outerY = r.baseD;
-  r.outerZ = r.height;
+  r.sizeX = r.sizeY = r.outerX = r.outerY = r.benchX = r.benchY = r.baseD;
+  r.outerZ = r.benchZ = r.height;
+  r.basePlate = false;
   r.marginX = r.marginY = round((r.baseD - r.hole) / 2);
   r.cornerR = r.baseD / 2;
   r.footH = 0;
@@ -307,6 +332,8 @@ function resolveSingle(r, p) {
  */
 export function resolve(p) {
   const r = { ...p };
+  // A printer from the list brings its bed; "Other" uses the sizes typed in.
+  if (PRINTERS[p.printer]?.bed) [r.bedX, r.bedY, r.bedZ] = PRINTERS[p.printer].bed;
   const v = VESSELS[p.vessel];
   r.v = v.custom
     ? { label: v.label, shape: v.shape, body: p.customSize, hole: p.customSize + 0.5, top: p.customSize, length: p.customLength,
@@ -324,9 +351,9 @@ export function resolve(p) {
   r.gapX = round(r.pitchX - r.hole);
   r.gapY = round(r.pitchY - r.hole);
 
-  // Heights. By default a block or tray takes about half of a short vessel and
-  // a third of a long one; a stand is tall enough for the vessel to stand in it
-  // with its top sticking out to grab.
+  // Heights. By default a block is two thirds as tall as the vessel, on the floor (2 mm unless
+  // changed), a tray takes about a third of it, and a stand is tall enough for the vessel to stand
+  // in it with its top sticking out to grab.
   const L = r.v.length;
   if (p.style === 'stand') {
     // Standing on the bottom plate, the top fifth shows. Hanging by the rim (about 8 mm of cap
@@ -336,9 +363,12 @@ export function resolve(p) {
     r.depth = p.standFloor ? r.height - p.plateT : r.height;
     r.seat = p.standFloor ? p.plateT : null; // null: hangs by its rim
   } else {
-    if (p.autoHeight) {
-      r.depth = Math.round(p.style === 'tray' ? Math.min(L * 0.35, 20) : Math.max(8, Math.min(L * 0.5, 45)));
-      r.height = round(r.depth + (p.style === 'tray' ? p.floor : Math.max(p.floor, Math.min(12, r.depth * 0.6))));
+    if (p.autoHeight && p.style === 'tray') {
+      r.depth = Math.round(Math.min(L * 0.35, 20));
+      r.height = round(r.depth + p.floor);
+    } else if (p.autoHeight) {
+      r.height = Math.max(Math.round((L * 2) / 3), Math.ceil(p.floor + 3));
+      r.depth = round(r.height - p.floor);
     }
     r.depth = Math.min(r.depth, r.height - p.floor);
     r.seat = round(r.height - r.depth);
@@ -373,12 +403,25 @@ export function resolve(p) {
   // ---- extras ----
   // Stacking feet lift the holder; matching pockets in the top take the feet of the one above.
   r.footD = 8;
-  r.footH = p.feet === 'stack' ? 2.5 : 0;
+  // A separate base plate (stand only): the stand drops into a pocket in it, so it stands on the
+  // plate's floor under the pocket, lifted by that much. The plate is the foot, so no other feet.
+  r.basePlate = p.style === 'stand' && p.basePlate;
+  r.basePlateT = 4;
+  r.pocket = 1.6;
+  r.plateRim = 3;
+  r.plateFit = 0.3;
+  r.plateReach = p.plateReach;
+  if (r.basePlate) r.feet = 'none';
+  r.footH = r.basePlate ? round(r.basePlateT - r.pocket) : r.feet === 'stack' ? 2.5 : 0;
   r.footInset = Math.max(5.5, r.cornerR * 0.7);
   r.padInset = p.padD / 2 + 2.5;
+  // outer*: the part as it is printed (with a base plate, the stand alone); bench*: as it stands, plate included.
   r.outerX = r.sizeX;
   r.outerY = r.sizeY;
-  r.outerZ = round(r.height + r.footH);
+  r.outerZ = round(r.height + (r.basePlate ? 0 : r.footH));
+  r.benchX = r.basePlate ? round(r.sizeX + 2 * r.plateRim) : r.outerX;
+  r.benchY = r.basePlate ? round(r.sizeY + 2 * r.plateReach) : r.outerY;
+  r.benchZ = round(r.height + r.footH);
   // Windows run from just above the floor of the opening to a band left under the top.
   r.windowW = round((r.hole * p.windowW) / 100);
   r.windowLo = round((r.seat ?? 0) + 2);
@@ -388,7 +431,7 @@ export function resolve(p) {
 
   // Bevel and fillet, held back where there is no room for them.
   const room = Math.min(r.marginX, r.marginY);
-  r.edgeC = Math.max(0, Math.min(p.edge, room - 0.8, r.height / 4, p.feet === 'stack' ? 1.2 : Infinity,
+  r.edgeC = Math.max(0, Math.min(p.edge, room - 0.8, r.height / 4, r.feet === 'stack' ? 1.2 : Infinity,
     p.style === 'stand' ? Math.min(p.plateT, p.wallT) - 0.8 : Infinity));
   // Room for a fillet at the end walls: clear of the outermost openings, and of the next plate.
   const filletRoom = Math.max(0, Math.min(r.marginX - 0.6, (r.height - (p.standFloor ? 2 : 1) * p.plateT) / (p.guide ? 4.2 : 2.1)));
@@ -400,7 +443,7 @@ export function resolve(p) {
   // clear of stacking pockets, which need a flat top.
   const bend = Math.min(p.wallT, p.plateT);
   const frameMax = p.style === 'stand'
-    ? Math.min(filletRoom + bend, r.height / 2, r.sizeX / 4, p.feet === 'stack' ? Math.max(0, r.footInset - r.footD / 2 - 1) : Infinity)
+    ? Math.min(filletRoom + bend, r.height / 2, r.sizeX / 4, r.feet === 'stack' ? Math.max(0, r.footInset - r.footD / 2 - 1) : Infinity)
     : 0;
   r.frameRC = Math.floor(10 * Math.max(0, Math.min(p.frameR, frameMax)) + 1e-6) / 10;
   r.topFilletR = r.frameRC > bend ? Math.max(r.filletR, r.frameRC - bend) : r.filletR;
@@ -444,28 +487,69 @@ export function resolve(p) {
   return r;
 }
 
-/** 'error' = cannot be built; 'warn' = builds but deserves a look. */
+/**
+ * A step of the guide to a fix: the control (by parameter id) to take the user to, what to do
+ * there, and, where it can be told, when that step is done: done(params, resolved). The page
+ * (main.js) walks through the steps in order, skipping any whose control is hidden or which
+ * are done, until the problem is gone.
+ */
+const step = (id, say, done) => ({ id, say, done });
+
+/**
+ * 'error' = cannot be built; 'warn' = builds but deserves a look.
+ * Each problem has a `key` that stays the same while it lasts, and `fix`, the guide to fixing it.
+ */
 export function validate(r) {
   const out = [];
-  const err = (text) => out.push({ level: 'error', text });
-  const warn = (text) => out.push({ level: 'warn', text });
+  const err = (key, text, ...fix) => out.push({ level: 'error', key, text, fix });
+  const warn = (key, text, ...fix) => out.push({ level: 'warn', key, text, fix });
   const minWall = 2 * r.nozzle;
   if (r.style === 'single') return validateSingle(r, out, err, warn, minWall);
 
-  if (r.gapX < 0.4 || (r.rows > 1 && r.gapY < 0.4)) err('The holes overlap. Widen the spacing (Tubes › Fine-tuning).');
-  else {
+  // The usual ways there. A setting that only shows once its "usual" switch is off comes after that switch.
+  const ownSpacing = step('autoSpacing', 'Switch this off to set the spacing yourself.', (p) => !p.autoSpacing);
+  const spacingX = (say, done) => (r.style === 'tray' ? [step('trayWall', 'Make the walls between the pockets thicker.')] : [ownSpacing, step('pitchX', say, done)]);
+  const spacingY = (say, done) => (r.style === 'tray' ? [step('trayWall', 'Make the walls between the pockets thicker.')] : [ownSpacing, step('pitchY', say, done)]);
+  const spacing = (say) => (r.style === 'tray' ? spacingX(say) : [ownSpacing, step('pitchX', say), ...(r.rows > 1 ? [step('pitchY', say)] : [])]);
+  const ownHeight = step('autoHeight', 'Switch this off to set the height yourself.', (p) => !p.autoHeight);
+  const floorOn = step('standFloor', 'Switch the bottom plate on.', (p) => p.standFloor);
+
+  if (r.gapX < 0.4 || (r.rows > 1 && r.gapY < 0.4)) {
+    err('overlap', 'The holes overlap. Widen the spacing (Tubes › Fine-tuning).',
+      ...spacingX('Widen the spacing left to right until the holes no longer overlap.', (p, q) => q.gapX >= 0.4),
+      ...(r.rows > 1 ? [step('pitchY', 'Widen the spacing front to back as well.', (p, q) => q.gapY >= 0.4)] : []));
+  } else {
     const gap = r.rows > 1 ? Math.min(r.gapX, r.gapY) : r.gapX;
-    if (gap < minWall) warn(`Only ${gap.toFixed(1)} mm of material between holes; two nozzle widths (${minWall.toFixed(1)} mm) is the least that prints solidly.`);
+    if (gap < minWall) {
+      warn('thinGap', `Only ${gap.toFixed(1)} mm of material between holes; two nozzle widths (${minWall.toFixed(1)} mm) is the least that prints solidly.`,
+        ...spacing(`Widen the spacing until there are ${minWall.toFixed(1)} mm between the holes.`));
+    }
     const capGap = Math.min(r.pitchX, r.rows > 1 ? r.pitchY : Infinity) - r.v.top;
-    if (capGap < 0) warn(`Neighbouring caps overlap by ${(-capGap).toFixed(1)} mm at this spacing: the tubes will not all fit side by side. Widen the spacing (Tubes › Fine-tuning).`);
-    else if (capGap < 1.5 && r.v.top > r.hole) warn('The caps almost touch at this spacing, which makes single tubes hard to grab.');
+    if (capGap < 0) {
+      warn('caps', `Neighbouring caps overlap by ${(-capGap).toFixed(1)} mm at this spacing: the tubes will not all fit side by side. Widen the spacing (Tubes › Fine-tuning).`,
+        ...spacing(`Widen the spacing by at least ${Math.ceil(-capGap)} mm, so the caps fit side by side.`));
+    } else if (capGap < 1.5 && r.v.top > r.hole) {
+      warn('capsTouch', 'The caps almost touch at this spacing, which makes single tubes hard to grab.',
+        ...spacing('A millimetre or two more makes single tubes easy to grab.'));
+    }
   }
-  if (Math.min(r.marginX, r.marginY) < minWall) warn(`The border is thinner than two nozzle widths (${minWall.toFixed(1)} mm). Widen it (Tubes › Fine-tuning).`);
+  if (Math.min(r.marginX, r.marginY) < minWall) {
+    warn('border', `The border is thinner than two nozzle widths (${minWall.toFixed(1)} mm). Widen it (Tubes › Fine-tuning).`,
+      step('margin', `Widen the border to at least ${minWall.toFixed(1)} mm.`));
+  }
   if (r.tearOpenings) {
     const left = (r.rows > 1 ? Math.min(r.gapY, r.marginY) : r.marginY) - r.tearExtra;
-    if (left < minWall) warn(`The teardrop points leave only ${Math.max(0, left).toFixed(1)} mm of material above each opening. Widen the spacing front to back or the border (Tubes › Fine-tuning) by ${Math.ceil(minWall - left + 0.4)} mm.`);
+    if (left < minWall) {
+      const more = Math.ceil(minWall - left + 0.4);
+      warn('tearPoint', `The teardrop points leave only ${Math.max(0, left).toFixed(1)} mm of material above each opening. Widen the spacing front to back or the border (Tubes › Fine-tuning) by ${more} mm.`,
+        ...(r.rows > 1 && r.gapY < r.marginY ? spacingY(`Widen the spacing front to back by ${more} mm.`) : [step('margin', `Widen the border by ${more} mm.`)]),
+        step('printShape', 'Or switch teardrops off; the tops of the holes then sag a little when printed.'));
+    }
   }
-  if (r.fitBox && !r.boxFits) err('Not even one position fits this box with these margins. Enlarge the box or make the border narrower.');
+  if (r.fitBox && !r.boxFits) {
+    err('box', 'Not even one position fits this box with these margins. Enlarge the box or make the border narrower.',
+      step('boxX', 'Enlarge the box: check the inside width.'), step('boxY', 'And the inside depth.'), step('margin', 'Or make the border narrower.'));
+  }
 
   // Corner features need solid material: clear of the nearest opening by a small margin.
   const clearOf = (inset, radius) => {
@@ -477,64 +561,165 @@ export function validate(r) {
     return d - radius;
   };
   if (r.feet === 'stack') {
-    if (r.style === 'stand' && !r.standFloor) err('Stacking feet need the bottom plate to stand on. Switch it on (Shape).');
+    if (r.style === 'stand' && !r.standFloor) err('stackFloor', 'Stacking feet need the bottom plate to stand on. Switch it on (Shape).', floorOn);
     else if (clearOf(r.footInset, r.footD / 2 + 0.4) < 0.8) {
-      err(`Stacking feet need solid corners: widen the border (Tubes › Fine-tuning) by about ${Math.ceil(0.8 - clearOf(r.footInset, r.footD / 2 + 0.4) + 0.5)} mm.`);
-    } else if (r.style === 'stand' && r.plateT < 4) warn('The top plate is thin for the stacking pockets; 4 mm or more is better.');
+      const more = Math.ceil(0.8 - clearOf(r.footInset, r.footD / 2 + 0.4) + 0.5);
+      err('stackCorners', `Stacking feet need solid corners: widen the border (Tubes › Fine-tuning) by about ${more} mm.`,
+        step('margin', `Widen the border by about ${more} mm.`), step('feet', 'Or choose other feet.'));
+    } else if (r.style === 'stand' && r.plateT < 4) {
+      warn('stackPlate', 'The top plate is thin for the stacking pockets; 4 mm or more is better.', step('plateT', 'Make the plates 4 mm or thicker.'));
+    }
   }
   if (r.feet === 'pads') {
-    if (r.style === 'stand' && !r.standFloor) err('Stick-on feet need the bottom plate. Switch it on (Shape).');
-    else if (r.sizeX < 2 * r.padInset + r.padD || r.sizeY < 2 * r.padInset + r.padD * 0.2) warn('The holder is small for four stick-on feet of this size.');
-    else if ((r.style === 'stand' ? r.plateT : r.seat) < 2) warn('The floor is thin where the foot recesses go; 2 mm or more is safer.');
+    if (r.style === 'stand' && !r.standFloor) err('padsFloor', 'Stick-on feet need the bottom plate. Switch it on (Shape).', floorOn);
+    else if (r.sizeX < 2 * r.padInset + r.padD || r.sizeY < 2 * r.padInset + r.padD * 0.2) {
+      warn('padsSmall', 'The holder is small for four stick-on feet of this size.', step('padD', 'Pick smaller feet (the size is on the pack).'), step('feet', 'Or leave the feet off.'));
+    } else if ((r.style === 'stand' ? r.plateT : r.seat) < 2) {
+      warn('padsThin', 'The floor is thin where the foot recesses go; 2 mm or more is safer.',
+        r.style === 'stand' ? step('plateT', 'Make the plates 2 mm or thicker.') : step('floor', 'Make the floor 2 mm or thicker.'));
+    }
   }
-  if (r.windows && r.style !== 'stand' && !r.hasWindows) warn('The holes are too shallow for viewing slots; none are cut.');
-  if (r.chamfer - r.chamferC > 0.5) warn(`There is only room for a ${r.chamferC.toFixed(1)} mm funnel at the holes (Shape › Fine-tuning); a wider one would cut into the next hole, the edge or through the plate.`);
-  if (r.hasWindows && Math.min(r.marginY, r.rows > 1 ? r.gapY : Infinity) < 1.2) warn('The walls the viewing slots are cut through are very thin.');
-  if (r.style !== 'stand' && r.depth < 3) err('The holes are too shallow to hold anything.');
+  if (r.windows && r.style !== 'stand' && !r.hasWindows) {
+    warn('slotsShallow', 'The holes are too shallow for viewing slots; none are cut.',
+      ownHeight, step('depth', 'Make the holes deeper to make room for the slots.'), step('windows', 'Or switch the slots off.'));
+  }
+  if (r.chamfer - r.chamferC > 0.5) {
+    warn('funnel', `There is only room for a ${r.chamferC.toFixed(1)} mm funnel at the holes (Shape › Fine-tuning); a wider one would cut into the next hole, the edge or through the plate.`,
+      step('chamfer', `Set the funnel to ${r.chamferC.toFixed(1)} mm or less.`));
+  }
+  if (r.hasWindows && Math.min(r.marginY, r.rows > 1 ? r.gapY : Infinity) < 1.2) {
+    warn('slotWalls', 'The walls the viewing slots are cut through are very thin.',
+      ...(r.rows > 1 && r.gapY < r.marginY ? spacingY('Widen the spacing front to back.') : [step('margin', 'Widen the border.')]),
+      step('windowW', 'Or make the slots narrower.'));
+  }
+  if (r.style !== 'stand' && r.depth < 3) err('shallow', 'The holes are too shallow to hold anything.', ownHeight, step('depth', 'Make the holes at least 3 mm deep.'));
   if (r.style === 'stand' && r.seat === null && r.v.top <= r.hole + 0.3) {
-    err('Without a bottom plate the vessel hangs by its rim, but this one has no rim wider than the hole: it would fall through. Switch the bottom plate on (Shape).');
+    err('fallThrough', 'Without a bottom plate the vessel hangs by its rim, but this one has no rim wider than the hole: it would fall through. Switch the bottom plate on (Shape).', floorOn);
   }
   if (r.seat === null && r.rest < 2) {
-    err(`Hanging by its rim, the tube reaches the table. Make the stand at least ${Math.ceil(r.v.length - 6)} mm tall or switch the bottom plate on (Shape).`);
+    err('reachTable', `Hanging by its rim, the tube reaches the table. Make the stand at least ${Math.ceil(r.v.length - 6)} mm tall or switch the bottom plate on (Shape).`,
+      floorOn, ownHeight, step('height', `Or make the stand at least ${Math.ceil(r.v.length - 6)} mm tall.`));
   }
-  if (r.stickOut < 7.5) warn(`Only ${Math.max(0, r.stickOut).toFixed(0)} mm of the tube shows above the holder, which is little to grab.`);
+  if (r.stickOut < 7.5) {
+    warn('grab', `Only ${Math.max(0, r.stickOut).toFixed(0)} mm of the tube shows above the holder, which is little to grab.`,
+      ownHeight, r.style === 'stand' ? step('height', 'Make the stand lower, so more of the tube shows.') : step('depth', 'Make the holes shallower, so more of the tube shows.'));
+  }
   if (r.style !== 'stand' && r.depth < Math.min(r.v.length * 0.2, 12) && r.v.length > 30) {
-    warn('The holes are shallow for a tube this tall; it may tip over when knocked.');
+    warn('shallowTip', 'The holes are shallow for a tube this tall; it may tip over when knocked.', ownHeight, step('depth', 'Make the holes deeper.'));
   }
-  const tall = r.height + Math.max(0, r.stickOut);
-  if (tall > 3.2 * Math.min(r.sizeX, r.sizeY)) warn('Loaded, this holder is more than three times as tall as its base is deep, so it tips easily. Add a row or widen the border.');
+  const tall = r.height + r.footH + Math.max(0, r.stickOut);
+  if (tall > 3.2 * Math.min(r.benchX, r.benchY)) {
+    warn('tips', 'Loaded, this holder is more than three times as tall as its base is deep, so it tips easily. Add a row or widen the border.',
+      ...(r.style === 'stand'
+        ? [step('basePlate', 'Add a base plate: it reaches out in front and behind, so the stand stays this slim.', (p) => p.basePlate),
+           step('plateReach', 'Let the plate reach out further, until this note goes away.')]
+        : []),
+      step('rows', r.style === 'stand' ? 'Or add a row.' : 'Add a row.'), step('margin', 'Or widen the border.'));
+  }
 
   if (r.style === 'stand') {
     if (r.frameR - r.frameRC > 0.5) {
-      warn(r.feet === 'stack' && r.frameRC < 1
-        ? 'Stacking feet need a flat top for their pockets, so the frame corners stay square.'
-        : `There is only room to round the frame corners by ${r.frameRC.toFixed(0)} mm. A wider border (Tubes › Fine-tuning) allows more.`);
+      if (r.feet === 'stack' && r.frameRC < 1) {
+        warn('frameRound', 'Stacking feet need a flat top for their pockets, so the frame corners stay square.', step('feet', 'Choose other feet to round the corners.'));
+      } else {
+        warn('frameRound', `There is only room to round the frame corners by ${r.frameRC.toFixed(0)} mm. A wider border (Tubes › Fine-tuning) allows more.`,
+          step('margin', 'Widen the border for rounder corners.'), step('frameR', `Or round them by ${r.frameRC.toFixed(0)} mm.`));
+      }
     }
-    if (r.divXs.length && !r.divFits) err(`There is not enough room between the positions for a ${r.wallT} mm divider. Widen the spacing left to right (Tubes › Fine-tuning) or make the walls thinner (Shape › Fine-tuning).`);
-    if (r.dividers !== 'none' && !r.divXs.length) warn('There are too few positions for dividers at this interval; none are added.');
-    if (r.labels !== 'none' && !r.standFloor) warn('Position numbers stand on the bottom plate. Switch it on (Shape) to get them.');
-    else if (r.labelsOn && r.labelT < 1.2) warn('The border at the front is too narrow for number pads; widen it (Tubes › Fine-tuning).');
-    else if (r.labelsOn && r.labels === 'digits' && r.digitH < 4) warn('The pads are small for printed numbers; they may come out hard to read. Use bigger pads or sticker pads.');
+    if (r.divXs.length && !r.divFits) {
+      err('dividerRoom', `There is not enough room between the positions for a ${r.wallT} mm divider. Widen the spacing left to right (Tubes › Fine-tuning) or make the walls thinner (Shape › Fine-tuning).`,
+        ...spacingX('Widen the spacing left to right.', (p, q) => q.gapX >= q.wallT + 1.2), step('wallT', 'Or make the walls thinner.'), step('dividers', 'Or leave the dividers out.'));
+    }
+    if (r.dividers !== 'none' && !r.divXs.length) {
+      warn('dividerFew', 'There are too few positions for dividers at this interval; none are added.', step('dividers', 'Pick a smaller interval, or none.'));
+    }
+    if (r.labels !== 'none' && !r.standFloor) warn('labelsFloor', 'Position numbers stand on the bottom plate. Switch it on (Shape) to get them.', floorOn);
+    else if (r.labelsOn && r.labelT < 1.2) warn('labelsBorder', 'The border at the front is too narrow for number pads; widen it (Tubes › Fine-tuning).', step('margin', 'Widen the border to make room for the pads.'));
+    else if (r.labelsOn && r.labels === 'digits' && r.digitH < 4) {
+      warn('digitsSmall', 'The pads are small for printed numbers; they may come out hard to read. Use bigger pads or sticker pads.',
+        step('labelD', 'Make the pads bigger.'), step('labels', 'Or use sticker pads.'));
+    }
   }
   return out;
 }
 
 function validateSingle(r, out, err, warn, minWall) {
-  if (r.stickOut < 7.5) warn(`Only ${Math.max(0, r.stickOut).toFixed(0)} mm of the tube shows above the sleeve, which is little to grab.`);
-  if (r.base === 'ring' && !r.ringFits) warn('This base is too small for a spoked ring, so it is a solid disc. Widen the base (Shape) for a ring.');
-  if (r.pushHole && !r.pushD) warn('This tube is too thin for a push-out hole; none is cut.');
-  if (r.depth < Math.min(r.v.length * 0.2, 12)) warn('The sleeve is short for a tube this tall; it may tip in the sleeve.');
-  if (r.rest + r.v.length > 1.6 * r.baseD) warn('The base is narrow for a tube this tall; the full stand tips easily. Switch on the usual base size (Shape).');
-  if (r.sleeveT < minWall) warn(`The sleeve wall is thinner than two nozzle widths (${minWall.toFixed(1)} mm).`);
-  if (r.slots && r.sleeveT > 3.2) warn('Fingers this thick hardly flex; a sleeve wall of 2 to 3 mm springs better.');
-  if (r.slots && r.height - r.slotLo < 10) warn('The sleeve is too short for springy fingers.');
-  if (r.chamfer - r.chamferC > 0.5) warn(`There is only room for a ${r.chamferC.toFixed(1)} mm funnel at the top of the sleeve (Shape › Fine-tuning).`);
+  const ownHeight = step('autoHeight', 'Switch this off to set the height yourself.', (p) => !p.autoHeight);
+  if (r.stickOut < 7.5) {
+    warn('grab', `Only ${Math.max(0, r.stickOut).toFixed(0)} mm of the tube shows above the sleeve, which is little to grab.`,
+      ownHeight, step('height', 'Make the sleeve lower, so more of the tube shows.'));
+  }
+  if (r.base === 'ring' && !r.ringFits) {
+    warn('ring', 'This base is too small for a spoked ring, so it is a solid disc. Widen the base (Shape) for a ring.',
+      step('autoBase', 'Switch this off to set the base yourself.', (p) => !p.autoBase), step('baseD', 'Widen the base until it can be a ring.'), step('base', 'Or choose the solid disc.'));
+  }
+  if (r.pushHole && !r.pushD) warn('pushHole', 'This tube is too thin for a push-out hole; none is cut.', step('pushHole', 'Switch the push-out hole off.'));
+  if (r.depth < Math.min(r.v.length * 0.2, 12)) warn('sleeveShort', 'The sleeve is short for a tube this tall; it may tip in the sleeve.', ownHeight, step('height', 'Make the sleeve taller.'));
+  if (r.rest + r.v.length > 1.6 * r.baseD) {
+    warn('narrowBase', 'The base is narrow for a tube this tall; the full stand tips easily. Switch on the usual base size (Shape).',
+      step('autoBase', 'Switch the usual base size on.', (p) => p.autoBase), step('baseD', 'Or widen the base yourself.'));
+  }
+  if (r.sleeveT < minWall) warn('sleeveThin', `The sleeve wall is thinner than two nozzle widths (${minWall.toFixed(1)} mm).`, step('sleeveT', `Make the wall ${minWall.toFixed(1)} mm or thicker.`));
+  if (r.slots && r.sleeveT > 3.2) warn('fingersThick', 'Fingers this thick hardly flex; a sleeve wall of 2 to 3 mm springs better.', step('sleeveT', 'Set the wall to 2 to 3 mm.'), step('grip', 'Or use a closed sleeve.'));
+  if (r.slots && r.height - r.slotLo < 10) warn('fingersShort', 'The sleeve is too short for springy fingers.', ownHeight, step('height', 'Make the sleeve taller.'), step('grip', 'Or use a closed sleeve.'));
+  if (r.chamfer - r.chamferC > 0.5) {
+    warn('funnel', `There is only room for a ${r.chamferC.toFixed(1)} mm funnel at the top of the sleeve (Shape › Fine-tuning).`, step('chamfer', `Set the funnel to ${r.chamferC.toFixed(1)} mm or less.`));
+  }
   return out;
+}
+
+/** A fit value as printed on the test strip: "0", "+0.15", "-0.3". */
+export const fitLabel = (v) => (Math.abs(v) < 1e-9 ? '0' : (v > 0 ? '+' : '-') + String(Number(Math.abs(v).toFixed(2))));
+
+/**
+ * The hole fit test: a short strip with five holes, from 0.3 mm tighter to 0.3 mm looser than the
+ * current "Hole fit" in steps of 0.15 (held inside that setting's range), each with its fit value
+ * cut into the top in front of it. The holes are the holder's own: same shape, funnel and, for a
+ * holder printed on its side, teardrops and the same way up. Origin at the centre, z = 0 on the table.
+ */
+export function fitTest(p) {
+  const r = resolve(p);
+  const d = PARAMS.find((x) => x.id === 'fit');
+  const centre = Math.min(d.max - 0.3, Math.max(d.min + 0.3, p.fit));
+  const fits = [-0.3, -0.15, 0, 0.15, 0.3].map((s) => round(centre + s));
+  const holes = fits.map((f) => round(r.v.hole + f));
+  const big = Math.max(...holes);
+  const across = big; // a square opening is `hole` wide across its flat sides, as a round one
+  const gap = round(Math.max(3, 2 * r.nozzle + 1.6));
+  const pitch = round(across + gap);
+  const labels = fits.map(fitLabel);
+  // Label size: a label is as wide as its glyphs (2 units, a dot 1) and the gaps between them
+  // (0.9), a unit a quarter of the height. Where one row is too tight, they alternate between two.
+  const units = Math.max(...labels.map((t) => [...t].reduce((s, ch) => s + (ch === '.' ? 1 : 2), 0) + 0.9 * (t.length - 1)));
+  let rows = 1;
+  let digitH = Math.min(5, ((pitch - 1.5) / units) * 4);
+  if (digitH < 3.5) {
+    rows = 2;
+    digitH = Math.min(5, ((2 * pitch - 1.5) / units) * 4);
+  }
+  digitH = round(digitH, 1);
+  const margin = 3;
+  const tear = r.tearOpenings;
+  const tearExtra = tear ? round(big / 8) : 0;
+  const band = round(rows * (digitH + 1.5) + 1);
+  const sizeX = round(4 * pitch + across + 2 * margin);
+  const sizeY = round(across + tearExtra + 2 * margin + band);
+  const holeY = round(sizeY / 2 - margin - tearExtra - across / 2);
+  const xs = fits.map((_, i) => round((i - 2) * pitch));
+  // Row 0 is next to the holes; with two rows the odd labels go in the row in front of it.
+  const labelY = fits.map((_, i) => round(-sizeY / 2 + band - 1 - digitH / 2 - (rows === 2 && i % 2 ? digitH + 1.5 : 0)));
+  return {
+    v: r.v, fits, holes, labels, xs, labelY, pitch, rows, digitH,
+    digitW: round(Math.max(0.8, 2 * r.nozzle)),
+    sizeX, sizeY, holeY, H: 8, tear, tearExtra,
+    chamferC: Math.min(r.chamferC, 1, gap / 2 - 0.4),
+    printUp: r.printUp,
+  };
 }
 
 /** What decides the shape (print settings and labels do not). */
 export function shapeKey(r) {
-  const skip = new Set(['nozzle', 'material', 'infill', 'bedX', 'bedY', 'bedZ', 'printDir', 'printShape']);
+  const skip = new Set(['nozzle', 'material', 'infill', 'printer', 'bedX', 'bedY', 'bedZ', 'printDir', 'printShape']);
   const o = {};
   for (const d of PARAMS) if (!skip.has(d.id)) o[d.id] = r[d.id];
   return JSON.stringify([o, r.hole, r.pitchX, r.pitchY, r.height, r.depth, r.cols, r.rows, r.sizeX, r.sizeY, r.tearOpenings, r.peakWindows, r.chamferC, r.slotFrontOnly, r.edgeC, r.filletR, r.frameRC, r.topFilletR, r.divXs, r.labelsOn, r.labelD, r.labelT, r.baseD, r.coneTabs, r.seatZ]);

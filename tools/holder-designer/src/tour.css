@@ -105,7 +105,7 @@ body {
 }
 .note span:empty { display: none; }
 
-/* Narrow (a phone, or a frame taller than wide; set by tour.js): labels above and below
+/* Narrow (a phone, or a frame not much wider than tall; set by tour.js): labels above and below
    the model with their titles only, and the settings as a strip of chips along the bottom. */
 #stage.narrow .note { max-width: none; white-space: nowrap; padding: 3px 7px 4px; border-radius: 6px; }
 #stage.narrow .note span { display: none; }

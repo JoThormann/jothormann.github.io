@@ -181,3 +181,150 @@ export function createThumbnailer(w = 240, h = 176) {
     return renderer.domElement.toDataURL('image/png');
   };
 }
+
+/**
+ * The holder on the print bed, the way it will be printed, turning slowly, on a gridded bed of
+ * the printer's size. Too big: the holder and the bed's edge in red.
+ * show(mesh, { bed: [x, y, z], up: 'z' | 'y', turn: bool, fits: bool, plate? }); `turn` = a quarter
+ * turn on the bed, so a long holder lies along the bed's longer side; `plate` = a stand's separate
+ * base plate (a mesh), laid flat beside it, 10 mm apart.
+ */
+export function createBedView(el) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  el.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(28, 1, 1, 20000);
+  camera.up.set(0, 0, 1);
+  lights(scene, camera);
+  const mat = materials();
+  const bad = new THREE.MeshStandardMaterial({ metalness: 0.05, roughness: 0.7 });
+  const plate = new THREE.MeshStandardMaterial({ roughness: 0.95, metalness: 0 });
+  const grid = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.55 });
+  const box = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.35 });
+  const rim = new THREE.LineBasicMaterial();
+  function theme() {
+    mat.theme();
+    const d = dark.matches;
+    bad.color.set(d ? 0xf0938b : 0xd2655c);
+    plate.color.set(d ? 0x2b3538 : 0xd9ddda);
+    grid.color.set(d ? 0x4a585c : 0xa9b2b1);
+    box.color.set(d ? 0x8aa0a4 : 0x55676c);
+    render();
+  }
+  dark.addEventListener('change', theme);
+
+  const root = new THREE.Group();
+  scene.add(root);
+  let fit = { radius: 200, center: new THREE.Vector3() };
+  let t0 = performance.now();
+  let visible = true;
+  let looping = false;
+  const still = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function clear() {
+    for (const c of [...root.children]) {
+      root.remove(c);
+      c.traverse((o) => o.geometry && o.geometry.dispose());
+    }
+  }
+  function show(mesh, o) {
+    clear();
+    const [bx, by, bz] = o.bed;
+    const bedMesh = new THREE.Mesh(new THREE.BoxGeometry(bx, by, 2), plate);
+    bedMesh.position.z = -1.01;
+    const lines = [];
+    for (let x = -bx / 2; x <= bx / 2 + 0.1; x += 20) lines.push(x, -by / 2, 0.05, x, by / 2, 0.05);
+    for (let y = -by / 2; y <= by / 2 + 0.1; y += 20) lines.push(-bx / 2, y, 0.05, bx / 2, y, 0.05);
+    const gridGeo = new THREE.BufferGeometry();
+    gridGeo.setAttribute('position', new THREE.Float32BufferAttribute(lines, 3));
+    root.add(bedMesh, new THREE.LineSegments(gridGeo, grid));
+    let height = 20;
+    let [wide, deep] = [bx, by];
+    const solid = (m) => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(m.positions, 3));
+      geo.setIndex(new THREE.BufferAttribute(m.indices, 1));
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(toCreasedNormals(geo, Math.PI / 6), o.fits ? mat.body : bad));
+      g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), mat.edge));
+      geo.dispose();
+      return g;
+    };
+    if (mesh) {
+      // The parts lie along the bed's depth: the holder, then (a stand's) base plate in front of it.
+      const layout = new THREE.Group();
+      const part = solid(mesh);
+      // Lying on a long side: the model's +y (where the teardrops point) goes up.
+      if (o.up === 'y') part.rotation.x = Math.PI / 2;
+      layout.add(part);
+      part.updateMatrixWorld(true);
+      const b = new THREE.Box3().setFromObject(part);
+      part.position.set(-(b.min.x + b.max.x) / 2, -b.min.y, -b.min.z);
+      if (o.plate) {
+        const plate = solid(o.plate);
+        const pb = new THREE.Box3().setFromObject(plate);
+        plate.position.set(-(pb.min.x + pb.max.x) / 2, -pb.max.y - 10, -pb.min.z);
+        layout.add(plate);
+      }
+      if (o.turn) layout.rotation.z = Math.PI / 2;
+      layout.updateMatrixWorld(true);
+      const all = new THREE.Box3().setFromObject(layout);
+      layout.position.set(-(all.min.x + all.max.x) / 2, -(all.min.y + all.max.y) / 2, 0);
+      root.add(layout);
+      height = all.max.z - all.min.z;
+      wide = Math.max(bx, all.max.x - all.min.x);
+      deep = Math.max(by, all.max.y - all.min.y);
+    }
+    if (!o.fits) {
+      const edge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(
+        [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => new THREE.Vector3((sx * bx) / 2, (sy * by) / 2, 0.3))), rim);
+      rim.color.set(dark.matches ? 0xf0938b : 0xc0392b);
+      root.add(edge);
+    }
+    // Frame the bed and the holder together (a holder too big for the bed sticks out over it).
+    fit = { radius: Math.hypot(wide, deep, Math.max(height, 30)) / 2, center: new THREE.Vector3(0, 0, height * 0.25) };
+    render();
+    wake();
+  }
+
+  function render(now = performance.now()) {
+    const w = el.clientWidth;
+    const h = el.clientHeight;
+    if (!w || !h) return;
+    const az = (-62 + (still() ? 0 : ((now - t0) / 1000) * 8)) * (Math.PI / 180);
+    const el1 = 32 * (Math.PI / 180);
+    const dist = fitDistance(camera, fit.radius, 1.02);
+    camera.position.set(Math.cos(el1) * Math.cos(az), Math.cos(el1) * Math.sin(az), Math.sin(el1)).multiplyScalar(dist).add(fit.center);
+    camera.lookAt(fit.center);
+    renderer.render(scene, camera);
+  }
+  function loop(now) {
+    if (!visible || document.hidden || still()) {
+      looping = false;
+      return;
+    }
+    looping = true;
+    requestAnimationFrame(loop);
+    render(now);
+  }
+  function wake() {
+    if (!looping && visible && !document.hidden && !still()) requestAnimationFrame(loop);
+  }
+  document.addEventListener('visibilitychange', wake);
+  new IntersectionObserver((en) => {
+    visible = en[0].isIntersecting;
+    wake();
+  }).observe(el);
+  new ResizeObserver(() => {
+    const w = el.clientWidth;
+    const h = el.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    render();
+  }).observe(el);
+  theme();
+  return { show };
+}

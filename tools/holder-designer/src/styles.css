@@ -121,9 +121,74 @@ main {
   color: var(--ink-2); text-align: center; max-width: 80%;
 }
 #issues { position: absolute; left: 12px; right: 12px; top: 12px; display: grid; gap: 6px; }
-.issue { padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+.issue { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 8px 10px 8px 12px; border-radius: 6px; font-size: 14px; }
+.issue > span { flex: 1 1 240px; }
 .issue.error { background: var(--bad-bg); color: var(--bad); }
 .issue.warn { background: var(--caution-bg); color: var(--caution); }
+/* "Show me how": walks the user to the setting that fixes it (main.js, guides). */
+.issue .how {
+  flex: none; padding: 5px 11px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  background: var(--panel); color: inherit; border: 1px solid currentColor; white-space: nowrap;
+}
+.issue .how:hover { background: color-mix(in srgb, currentColor 10%, var(--panel)); }
+.issue.error .how { background: var(--bad); color: var(--bad-bg); border-color: var(--bad); }
+.issue .how.on { background: var(--panel); color: inherit; }
+
+/* The setting the guide points at: ringed, with what to do above it. */
+.field.guided { position: relative; outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 4px; animation: guided 1.6s ease-out 2; }
+@keyframes guided { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+.coach {
+  position: relative; display: grid; gap: 2px; margin: 0 0 12px; padding: 8px 10px 9px; border-radius: 7px;
+  background: var(--accent); color: var(--on-accent); font-size: 13.5px; line-height: 1.35;
+}
+.coach::after {
+  content: ""; position: absolute; left: 18px; bottom: -6px; width: 12px; height: 12px;
+  background: var(--accent); transform: rotate(45deg);
+}
+.coach .n { font-size: 12px; font-weight: 600; opacity: 0.85; }
+.coach .acts { display: flex; gap: 6px; margin-top: 5px; }
+.coach .acts button {
+  padding: 2px 9px; border-radius: 5px; font-size: 12.5px; background: transparent; color: inherit; border: 1px solid currentColor;
+}
+.coach .acts button:hover { background: color-mix(in srgb, var(--on-accent) 14%, transparent); }
+@media (prefers-reduced-motion: reduce) { .field.guided { animation: none; } }
+
+/* The reset arrow of a fine-tuning setting: faint at the usual value, lit when changed. */
+.reset {
+  flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; border-radius: 6px;
+  background: none; color: var(--ink-2); opacity: 0.35; cursor: default;
+}
+.reset svg { width: 14px; height: 14px; }
+.reset.on { color: var(--accent); opacity: 1; cursor: pointer; }
+.reset.on:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+/* "Why teardrops?" and the like: a link that opens the introduction at its slide. */
+.why { padding: 0; background: none; border: 0; color: var(--accent); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+/* The introduction (first visit, or "Intro" in the header). */
+dialog.welcome {
+  width: min(960px, 94vw); max-height: 92vh; padding: 0; border: 0; border-radius: 12px; overflow: hidden;
+  background: var(--panel); color: var(--ink); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+dialog.welcome[open] { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+dialog.welcome::backdrop { background: rgba(10, 20, 22, 0.55); }
+.welstage { position: relative; min-height: min(500px, 70vh); background: var(--stage); }
+.welstage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+.weltext { display: flex; flex-direction: column; gap: 10px; padding: 28px 26px 22px; min-width: 0; }
+.weltext h2 { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.2; }
+.welbody { margin: 0; font-size: 15px; line-height: 1.5; }
+.welbar { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 14px; }
+.welbar .dots { display: flex; gap: 6px; flex: 1; }
+.welbar .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.welbar .dots i.on { background: var(--accent); }
+.welbar [hidden] { display: none; }
+@media (max-width: 760px) {
+  dialog.welcome[open] { grid-template-columns: minmax(0, 1fr); overflow: auto; }
+  .welstage { min-height: 0; height: 42vh; }
+  .weltext { padding: 18px 18px 16px; }
+  .weltext h2 { font-size: 19px; }
+  .welbody { font-size: 14.5px; }
+}
 /* the view bar: show tubes, fit view */
 .viewbar {
   position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%); z-index: 2;
@@ -475,3 +540,123 @@ details.more.changed small { color: var(--accent); font-weight: 600; }
 .foot a { color: var(--accent); font-weight: 600; }
 .noscript, .noview { padding: 24px; text-align: center; color: var(--ink-2); }
 .noview { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; }
+
+/* Explainers: the "?" beside a setting, and the panel it opens (main.js, explain.js). */
+.info {
+  flex: none; display: inline-grid; place-items: center; width: 19px; height: 19px; padding: 0; border-radius: 50%;
+  background: none; border: 1.5px solid var(--accent); color: var(--accent); font-size: 12px; font-weight: 700; line-height: 1;
+}
+.info:hover, .info[aria-expanded="true"] { background: var(--accent); color: var(--on-accent); }
+.info[hidden] { display: none; }
+
+.explainer {
+  position: fixed; z-index: 40; width: 432px; max-height: calc(100vh - 80px); overflow: auto;
+  padding: 14px 16px 16px; border-radius: 12px; background: var(--panel); color: var(--ink);
+  border: 1px solid var(--line); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+}
+.explainer::before {
+  content: ""; position: absolute; left: -7px; top: var(--arrow, 30px); width: 12px; height: 12px;
+  background: var(--panel); border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: rotate(45deg);
+}
+.explainer.sheet { left: 8px; right: 8px; bottom: 8px; top: auto; width: auto; max-height: 72vh; }
+.explainer.sheet::before { display: none; }
+.xhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.xhead h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.xclose { background: none; color: var(--ink-2); font-size: 22px; line-height: 1; padding: 2px 6px; }
+.xclose:hover { color: var(--ink); }
+.xpic { margin: 8px -4px 4px; }
+.xpic svg { display: block; width: 100%; height: auto; }
+.xtext p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.45; }
+
+/* The section pictures. */
+.xpic .mat { fill: url(#xh); stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; }
+.xpic .hb { fill: color-mix(in srgb, var(--track) 55%, var(--panel)); }
+.xpic .hl { stroke: color-mix(in srgb, var(--ink-2) 45%, transparent); stroke-width: 1.1; }
+.xpic .table { stroke: var(--ink-2); stroke-width: 1.5; }
+.xpic .brk { fill: none; stroke: var(--ink-2); stroke-width: 1; }
+.xpic .tube { fill: color-mix(in srgb, #3d8fb0 22%, transparent); stroke: #3d8fb0; stroke-width: 1.3; stroke-linejoin: round; }
+.xpic text { font: 11.5px/1 Bahnschrift, "DIN Alternate", "Segoe UI", system-ui, sans-serif; fill: var(--ink-2); paint-order: stroke; stroke: var(--panel); stroke-width: 3px; stroke-linejoin: round; }
+.xpic .dim line { stroke: var(--ink-2); stroke-width: 1; }
+.xpic .mk { fill: var(--ink-2); }
+.xpic .mk.k { fill: var(--accent); }
+.xpic .dim.k line { stroke: var(--accent); stroke-width: 1.6; }
+.xpic .dim.k text { fill: var(--accent); font-weight: 700; font-size: 12.5px; }
+.xpic .note line { stroke: var(--ink-2); stroke-width: 0.9; }
+.xpic .note circle { fill: var(--ink); }
+.xpic .note text { fill: var(--ink); }
+.xpic .ptitle { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.xpic .mine { fill: color-mix(in srgb, var(--accent) 7%, transparent); stroke: var(--accent); stroke-width: 1.3; }
+.xpic .minet { fill: var(--accent); font-weight: 600; }
+
+/* The tube drops in; without ribs it lands on its point and rocks. */
+.explainer.play .drop { animation: xdrop 3.6s cubic-bezier(.5, 0, .7, 1) 1 both; }
+.explainer.play .rock { animation: xrock 3.6s ease-in-out 1 both; }
+@keyframes xdrop {
+  0% { transform: translateY(calc(-1 * var(--drop))); opacity: 0; }
+  12% { opacity: 1; }
+  38% { transform: translateY(0); }
+  44% { transform: translateY(-3px); }
+  50%, 100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes xrock {
+  0%, 46% { transform: rotate(0); }
+  56% { transform: rotate(-5deg); }
+  66% { transform: rotate(4deg); }
+  76% { transform: rotate(-3deg); }
+  86%, 100% { transform: rotate(-2.5deg); }
+}
+
+/* The printer box at the top of the right-hand panel: the printer, the holder on its bed, the fit. */
+#printer { padding-top: 4px; }
+#printer .field:first-child { margin-top: 10px; }
+#bedview { position: relative; height: 200px; margin-top: 12px; border-radius: 10px; background: var(--stage); overflow: hidden; }
+#bedview canvas { display: block; width: 100%; height: 100%; }
+.bedfit { display: grid; gap: 2px; margin: 8px 0 0; padding: 8px 10px 9px; border-radius: 8px; font-size: 12.5px; line-height: 1.4; }
+.bedfit b { font-size: 14px; font-weight: 600; }
+.bedfit.good { background: color-mix(in srgb, var(--good) 12%, var(--panel)); color: var(--good); }
+.bedfit.good b::before { content: "\2713  "; }
+.bedfit.bad { background: var(--bad-bg); color: var(--bad); }
+.bedfit.bad b::before { content: "!  "; }
+.bedfit span { color: var(--ink-2); }
+.bedfit.bad span { color: var(--bad); }
+#values .summary { margin-top: 16px; }
+.summary .tubes b { font-size: 15px; white-space: normal; }
+details.tips { margin-top: 12px; border-radius: 8px; background: color-mix(in srgb, var(--stage) 60%, transparent); padding: 0 12px; }
+details.tips > summary { display: flex; align-items: center; gap: 8px; padding: 10px 0; cursor: pointer; font-size: 14px; font-weight: 600; list-style: none; }
+details.tips > summary::-webkit-details-marker { display: none; }
+details.tips > summary::before { content: "+"; width: 12px; color: var(--accent); font-weight: 600; }
+details.tips[open] > summary::before { content: "\2212"; }
+details.tips small { margin-left: auto; font-size: 12.5px; font-weight: 400; color: var(--ink-2); }
+details.tips .checks { margin: 0 0 10px; }
+
+/* The hole fit test window. */
+dialog.fittest {
+  width: min(520px, 94vw); padding: 20px 22px 18px; border: 0; border-radius: 12px;
+  background: var(--panel); color: var(--ink); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+dialog.fittest::backdrop { background: rgba(10, 20, 22, 0.55); }
+dialog.fittest h2 { margin: 0 0 10px; font-size: 19px; font-weight: 600; }
+dialog.fittest img { display: block; width: 100%; aspect-ratio: 240 / 176; object-fit: contain; border-radius: 8px; background: var(--stage); }
+dialog.fittest p, dialog.fittest ol { margin: 12px 0 0; font-size: 14.5px; line-height: 1.45; }
+dialog.fittest ol { padding-left: 20px; }
+dialog.fittest li + li { margin-top: 4px; }
+.ftbar { display: flex; justify-content: flex-end; align-items: center; gap: 14px; margin-top: 16px; }
+
+/* "Will your tubes fit?": the fit test, leading the tubes' fine-tuning. */
+.fitcard {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start;
+  margin: 12px 0 4px; padding: 12px; border-radius: 10px;
+  background: var(--panel); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.fitcard b { display: block; font-size: 14px; font-weight: 600; }
+.fitcard span { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.38; color: var(--ink-2); }
+.fitpic { width: 74px; margin-top: 2px; }
+.fitpic rect { fill: var(--stage); stroke: var(--ink-2); stroke-width: 1; }
+.fitpic circle { fill: var(--panel); stroke: var(--ink-2); stroke-width: 1; }
+.fitpic circle.mid { stroke: var(--accent); stroke-width: 1.8; }
+.fitpic line { stroke: var(--ink-2); stroke-width: 1.2; }
+.ftbtn {
+  margin-top: 9px; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  background: var(--accent); color: var(--on-accent);
+}
+.ftbtn:hover { filter: brightness(1.1); }
